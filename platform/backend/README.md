@@ -153,6 +153,8 @@ curl -X DELETE http://127.0.0.1:8000/api/v1/environments/<environment_id>
 * `PATCH /environments/{id}` 使用局部更新，未显式传入的字段会保留
 * `DELETE /environments/{id}` 删除成功后，环境目录应不再返回该资源
 
+R01 起运行模式必须显式指定，长任务由后台 worker 执行。取消、复跑和备份见 [可信运行](../../docs/reliable-runs.md)。
+
 ### 主动创建一条 run
 
 ```bash
@@ -163,7 +165,14 @@ curl -X POST http://127.0.0.1:8000/api/v1/runs \
     "trigger_source": "manual",
     "requested_by": "newbie",
     "payload": {
-      "source": "platform/backend/README.md"
+      "execution_mode": "standard_run",
+      "transport_mode": "mock",
+      "run_definition": {"cases": [{
+        "case_id": "check", "title": "检查业务码",
+        "request": {"url": "https://example.test"},
+        "assertions": [{"name": "code", "selector": "code", "expected": 200}]
+      }]},
+      "mock_response": {"body": {"code": 200}}
     }
   }'
 ```

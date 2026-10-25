@@ -1,10 +1,12 @@
-"""平台后端骨架的公共导出。
+"""应用导出延迟加载；迁移命令不需要先导入整套 HTTP/worker。"""
 
-这里故意把真正的 Python 包放在 ``platform/backend/src/pyta_platform_backend`` 下，
-而不是直接做成顶层 ``platform`` 包，避免和 Python 标准库 ``platform`` 同名冲突。
-"""
-
-from pyta_platform_backend.app import create_app
 from pyta_platform_backend.config import BackendSettings
 
 __all__ = ["BackendSettings", "create_app"]
+
+
+def __getattr__(name):
+    if name == "create_app":
+        from pyta_platform_backend.app import create_app
+        return create_app
+    raise AttributeError(name)

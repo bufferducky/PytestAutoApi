@@ -2,16 +2,15 @@
   <section class="page-grid">
     <section class="hero-banner">
       <div>
-        <p class="hero-banner__eyebrow">MVP 总览</p>
-        <h2 class="hero-banner__title">先把测试资产、执行入口和运行结果收拢到同一平台。</h2>
+        <p class="hero-banner__eyebrow">工作台总览</p>
+        <h2 class="hero-banner__title">管理测试资产，查看真实执行结果。</h2>
         <p class="hero-banner__copy">
-          当前页会优先请求真实的仪表盘接口；如果后端暂未提供 `dashboard/overview`，
-          就退到 runs 与 health/live 的兼容聚合层；只有后端整体不可用时才使用 mock。
+          统计来自真实测试运行，迁入演示历史不计入真实统计。
         </p>
       </div>
 
       <div class="hero-banner__meta">
-        <span class="hero-banner__pill">平台主真源</span>
+        <button class="action-button" type="button" :disabled="dashboardStore.loading" @click="reload">刷新数据</button>
         <span class="hero-banner__pill">{{ appStore.phaseLabel }}</span>
         <span class="hero-banner__pill">数据源：{{ sourceLabel }}</span>
         <span class="hero-banner__pill" v-if="dashboardStore.lastLoadedAt">
@@ -46,6 +45,7 @@
 
     <div class="content-grid">
       <PlaceholderPanel
+        v-if="dashboardStore.overview.focusItems.length"
         title="当前重点"
         description="这些卡片用于提示团队近期最值得产品化的平台能力。"
       >
@@ -79,7 +79,7 @@
 
       <PlaceholderPanel
         title="最近运行"
-        description="结果中心未来会接入日志、响应片段和问题分析入口，这里先承接最近运行摘要。"
+        description="最近创建的运行记录；历史演示结果单独标注。"
       >
         <div v-if="dashboardStore.loading && !dashboardStore.overview.recentRuns.length" class="empty-copy">
           正在整理最近运行...
@@ -97,7 +97,7 @@
                 <p>{{ run.target }}</p>
               </div>
               <StatusTag
-                :label="getRunStatusMeta(run.status).label"
+                :label="run.validationScope === 'historical_demo' ? '演示历史 · ' + getRunStatusMeta(run.status).label : run.transportMode === 'mock' ? '模拟历史 · ' + getRunStatusMeta(run.status).label : getRunStatusMeta(run.status).label"
                 :tone="getRunStatusMeta(run.status).tone"
               />
             </div>
@@ -155,12 +155,12 @@ const focusLabelMap = {
 const sourceLabelMap: Record<ApiDataSource, string> = {
   api: '真实接口',
   compatibility: '兼容聚合',
-  mock: 'Mock 兜底',
+  mock: '历史模拟来源',
 };
 
 const sourceLabel = computed(() => sourceLabelMap[dashboardStore.source]);
 
-// 页面本身不再区分真实接口 / mock 的细节，统一交给 store + API 适配层收口。
+// 页面本身不再区分接口来源 的细节，统一交给 store + API 适配层收口。
 const reload = async () => {
   await dashboardStore.loadOverview();
 };
@@ -174,8 +174,8 @@ onMounted(async () => {
 
 <style scoped>
 .hero-banner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 1.25rem;
   padding: 1.35rem;
   border-radius: 1.5rem;
@@ -184,6 +184,12 @@ onMounted(async () => {
     linear-gradient(135deg, rgba(96, 165, 250, 0.16), transparent);
   border: 1px solid rgba(148, 163, 184, 0.18);
   box-shadow: var(--shadow-soft);
+}
+
+/* 元信息不能用 auto 网格列抢光标题宽度；空间不足时整块换行。 */
+.hero-banner > div:first-child {
+  flex: 1 1 24rem;
+  min-width: 0;
 }
 
 .hero-banner__eyebrow {
@@ -210,6 +216,8 @@ onMounted(async () => {
 }
 
 .hero-banner__meta {
+  flex: 1 1 18rem;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
@@ -218,6 +226,8 @@ onMounted(async () => {
 }
 
 .hero-banner__pill {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   min-height: 2.3rem;
@@ -311,10 +321,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 960px) {
-  .hero-banner {
-    grid-template-columns: 1fr;
-  }
-
   .hero-banner__meta {
     justify-content: flex-start;
   }

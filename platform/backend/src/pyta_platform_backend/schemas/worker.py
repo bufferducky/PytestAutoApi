@@ -15,4 +15,3 @@ class RunNextResponse(BaseModel):
 
     consumed: bool = Field(..., description="本次是否真的消费到一条任务")
     detail: Optional[RunDetailResponse] = Field(None, description="消费后的 run 详情")
-

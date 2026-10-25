@@ -26,6 +26,7 @@ from .core import (
     StepExecutionResult,
     TestCaseDefinition,
     TestRunDefinition,
+    WaitPolicy,
 )
 
 __all__ = [
@@ -49,4 +50,5 @@ __all__ = [
     "StepExecutionResult",
     "TestCaseDefinition",
     "TestRunDefinition",
+    "WaitPolicy",
 ]

@@ -41,6 +41,8 @@ class DashboardRecentRunResponse(BaseModel):
     started_at: str
     duration: str
     starter: str
+    transport_mode: str = "historical_unknown"
+    validation_scope: str = "historical_unknown"
     raw_status: str = Field(
         ...,
         description="原始 run 状态，便于前端需要时做更细粒度映射",

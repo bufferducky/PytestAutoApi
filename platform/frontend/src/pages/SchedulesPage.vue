@@ -1,5 +1,6 @@
 <template>
   <section class="page-grid">
+    <SchedulePlansPanel />
     <div class="content-grid">
       <PlaceholderPanel
         title="调度任务占位"
@@ -54,6 +55,7 @@
 </template>
 
 <script setup lang="ts">
+import SchedulePlansPanel from '@/components/SchedulePlansPanel.vue';
 import { onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';

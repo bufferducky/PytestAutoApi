@@ -1,310 +1,291 @@
-"""内存版 worker runner。
-
-这个 runner 的目标不是替代正式队列系统，而是先把下面这条链路做实：
-
-create run -> dispatch -> worker consume -> update status
-
-只要这条链路成立，后续无论替换成进程池、APScheduler 触发、还是更重的消息队列，
-都不会再回到“API 线程自己跑长任务”的旧问题。
-"""
+"""worker 只执行已持久登记并原子认领的任务；不提供固定成功兜底。"""
 
 from copy import deepcopy
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Callable, Optional
 
-from pyta_platform_backend.schemas.run import RunDetailResponse, RunStatus, UpdateRunStatusRequest
-from pyta_platform_backend.services.run_service import RunService
-from pyta_platform_backend.workers.dispatcher import DispatchTask, MemoryRunDispatcher
+from pyta_platform_backend.repositories.run_repository import RunConflict
+from pyta_platform_backend.schemas.run import RunStatus
+from pyta_platform_backend.services.redaction import Redactor
+from pyta_platform_backend.services.run_validation import load_definition, validate_live_payload
+from pyta_platform_backend.workers.context_transport import (
+    ContextAuthPlugin,
+    ContextTransport,
+    resolve_references,
+)
+from pyta_platform_backend.workers.dispatcher import DispatchTask
 from testflow_engine import (
     BootstrapAuthPlugin,
-    CallableTransport,
     HttpxTransport,
     LegacyCachePlugin,
-    LegacyYamlCompatLoader,
-    ResponseSnapshot,
     TestFlowEngine,
-    TestRunDefinition,
 )
-from testflow_engine.models import ExecutionStatus
 
 
 @dataclass(frozen=True)
 class WorkerExecutionResult:
-    """worker 执行后的最小回执。"""
-
     status: RunStatus
     status_message: Optional[str] = None
 
 
 class MemoryWorkerRunner:
-    """最小可运行的内存 worker。
+    def __init__(self, dispatcher, run_service, handler: Optional[Callable] = None):
+        self._dispatcher, self._run_service, self._handler = dispatcher, run_service, handler
+        self.resource_repository = None
 
-    它做的事情很克制：
-    1. 从 dispatcher 拿任务
-    2. 先把 run 标记为 running
-    3. 调一个很薄的 handler 模拟真实执行
-    4. 根据结果回写 succeeded / failed
-    """
-
-    def __init__(
-        self,
-        dispatcher: MemoryRunDispatcher,
-        run_service: RunService,
-        handler: Optional[Callable[[DispatchTask], WorkerExecutionResult]] = None,
-    ) -> None:
-        self._dispatcher = dispatcher
-        self._run_service = run_service
-        self._handler = handler or self._default_handler
-
-    def run_next(self) -> Optional[RunDetailResponse]:
-        """消费一个任务。
-
-        如果当前没有任务，返回 None；这样上层调度器或脚本可以很容易判断“是否有活可干”。
-        """
-
+    def run_next(self):
         task = self._dispatcher.pull_next()
+        if task is None:
+            queued = self._run_service.repository.list_queued_records()
+            if queued:
+                record = queued[0]
+                # 提示丢失不丢任务；公开快照若含脱敏凭证会明确阻塞/报错，不重放占位。
+                task = DispatchTask(
+                    run_id=record.run_id,
+                    suite_id=record.suite_id,
+                    trigger_source=record.trigger_source,
+                    requested_by=record.requested_by,
+                    payload=record.payload,
+                    dispatched_at=record.created_at,
+                )
         return self._consume_task(task)
 
-    def run_by_id(self, run_id: str) -> Optional[RunDetailResponse]:
-        """消费指定 run_id 对应的任务。
+    def run_by_id(self, run_id):
+        return self._consume_task(self._dispatcher.pull_by_run_id(run_id))
 
-        这个入口服务 `suites` 页的一键运行：
-        用户刚刚点击创建的 run，应优先执行它自己，而不是队列里的其他旧任务。
-        """
-
-        task = self._dispatcher.pull_by_run_id(run_id)
-        return self._consume_task(task)
-
-    def _consume_task(self, task: Optional[DispatchTask]) -> Optional[RunDetailResponse]:
-        """统一消费任务并回写状态。"""
-
+    def _consume_task(self, task):
         if task is None:
             return None
+        repo = self._run_service.repository
+        stored = repo.get_by_id(task.run_id)
+        if stored:
+            if stored.execution.get("migration", {}).get("do_not_resume"):
+                return None
+            if stored.payload.get("execution_mode") == "evaluation":
+                return None
+            try:
+                validate_live_payload(stored.payload)
+            except (ValueError, TypeError):
+                return None
+        before = repo.get_detail(task.run_id)
+        if before is None or before.status != RunStatus.QUEUED:
+            return None
+        if task.payload.get("execution_mode") == "evaluation":
+            return None
+        try:
+            validate_live_payload(task.payload)
+        except (ValueError, TypeError, OSError):
+            # Historical/invalid queued rows are not executable and must keep their evidence.
+            return None
+        queue_budget = task.payload.get("queue_timeout_seconds")
+        if (
+            queue_budget is not None
+            and (datetime.now(timezone.utc) - before.created_at).total_seconds() > queue_budget
+        ):
+            claimed = repo.claim(task.run_id)
+            return repo.finish(
+                task.run_id,
+                claimed.attempt_id,
+                RunStatus.TIMED_OUT,
+                "排队预算已耗尽；未发送业务请求",
+                cleanup_status="succeeded",
+            )
+        try:
+            claimed = repo.claim(task.run_id, task.payload.get("timeout_seconds", 300))
+        except RunConflict:
+            return None
+        attempt_id = claimed.attempt_id
+        redactor = Redactor(task.payload)
+        counts = {
+            "planned": 0,
+            "total": 0,
+            "executed": 0,
+            "requests": 0,
+            "assertions": 0,
+            "passed": 0,
+            "failed": 0,
+            "errors": 0,
+            "skipped": 0,
+            "blocked": 0,
+        }
+        cleanup_status, engine, persistence_error = "not_started", None, None
 
-        self._run_service.update_run_status(
-            task.run_id,
-            UpdateRunStatusRequest(
-                status=RunStatus.RUNNING,
-                status_message="memory worker started",
-            ),
-        )
+        def stop():
+            if persistence_error:
+                return "error"
+            detail = repo.get_detail(task.run_id)
+            return "cancelled" if detail.cancel_requested_at else None
+
+        def record(result, phase):
+            nonlocal persistence_error
+            raw = result.model_dump() if hasattr(result, "model_dump") else result.dict()
+            redactor.remember(raw)
+            clean = redactor.clean(raw)
+            clean["phase"] = phase
+            for step in clean["steps"]:
+                for key in ["request", "response", "error"]:
+                    if key in step:
+                        step[key] = redactor.bounded(step[key])
+                for assertion in step["assertions"]:
+                    assertion["actual"] = redactor.bounded(assertion["actual"])
+                    assertion["expected"] = redactor.bounded(assertion["expected"])
+            if phase == "main":
+                counts["total"] += 1
+                counts["executed"] += int(any(s.request_sent for s in result.steps))
+                counts["requests"] += sum(
+                    max(
+                        int(s.request_sent),
+                        s.network_attempt_count + s.http_replay_count,
+                        s.http_attempt_count,
+                    )
+                    for s in result.steps
+                )
+                counts["assertions"] += sum(len(s.assertions) for s in result.steps)
+                key = {
+                    "passed": "passed",
+                    "failed": "failed",
+                    "error": "errors",
+                    "skipped": "skipped",
+                    "blocked": "blocked",
+                }.get(result.status.value)
+                if key:
+                    counts[key] += 1
+            else:
+                counts["cleanup_requests"] = counts.get("cleanup_requests", 0) + sum(
+                    s.request_sent for s in result.steps
+                )
+            if not persistence_error:
+                try:
+                    repo.append_result(task.run_id, attempt_id, clean, deepcopy(counts))
+                except Exception as exc:
+                    # 证据写入失败后停止业务，但让引擎 finally 仍能清理已创建对象。
+                    persistence_error = exc
 
         try:
-            result = self._handler(task)
-            return self._run_service.update_run_status(
+            definition = load_definition(task.payload)
+        except (ValueError, TypeError, OSError) as exc:
+            return repo.finish(
                 task.run_id,
-                UpdateRunStatusRequest(
-                    status=result.status,
-                    status_message=result.status_message,
-                ),
+                attempt_id,
+                RunStatus.ERROR,
+                redactor.clean(str(exc)),
+                counts=counts,
+                cleanup_status="not_started",
             )
-        except Exception as exc:  # pragma: no cover - 错误路径由测试覆盖
-            return self._run_service.update_run_status(
-                task.run_id,
-                UpdateRunStatusRequest(
-                    status=RunStatus.FAILED,
-                    status_message=str(exc),
-                ),
+        if task.payload.get("execution_mode") == "ui_journey":
+            from pyta_platform_backend.runners.journey_worker import run_ui
+
+            return run_ui(self, task, claimed, redactor)
+        try:
+            definition.run_id = task.run_id
+            counts["planned"] = len(definition.cases)
+            raw = (
+                definition.model_dump() if hasattr(definition, "model_dump") else definition.dict()
             )
-
-    @staticmethod
-    def _default_handler(task: DispatchTask) -> WorkerExecutionResult:
-        """默认 handler。
-
-        这里不再只是返回一个固定成功值，而是优先尝试真正执行第一阶段最重要的演示链路：
-        `legacy YAML -> 新引擎 -> 结果汇总`
-
-        如果任务本身不是 legacy YAML 模式，再退回最简单的成功路径。
-        """
-
-        execution_mode = str(task.payload.get("execution_mode") or "").strip().lower()
-        if execution_mode == "standard_run":
-            return MemoryWorkerRunner._run_standard_run_task(task)
-        if execution_mode == "legacy_yaml":
-            return MemoryWorkerRunner._run_legacy_yaml_task(task)
-
-        return WorkerExecutionResult(
-            status=RunStatus.SUCCEEDED,
-            status_message=f"memory worker finished suite {task.suite_id}",
-        )
-
-    @staticmethod
-    def _run_legacy_yaml_task(task: DispatchTask) -> WorkerExecutionResult:
-        """执行 legacy YAML 示例任务。
-
-        这一层用最小代价把“历史资产迁移”和“新引擎执行”串起来：
-        1. 从 payload 里读取 legacy YAML 路径
-        2. 用 compat loader 转成新 RunDefinition
-        3. 用可控的 mock transport 跑完整个引擎
-        4. 再把摘要转成平台 run 状态
-
-        这样做的好处是：
-        - 不依赖真实网络
-        - 不依赖真实环境
-        - 但又不是假装执行，而是真正走过了新引擎主链路
-        """
-
-        yaml_path = str(task.payload.get("legacy_yaml_path") or "").strip()
-        if not yaml_path:
-            raise ValueError("legacy_yaml 模式缺少 legacy_yaml_path")
-
-        loader = LegacyYamlCompatLoader()
-        document = loader.load_from_path(yaml_path)
-        run_definition = loader.to_run_definition(document, run_name=f"legacy:{yaml_path}")
-        variables = MemoryWorkerRunner._merge_environment_variables(
-            task=task,
-            variables=dict(task.payload.get("variables") or {}),
-        )
-        if hasattr(run_definition, "model_copy"):
-            run_definition = run_definition.model_copy(
-                update={"variables": variables},
-                deep=True,
-            )
-        else:
-            run_definition = run_definition.copy(
-                update={"variables": variables},
-                deep=True,
-            )
-
-        engine = MemoryWorkerRunner._build_engine_for_task(task)
-        result = engine.execute_run(run_definition)
-        summary = result.summary
-        status = MemoryWorkerRunner._map_engine_status(result.status)
-        return WorkerExecutionResult(
-            status=status,
-            status_message=(
-                f"legacy yaml executed from {yaml_path}: total={summary.total} "
-                f"passed={summary.passed} failed={summary.failed} "
-                f"errors={summary.errors} skipped={summary.skipped}"
-            ),
-        )
-
-    @staticmethod
-    def _run_standard_run_task(task: DispatchTask) -> WorkerExecutionResult:
-        """执行已经标准化的新框架 run。
-
-        这是迁移的正确方向：
-        老用例只是迁移输入，真正执行时应尽量变成 `TestRunDefinition` 这种新模型。
-        """
-
-        raw_run_definition = dict(task.payload.get("run_definition") or {})
-        if not raw_run_definition:
-            raise ValueError("standard_run 模式缺少 run_definition")
-
-        if hasattr(TestRunDefinition, "model_validate"):
-            run_definition = TestRunDefinition.model_validate(raw_run_definition)
-        else:
-            run_definition = TestRunDefinition.parse_obj(raw_run_definition)
-
-        merged_variables = MemoryWorkerRunner._merge_environment_variables(
-            task=task,
-            variables=dict(getattr(run_definition, "variables", {}) or {}),
-        )
-        if hasattr(run_definition, "model_copy"):
-            run_definition = run_definition.model_copy(
-                update={"variables": merged_variables},
-                deep=True,
-            )
-        else:
-            run_definition = run_definition.copy(
-                update={"variables": merged_variables},
-                deep=True,
-            )
-
-        engine = MemoryWorkerRunner._build_engine_for_task(task)
-        result = engine.execute_run(run_definition)
-        summary = result.summary
-        status = MemoryWorkerRunner._map_engine_status(result.status)
-        return WorkerExecutionResult(
-            status=status,
-            status_message=(
-                f"standard run executed: total={summary.total} "
-                f"passed={summary.passed} failed={summary.failed} "
-                f"errors={summary.errors} skipped={summary.skipped}"
-            ),
-        )
-
-    @staticmethod
-    def _build_mock_response(task: DispatchTask, case_id: str) -> ResponseSnapshot:
-        """从任务 payload 构造一个可预测的 mock 响应。
-
-        为了让同一个 legacy YAML 文件里的多个 case 都能跑通，
-        payload 支持两级配置：
-
-        1. `mock_response`：默认响应
-        2. `mock_case_responses[case_id]`：指定 case 的覆盖响应
-        """
-
-        default_response = dict(task.payload.get("mock_response") or {})
-        per_case_responses = dict(task.payload.get("mock_case_responses") or {})
-        case_response = dict(per_case_responses.get(case_id) or {})
-
-        merged: dict[str, object] = {
-            **default_response,
-            **case_response,
-        }
-        return ResponseSnapshot(
-            status_code=int(merged.get("status_code") or 200),
-            headers=dict(merged.get("headers") or {}),
-            body=merged.get("body"),
-            elapsed_ms=float(merged.get("elapsed_ms") or 1.0),
-            request_id=str(merged.get("request_id")) if merged.get("request_id") else None,
-        )
-
-    @staticmethod
-    def _build_engine_for_task(task: DispatchTask) -> TestFlowEngine:
-        """按任务配置构造执行引擎。
-
-        当前支持两种 transport 模式：
-        - mock：适合结构验证和不依赖真实网络的演示
-        - live：适合真正验证迁移后的用例是否还能打到目标系统
-        """
-
-        transport_mode = str(task.payload.get("transport_mode") or "mock").strip().lower()
-        plugins = [LegacyCachePlugin()]
-
-        if "auth_bootstrap" in dict(task.payload.get("variables") or {}):
-            plugins.append(BootstrapAuthPlugin())
-
-        if transport_mode == "live":
-            return TestFlowEngine(
-                transport=HttpxTransport(),
-                plugins=plugins,
-            )
-
-        return TestFlowEngine(
-            transport=CallableTransport(
-                lambda request, context, case: MemoryWorkerRunner._build_mock_response(
+            redactor.remember(raw)
+            definition.variables = self._merge_environment_variables(task, definition.variables)
+            if task.payload.get("context_snapshots"):
+                definition.variables["host"] = task.payload["context_snapshots"]["default"][
+                    "target"
+                ]["base_url"]
+            if task.payload.get("transport_mode") == "live":
+                definition.variables = resolve_references(definition.variables, redactor._collect)
+            if self._handler is not None:
+                receipt = self._handler(task)
+                status, message = receipt.status, receipt.status_message
+                if status == RunStatus.SUCCEEDED:
+                    status, message = RunStatus.BLOCKED, "handler 未提供可验证的步骤证据"
+            else:
+                engine = self._build_engine_for_task(
                     task,
-                    case.case_id,
+                    definition.variables,
+                    max(0.001, (claimed.deadline_at - datetime.now(timezone.utc)).total_seconds()),
+                    redactor,
                 )
-            ),
-            plugins=plugins,
-        )
+                if definition.metadata.get("fixture_plan"):
+                    from pyta_platform_backend.workers.resource_plugin import ResourcePlugin
+
+                    if self.resource_repository is None:
+                        raise ValueError("资源仓储不可用")
+                    engine.plugins.append(
+                        ResourcePlugin(
+                            self.resource_repository,
+                            engine.transport,
+                            task.payload.get("context_snapshots", {}),
+                            definition.metadata["fixture_plan"],
+                            redactor=redactor,
+                        )
+                    )
+                result = engine.execute_run(
+                    definition,
+                    on_case_result=record,
+                    should_stop=stop,
+                    timeout_seconds=max(
+                        0, (claimed.deadline_at - datetime.now(timezone.utc)).total_seconds()
+                    ),
+                    cleanup_timeout_seconds=task.payload.get("cleanup_timeout_seconds", 60),
+                )
+                cleanup_status = result.cleanup_status
+                counts["authentication_requests"] = len(result.authentication_results)
+                if persistence_error:
+                    raise RuntimeError(f"结构结果存储失败: {persistence_error}")
+                status = RunStatus(
+                    "succeeded" if result.status.value == "passed" else result.status.value
+                )
+                prefix = (
+                    f"legacy yaml executed from {task.payload.get('legacy_yaml_path')}"
+                    if task.payload["execution_mode"] == "legacy_yaml"
+                    else "standard run executed"
+                )
+                message = result.error or f"{prefix}: " + " ".join(
+                    f"{k}={v}" for k, v in counts.items()
+                )
+            return repo.finish(
+                task.run_id,
+                attempt_id,
+                status,
+                redactor.clean(message),
+                counts=counts,
+                cleanup_status=cleanup_status,
+            )
+        except Exception as exc:
+            return repo.finish(
+                task.run_id,
+                attempt_id,
+                RunStatus.ERROR,
+                redactor.clean(str(exc)),
+                counts=counts,
+                cleanup_status=cleanup_status,
+            )
+        finally:
+            if engine is not None and hasattr(engine.transport, "close"):
+                engine.transport.close()
 
     @staticmethod
-    def _merge_environment_variables(
-        task: DispatchTask,
-        variables: dict[str, object],
-    ) -> dict[str, object]:
-        """把 payload 中的 environment 快照并入执行变量。"""
+    def _build_engine_for_task(task, variables=None, timeout_seconds=30, redactor=None):
+        validate_live_payload(task.payload)
+        plugins = [LegacyCachePlugin()]
+        if task.payload.get("context_snapshots"):
+            transport = ContextTransport(
+                task.payload["context_snapshots"],
+                remember_secret=redactor._collect if redactor else None,
+                timeout_seconds=timeout_seconds,
+            )
+            return TestFlowEngine(
+                transport=transport, plugins=plugins + [ContextAuthPlugin(transport)]
+            )
+        if (variables or {}).get("auth_bootstrap"):
+            plugins.append(BootstrapAuthPlugin(timeout_seconds=timeout_seconds))
+        transport = HttpxTransport()
+        return TestFlowEngine(transport=transport, plugins=plugins)
 
+    @staticmethod
+    def _merge_environment_variables(task: DispatchTask, variables):
         merged = deepcopy(variables)
-        environment = dict(task.payload.get("environment") or {})
-        if not environment:
-            return merged
-
-        merged.setdefault("environment", environment)
-        if not merged.get("host") and environment.get("base_url"):
-            merged["host"] = environment["base_url"]
+        environment = deepcopy(task.payload.get("environment", {}))
+        if environment:
+            merged.setdefault("environment", environment)
+            if not merged.get("host") and environment.get("base_url"):
+                merged["host"] = environment["base_url"]
         return merged
-
-    @staticmethod
-    def _map_engine_status(status: ExecutionStatus) -> RunStatus:
-        """把引擎执行状态映射为平台 run 状态。"""
-
-        if status == ExecutionStatus.PASSED:
-            return RunStatus.SUCCEEDED
-        if status == ExecutionStatus.SKIPPED:
-            return RunStatus.SUCCEEDED
-        return RunStatus.FAILED

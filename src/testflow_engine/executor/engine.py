@@ -8,7 +8,9 @@ run -> case -> transport -> assertion -> report
 还是平台 UI 触发执行，都应该尽量复用这里，而不是复制一套流程。
 """
 
-from datetime import datetime
+from copy import deepcopy
+from datetime import datetime, timezone
+from time import monotonic
 
 from ..assertions import AssertionEngine
 from ..models import (
@@ -24,6 +26,7 @@ from ..models import (
 from ..reporting import ReportCollector
 from .rendering import RequestTemplateRenderer
 from .transport import TransportAdapter, TransportNotConfiguredError
+from .waiting import WaitExecutor
 
 
 class TestFlowEngine:
@@ -43,110 +46,209 @@ class TestFlowEngine:
         self.report_collector = report_collector or ReportCollector()
         self.request_renderer = request_renderer or RequestTemplateRenderer()
 
-    def execute_run(self, run: TestRunDefinition) -> RunExecutionResult:
-        """执行整个 run，并返回聚合结果。"""
+    def execute_run(
+        self,
+        run: TestRunDefinition,
+        *,
+        on_case_result=None,
+        should_stop=None,
+        timeout_seconds=300,
+        cleanup_timeout_seconds=60,
+    ) -> RunExecutionResult:
+        """运行自己的模板副本；停止主流程后仍进入独立预算的清理。"""
+        run = deepcopy(run)
+        if not run.cases:
+            raise ValueError("run.cases 不能为空")
+        started_at = datetime.now(timezone.utc)
+        deadline = monotonic() + timeout_seconds
+        context = ExecutionContext(run_id=run.run_id, variables=deepcopy(run.variables))
+        context.plugin_state["execution"] = {
+            "phase": "main",
+            "should_stop": should_stop,
+            "deadline_monotonic": deadline,
+        }
+        scoped_contexts = {}
 
-        started_at = datetime.utcnow()
-        context = ExecutionContext(run_id=run.run_id, variables=dict(run.variables))
-        for plugin in self.plugins:
-            plugin.before_run(run=run, context=context)
+        def case_context(case):
+            scope = case.metadata.get("scope_id")
+            if not scope:
+                return context
+            if scope not in scoped_contexts:
+                scoped_contexts[scope] = ExecutionContext(
+                    run_id=run.run_id,
+                    variables={
+                        **deepcopy(context.variables),
+                        **deepcopy(run.metadata["scopes"][scope]),
+                    },
+                    plugin_state=context.plugin_state,
+                )
+            scoped_contexts[scope].plugin_state = context.plugin_state
+            return scoped_contexts[scope]
 
-        case_results = []
-        for case in run.cases:
-            case_results.append(self.execute_case(case=case, context=context))
-
+        case_results, outcomes = [], {}
+        status, error, cleanup_status = None, None, "succeeded"
+        try:
+            stop = should_stop() if should_stop else None
+            if not stop and monotonic() < deadline:
+                for plugin in self.plugins:
+                    plugin.before_run(run=run, context=context)
+            for case in run.cases:
+                stop = should_stop() if should_stop else None
+                if stop or monotonic() >= deadline:
+                    status = ExecutionStatus(stop or "timed_out")
+                    break
+                if any(outcomes.get(dep) != ExecutionStatus.PASSED for dep in case.depends_on):
+                    result = self._blocked(case, "前置步骤未通过或缺失")
+                else:
+                    result = self.execute_case(case, case_context(case), deadline=deadline)
+                case_results.append(result)
+                outcomes[case.case_id] = result.status
+                if result.status in {ExecutionStatus.TIMED_OUT, ExecutionStatus.CANCELLED}:
+                    status = result.status
+                if on_case_result:
+                    on_case_result(result, "main")
+                stop = should_stop() if should_stop else None
+                if status in {ExecutionStatus.TIMED_OUT, ExecutionStatus.CANCELLED}:
+                    break
+                if stop or monotonic() >= deadline:
+                    status = ExecutionStatus(stop or "timed_out")
+                    break
+        except Exception as exc:
+            status, error = ExecutionStatus.ERROR, str(exc)
+        finally:
+            # 未运行的步骤也有明确证据；不把它们漏掉再报全绿。
+            for case in run.cases[len(case_results) :]:
+                result = self._blocked(case, error or "主流程已停止")
+                case_results.append(result)
+                if on_case_result:
+                    on_case_result(result, "main")
+            cleanup_deadline = monotonic() + cleanup_timeout_seconds
+            context.plugin_state["execution"] = {
+                "phase": "cleanup",
+                "should_stop": None,
+                "deadline_monotonic": cleanup_deadline,
+            }
+            for case in run.cleanup_cases:
+                if monotonic() >= cleanup_deadline:
+                    result = self._blocked(case, "清理预算已用尽")
+                else:
+                    result = self.execute_case(case, case_context(case), deadline=cleanup_deadline)
+                if monotonic() >= cleanup_deadline and result.status == ExecutionStatus.PASSED:
+                    result.status = ExecutionStatus.TIMED_OUT
+                    result.error = "清理步骤超过总预算"
+                if result.status != ExecutionStatus.PASSED:
+                    cleanup_status = "cleanup_failed"
+                if on_case_result:
+                    on_case_result(result, "cleanup")
         summary = self.report_collector.build_summary(case_results)
-        status = self._resolve_run_status(summary=summary)
         result = RunExecutionResult(
             run_id=run.run_id,
             name=run.name,
-            status=status,
+            status=status or self._resolve_run_status(summary),
             cases=case_results,
             summary=summary,
+            error=error,
+            cleanup_status=cleanup_status,
+            authentication_results=context.artifacts.get("authentication", []),
             started_at=started_at,
-            finished_at=datetime.utcnow(),
+            finished_at=datetime.now(timezone.utc),
         )
         for plugin in self.plugins:
-            plugin.after_run(result=result, context=context)
+            try:
+                plugin.after_run(result=result, context=context)
+            except Exception as exc:
+                result.status, result.error = ExecutionStatus.ERROR, str(exc)
         return result
 
-    def execute_case(
-        self,
-        case: TestCaseDefinition,
-        context: ExecutionContext,
-    ) -> CaseExecutionResult:
-        """执行单个 case。"""
+    @staticmethod
+    def _blocked(case, message):
+        now = datetime.now(timezone.utc)
+        return CaseExecutionResult(
+            case_id=case.case_id,
+            title=case.title,
+            metadata={**deepcopy(case.metadata), "depends_on": list(case.depends_on)},
+            status=ExecutionStatus.BLOCKED,
+            error=message,
+            steps=[],
+            started_at=now,
+            finished_at=now,
+        )
 
-        started_at = datetime.utcnow()
-        for plugin in self.plugins:
-            plugin.before_case(case=case, context=context)
-
-        if not case.enabled:
-            result = CaseExecutionResult(
-                case_id=case.case_id,
-                title=case.title,
-                status=ExecutionStatus.SKIPPED,
-                steps=[],
-                started_at=started_at,
-                finished_at=datetime.utcnow(),
-            )
-            self._notify_after_case(case=case, result=result, context=context)
-            return result
-
+    def execute_case(self, case, context, *, deadline=None) -> CaseExecutionResult:
+        started_at = datetime.now(timezone.utc)
+        step = StepExecutionResult(
+            name="request",
+            status=ExecutionStatus.PENDING,
+            started_at=started_at,
+            finished_at=started_at,
+        )
+        result = CaseExecutionResult(
+            case_id=case.case_id,
+            title=case.title,
+            metadata={**deepcopy(case.metadata), "depends_on": list(case.depends_on)},
+            status=ExecutionStatus.PENDING,
+            steps=[step],
+            started_at=started_at,
+            finished_at=started_at,
+        )
         try:
+            if not case.enabled:
+                result.status, result.steps = ExecutionStatus.SKIPPED, []
+                return result
+            for plugin in self.plugins:
+                plugin.before_case(case=case, context=context)
             if self.transport is None:
                 raise TransportNotConfiguredError("TestFlowEngine 尚未配置 transport")
-
-            # 执行器先把运行时变量渲染进请求，再把“最终请求”交给 transport。
-            # 这样 transport 只负责网络发送，不需要知道模板、上下文、平台变量规则。
-            rendered_request = self.request_renderer.render(request=case.request, context=context)
-            response = self.transport.send(request=rendered_request, context=context, case=case)
+            request = self.request_renderer.render(request=case.request, context=context)
+            if deadline is not None:
+                remaining = deadline - monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("运行预算已用尽")
+                request.timeout_seconds = min(request.timeout_seconds, remaining)
+            step.request = request
+            step.request_sent = True
+            response = WaitExecutor(self.transport, self.assertion_engine).send(
+                request, context, case, deadline
+            )
+            step.response = response
             for plugin in self.plugins:
                 plugin.after_response(case=case, response=response, context=context)
             self._apply_extractors(case=case, response=response, context=context)
-
-            assertion_results = self.assertion_engine.evaluate_all(
+            step.assertions = self.assertion_engine.evaluate_all(
                 assertions=case.assertions,
                 response=response,
                 context=context,
             )
-            step_status = self._resolve_step_status(assertion_results)
-            step = StepExecutionResult(
-                name="request",
-                status=step_status,
-                response=response,
-                assertions=assertion_results,
-                started_at=started_at,
-                finished_at=datetime.utcnow(),
+            result.status = step.status = self._resolve_step_status(step.assertions)
+            self._notify_after_case(case=case, result=result, context=context)
+        except Exception as exc:
+            result.status = step.status = ExecutionStatus(getattr(exc, "execution_status", "error"))
+            if getattr(exc, "response", None) is not None:
+                step.response = exc.response
+            result.error = step.error = str(exc)
+            step.error_type = getattr(exc, "category", type(exc).__name__)
+            if getattr(exc, "request_sent", None) is False:
+                step.request_sent = False
+        finally:
+            attempts = context.artifacts.get("http_attempts", {}).get(case.case_id, [])
+            step.attempts = list(attempts)
+            step.http_attempt_count = getattr(
+                attempts, "request_count", len([e for e in attempts if e.get("kind") == "request"])
             )
-            result = CaseExecutionResult(
-                case_id=case.case_id,
-                title=case.title,
-                status=step_status,
-                steps=[step],
-                started_at=started_at,
-                finished_at=datetime.utcnow(),
+            step.http_replay_count = getattr(
+                attempts, "replay_count", len([e for e in attempts if e.get("replay") == 1])
             )
-        except Exception as exc:  # pragma: no cover - 错误路径由结构骨架兜底
-            result = CaseExecutionResult(
-                case_id=case.case_id,
-                title=case.title,
-                status=ExecutionStatus.ERROR,
-                steps=[
-                    StepExecutionResult(
-                        name="request",
-                        status=ExecutionStatus.ERROR,
-                        error=str(exc),
-                        started_at=started_at,
-                        finished_at=datetime.utcnow(),
-                    )
-                ],
-                error=str(exc),
-                started_at=started_at,
-                finished_at=datetime.utcnow(),
+            step.poll_trace = context.artifacts.get("poll_trace", {}).get(case.case_id, [])
+            step.poll_attempts = context.artifacts.get("poll_attempts", {}).get(case.case_id, 0)
+            step.network_attempt_count = context.artifacts.get("network_attempt_count", {}).get(
+                case.case_id, 0
             )
-
-        self._notify_after_case(case=case, result=result, context=context)
+            step.network_attempts = context.artifacts.get("network_attempts", {}).get(
+                case.case_id, []
+            )
+            if any(attempt.get("kind") == "request" for attempt in step.attempts):
+                step.request_sent = True
+            result.finished_at = step.finished_at = datetime.now(timezone.utc)
         return result
 
     def _notify_after_case(
@@ -177,6 +279,8 @@ class TestFlowEngine:
 
         for extractor in case.extractors:
             actual = self._resolve_extractor_value(extractor=extractor, response=response)
+            if actual is None and extractor.required:
+                raise ValueError("必需提取值缺失: " + extractor.target)
             self._write_context_value(context=context, target=extractor.target, value=actual)
 
     def _resolve_extractor_value(self, extractor, response):
@@ -227,9 +331,10 @@ class TestFlowEngine:
     def _resolve_step_status(assertion_results) -> ExecutionStatus:
         """根据断言结果计算步骤状态。"""
 
-        for result in assertion_results:
-            if result.status != ExecutionStatus.PASSED:
-                return ExecutionStatus.FAILED
+        if any(result.status == ExecutionStatus.ERROR for result in assertion_results):
+            return ExecutionStatus.ERROR
+        if any(result.status != ExecutionStatus.PASSED for result in assertion_results):
+            return ExecutionStatus.FAILED
         return ExecutionStatus.PASSED
 
     @staticmethod
@@ -240,6 +345,10 @@ class TestFlowEngine:
             return ExecutionStatus.ERROR
         if summary.failed:
             return ExecutionStatus.FAILED
+        if summary.blocked:
+            return ExecutionStatus.BLOCKED
         if summary.passed == 0 and summary.skipped == summary.total:
             return ExecutionStatus.SKIPPED
+        if summary.assertions == 0:
+            return ExecutionStatus.BLOCKED
         return ExecutionStatus.PASSED

@@ -4,7 +4,7 @@ html {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
   color: var(--color-ink-base);
@@ -29,7 +29,29 @@ button,
 input,
 textarea,
 select {
+  min-width: 0;
   font: inherit;
+}
+
+form,
+fieldset,
+label {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: anywhere;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: auto;
+  justify-self: start;
+}
+
+/* 原始 JSON 证据保留横向滚动，不把整个页面撑到文本固有宽度。 */
+pre {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 input,
@@ -80,17 +102,27 @@ td {
 
 .page-grid {
   display: grid;
+  min-width: 0;
   gap: 1.25rem;
 }
 
 .content-grid {
   display: grid;
+  min-width: 0;
   grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
   gap: 1rem;
 }
 
+/* Grid 子项默认的 min-width:auto 会被表单、长 ID 和证据内容撑开。 */
+.page-grid > *,
+.content-grid > * {
+  min-width: 0;
+}
+
 .table-shell {
-  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
   border-radius: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(255, 255, 255, 0.6);

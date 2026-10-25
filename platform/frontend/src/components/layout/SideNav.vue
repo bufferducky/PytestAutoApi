@@ -27,7 +27,7 @@
     <div class="side-nav__footer">
       <p class="side-nav__footer-title">当前聚焦</p>
       <p class="side-nav__footer-copy">{{ appStore.phaseLabel }}</p>
-      <p class="side-nav__footer-copy">先把结构、路由、状态和 API 入口固定下来，再逐步接真实业务。</p>
+      <p class="side-nav__footer-copy">管理测试资产，执行真实请求，追溯运行结果。</p>
     </div>
   </aside>
 </template>
@@ -44,6 +44,8 @@ const appStore = useAppStore();
 <style scoped>
 .side-nav {
   display: grid;
+  /* 内容页变长时，只让底部留白增长，不拉伸品牌与菜单行。 */
+  grid-template-rows: auto auto 1fr;
   gap: 1.75rem;
   padding: 1.5rem;
   min-height: 100dvh;
@@ -87,6 +89,7 @@ const appStore = useAppStore();
 
 .side-nav__menu {
   display: grid;
+  align-content: start;
   gap: 0.75rem;
 }
 
@@ -165,11 +168,31 @@ const appStore = useAppStore();
   margin-top: 0.45rem;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1080px) {
   .side-nav {
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    padding: 1rem;
     min-height: auto;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .side-nav__menu {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .side-nav__item {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.75rem 0.4rem;
+    text-align: center;
+  }
+
+  .side-nav__badge,
+  .side-nav__content small,
+  .side-nav__footer {
+    display: none;
   }
 }
 </style>

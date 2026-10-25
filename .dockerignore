@@ -1,0 +1,19 @@
+# 只发送镜像需要的代码，避免上传本地状态库、凭证、依赖和 Git 历史。
+*
+!pyproject.toml
+!README.md
+!src/
+!src/**
+!platform/
+!platform/backend/
+!platform/backend/src/
+!platform/backend/src/**
+!platform/backend/alembic.ini
+!platform/backend/alembic/
+!platform/backend/alembic/**
+!deploy/
+!deploy/Dockerfile
+**/__pycache__/
+**/*.pyc
+
+**/._*

@@ -14,7 +14,8 @@
 from typing import Any, Optional
 
 from .._field_path import resolve_field_path
-from ..models import ExecutionContext, TestCaseDefinition, TestRunDefinition
+from ..executor.rendering import RequestTemplateRenderer
+from ..models import ExecutionContext, RequestSpec, TestCaseDefinition, TestRunDefinition
 from .base import EnginePlugin
 
 
@@ -23,8 +24,9 @@ class BootstrapAuthPlugin(EnginePlugin):
 
     name = "bootstrap-auth-plugin"
 
-    def __init__(self, http_client=None) -> None:
+    def __init__(self, http_client=None, timeout_seconds=30) -> None:
         self._http_client = http_client
+        self._timeout_seconds = timeout_seconds
 
     def before_run(self, run: TestRunDefinition, context: ExecutionContext) -> None:
         """在 run 开始前尝试做一次登录 bootstrap。"""
@@ -42,7 +44,14 @@ class BootstrapAuthPlugin(EnginePlugin):
         if not login_url:
             raise ValueError("auth_bootstrap 缺少 login_url")
 
-        body = dict(config.get("body") or {})
+        body = (
+            RequestTemplateRenderer()
+            .render(
+                RequestSpec(url=login_url, body=dict(config.get("body") or {})),
+                context,
+            )
+            .body
+        )
         headers = dict(config.get("headers") or {})
         request_mode = str(config.get("request_mode") or "json").lower()
 
@@ -101,7 +110,7 @@ class BootstrapAuthPlugin(EnginePlugin):
         import httpx
 
         self._owns_client = True
-        self._http_client = httpx.Client()
+        self._http_client = httpx.Client(timeout=self._timeout_seconds)
         return self._http_client
 
     def _close_client_if_needed(self) -> None:

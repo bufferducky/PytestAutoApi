@@ -1,21 +1,12 @@
-"""平台管理面仓储。
-
-当前阶段数据库还未接入，所以先用内存仓储承接：
-- 用例目录
-- 套件目录
-- 环境目录
-- 调度目录
-
-这样页面即便还处于骨架期，也不需要继续长期依赖前端 mock。
-"""
+"""真实资产目录与环境持久化；常规启动不写演示种子。"""
 
 from dataclasses import dataclass
-from pathlib import Path
+from threading import RLock
 from typing import Optional
 from uuid import uuid4
 
-import yaml
-from pyta_platform_backend.repositories.sqlite_support import connect_sqlite, dump_json, load_json
+from pyta_platform_backend.db.store import Store
+from pyta_platform_backend.repositories.sqlite_support import dump_json, load_json
 
 
 @dataclass(frozen=True)
@@ -65,23 +56,11 @@ class ScheduleRecord:
 
 
 class InMemoryManagementRepository:
-    """平台管理页的内存仓储。
+    """显式测试用内存仓储，不预置任何演示记录。"""
 
-    这里的目录数据故意与当前已落地的现代化演示资产保持一致：
-    - cases / suites 对齐 demo suite 的标准化案例
-    - environments / schedules 提供平台 MVP 所需的最小目录
-
-    等平台数据库接入后，路由和服务层不需要跟着一起改。
-    """
-
-    def __init__(self) -> None:
-        default_host = self._load_default_host()
-        self._cases = self._build_cases()
-        self._suites = self._build_suites()
-        self._environments = {
-            item.id: item for item in self._build_environments(default_host)
-        }
-        self._schedules = self._build_schedules()
+    def __init__(self):
+        self._cases, self._suites, self._schedules = [], [], []
+        self._environments = {}
 
     def list_cases(self) -> list[CaseRecord]:
         """列出当前可展示的用例目录。"""
@@ -116,8 +95,7 @@ class InMemoryManagementRepository:
 
         normalized_name = name.strip().lower()
         if any(
-            item.name.strip().lower() == normalized_name
-            for item in self._environments.values()
+            item.name.strip().lower() == normalized_name for item in self._environments.values()
         ):
             raise ValueError(f"环境名称已存在: {name}")
 
@@ -176,185 +154,78 @@ class InMemoryManagementRepository:
 
         return list(self._schedules)
 
-    @staticmethod
-    def _build_cases() -> list[CaseRecord]:
-        """构造和 demo suite 对齐的用例目录。"""
 
-        return [
-            CaseRecord(
-                id="login_success",
-                name="正常登录",
-                module="鉴权",
-                method="POST",
-                priority="P0",
-                status="active",
-            ),
-            CaseRecord(
-                id="login_wrong_password",
-                name="密码错误",
-                module="鉴权",
-                method="POST",
-                priority="P1",
-                status="active",
-            ),
-            CaseRecord(
-                id="login_empty_password",
-                name="密码为空",
-                module="鉴权",
-                method="POST",
-                priority="P1",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_person_page",
-                name="查询人设分页列表",
-                module="培训对练",
-                method="GET",
-                priority="P1",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_evaluate_page",
-                name="获取可选评估包列表",
-                module="培训对练",
-                method="POST",
-                priority="P1",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_chapter_list",
-                name="预览评估包章节详情",
-                module="培训对练",
-                method="GET",
-                priority="P2",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_bind_package",
-                name="给指定人设绑定评估包",
-                module="培训对练",
-                method="POST",
-                priority="P0",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_verify_refresh",
-                name="验证绑定后人设列表刷新",
-                module="培训对练",
-                method="GET",
-                priority="P1",
-                status="active",
-            ),
-            CaseRecord(
-                id="persona_filter_type",
-                name="按类型筛选人设",
-                module="培训对练",
-                method="GET",
-                priority="P2",
-                status="draft",
-            ),
-        ]
+class SqlManagementRepository(InMemoryManagementRepository):
+    """管理目录从版本化资产/调度读取；环境为真实可编辑配置。"""
 
-    @staticmethod
-    def _build_suites() -> list[SuiteRecord]:
-        """构造与当前样例套件一致的套件目录。"""
-
-        return [
-            SuiteRecord(
-                id="demo-login-auth",
-                name="登录鉴权",
-                case_count=3,
-                schedule="工作日 09:00",
-            ),
-            SuiteRecord(
-                id="demo-persona-library",
-                name="培训对练 - 人设库管理",
-                case_count=6,
-                schedule="每天 22:00",
-            ),
-        ]
-
-    @staticmethod
-    def _build_environments(default_host: str) -> list[EnvironmentRecord]:
-        """构造当前平台环境目录。"""
-
-        return [
-            EnvironmentRecord(
-                id="env-default-live",
-                name="默认联调环境",
-                base_url=default_host,
-                auth_mode="账号密码登录 + Token 注入",
-                status="online",
-                variables={},
-            ),
-            EnvironmentRecord(
-                id="env-demo-mock",
-                name="离线演示环境",
-                base_url="https://mock.platform.local",
-                auth_mode="Mock Token / 本地演示",
-                status="draft",
-                variables={},
-            ),
-        ]
-
-    @staticmethod
-    def _build_schedules() -> list[ScheduleRecord]:
-        """构造当前平台调度目录。"""
-
-        return [
-            ScheduleRecord(
-                id="schedule-login-smoke",
-                name="工作日登录鉴权冒烟",
-                cron="0 9 * * 1-5",
-                target_suite_id="demo-login-auth",
-                environment_id="env-default-live",
-                status="active",
-            ),
-            ScheduleRecord(
-                id="schedule-persona-nightly",
-                name="夜间人设库回归",
-                cron="0 22 * * *",
-                target_suite_id="demo-persona-library",
-                environment_id="env-demo-mock",
-                status="paused",
-            ),
-        ]
-
-    @staticmethod
-    def _load_default_host() -> str:
-        """从旧配置里读取默认 host，方便新旧平台目录看到同一基线。"""
-
-        root = Path(__file__).resolve().parents[5]
-        config_path = root / "common" / "config.yaml"
-        if not config_path.exists():
-            return "https://api-test.yanjiai.com"
-
-        with config_path.open("r", encoding="utf-8") as file:
-            payload = yaml.safe_load(file) or {}
-        return str(payload.get("host") or "https://api-test.yanjiai.com").rstrip("/")
-
-
-class SqliteManagementRepository(InMemoryManagementRepository):
-    """sqlite 版管理页仓储。
-
-    当前只把真正需要跨重启保留的动态资源落盘：
-    - environments
-
-    `cases / suites / schedules` 仍然保持静态种子目录，
-    这样可以先把单人工作台最痛的“数据一重启就丢”问题解决掉，
-    而不把整个平台一次性推成重型配置系统。
-    """
-
-    def __init__(self, database_path: str) -> None:
-        default_host = self._load_default_host()
+    def __init__(self, database_path):
         self._database_path = database_path
-        self._connection = connect_sqlite(self._database_path)
-        self._cases = self._build_cases()
-        self._suites = self._build_suites()
-        self._schedules = self._build_schedules()
-        self._seed_environments = self._build_environments(default_host)
-        self._initialize_tables()
-        self._ensure_seed_environments()
+        self._connection = Store(database_path)
+        self._lock = RLock()
+
+    def _assets(self, kind):
+        return self._connection.execute(
+            "SELECT id,draft_json,archived FROM asset_drafts "
+            "WHERE kind=? AND archived=0 ORDER BY id",
+            (kind,),
+        ).fetchall()
+
+    def list_cases(self):
+        records = []
+        for row in self._assets("scenarios"):
+            draft = load_json(row["draft_json"], {})
+            steps = draft.get("steps", [])
+            request = steps[0].get("request", {}) if steps else {}
+            records.append(
+                CaseRecord(
+                    id=row["id"],
+                    name=draft.get("name", row["id"]),
+                    module=draft.get("module", "未分类"),
+                    method=request.get("method", "GET"),
+                    priority=draft.get("priority", "P1"),
+                    status="active" if self._published("scenarios", row["id"]) else "draft",
+                )
+            )
+        return records
+
+    def _published(self, kind, identifier):
+        return bool(
+            self._connection.execute(
+                "SELECT 1 FROM asset_versions WHERE kind=? AND id=? LIMIT 1",
+                (kind, identifier),
+            ).fetchone()
+        )
+
+    def list_suites(self):
+        schedules = self.list_schedules()
+        records = []
+        for row in self._assets("suites"):
+            draft = load_json(row["draft_json"], {})
+            records.append(
+                SuiteRecord(
+                    id=row["id"],
+                    name=draft.get("name", row["id"]),
+                    case_count=len(draft.get("scenarios", [])),
+                    schedule="、".join(x.cron for x in schedules if x.target_suite_id == row["id"]),
+                )
+            )
+        return records
+
+    def list_schedules(self):
+        records = []
+        for row in self._connection.execute("SELECT data_json FROM schedules ORDER BY id"):
+            data = load_json(row[0], {})
+            records.append(
+                ScheduleRecord(
+                    id=data["id"],
+                    name=data.get("name", data["id"]),
+                    cron=data.get("cron", ""),
+                    target_suite_id=data.get("suite_id", ""),
+                    environment_id=data.get("environment_id") or "",
+                    status=data.get("status", "paused"),
+                )
+            )
+        return records
 
     def list_environments(self) -> list[EnvironmentRecord]:
         """列出环境目录。"""
@@ -363,7 +234,7 @@ class SqliteManagementRepository(InMemoryManagementRepository):
             """
             SELECT id, name, base_url, auth_mode, status, variables_json
             FROM environments
-            ORDER BY rowid ASC
+            ORDER BY id ASC
             """
         ).fetchall()
 
@@ -396,41 +267,41 @@ class SqliteManagementRepository(InMemoryManagementRepository):
     ) -> Optional[EnvironmentRecord]:
         """创建新的环境目录记录。"""
 
-        normalized_name = name.strip().lower()
-        if self._name_exists(self._connection, normalized_name):
-            raise ValueError(f"环境名称已存在: {name}")
+        with self._lock, self._connection.transaction():
+            normalized_name = name.strip().lower()
+            if self._name_exists(self._connection, normalized_name):
+                raise ValueError(f"环境名称已存在: {name}")
 
-        record = EnvironmentRecord(
-            id=uuid4().hex,
-            name=name,
-            base_url=base_url,
-            auth_mode=auth_mode,
-            status=status,
-            variables=dict(variables),
-        )
-        self._connection.execute(
-            """
-            INSERT INTO environments (
-                id,
-                name,
-                base_url,
-                auth_mode,
-                status,
-                variables_json
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                record.id,
-                record.name,
-                record.base_url,
-                record.auth_mode,
-                record.status,
-                dump_json(record.variables),
-            ),
-        )
-        self._connection.commit()
+            record = EnvironmentRecord(
+                id=uuid4().hex,
+                name=name,
+                base_url=base_url,
+                auth_mode=auth_mode,
+                status=status,
+                variables=dict(variables),
+            )
+            self._connection.execute(
+                """
+                INSERT INTO environments (
+                    id,
+                    name,
+                    base_url,
+                    auth_mode,
+                    status,
+                    variables_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    record.id,
+                    record.name,
+                    record.base_url,
+                    record.auth_mode,
+                    record.status,
+                    dump_json(record.variables),
+                ),
+            )
 
-        return record
+            return record
 
     def update_environment(
         self,
@@ -444,124 +315,74 @@ class SqliteManagementRepository(InMemoryManagementRepository):
     ) -> Optional[EnvironmentRecord]:
         """更新环境目录记录。"""
 
-        existing = self._connection.execute(
-            """
-            SELECT id, name, base_url, auth_mode, status, variables_json
-            FROM environments
-            WHERE id = ?
-            """,
-            (environment_id,),
-        ).fetchone()
-        if existing is None:
-            return None
+        with self._lock, self._connection.transaction():
+            existing = self._connection.execute(
+                """
+                SELECT id, name, base_url, auth_mode, status, variables_json
+                FROM environments
+                WHERE id = ?
+                """,
+                (environment_id,),
+            ).fetchone()
+            if existing is None:
+                return None
 
-        normalized_name = name.strip().lower()
-        if self._name_exists(self._connection, normalized_name, exclude_id=environment_id):
-            raise ValueError(f"环境名称已存在: {name}")
+            normalized_name = name.strip().lower()
+            if self._name_exists(self._connection, normalized_name, exclude_id=environment_id):
+                raise ValueError(f"环境名称已存在: {name}")
 
-        updated = EnvironmentRecord(
-            id=environment_id,
-            name=name,
-            base_url=base_url,
-            auth_mode=auth_mode,
-            status=status,
-            variables=dict(variables),
-        )
-        self._connection.execute(
-            """
-            UPDATE environments
-            SET
-                name = ?,
-                base_url = ?,
-                auth_mode = ?,
-                status = ?,
-                variables_json = ?
-            WHERE id = ?
-            """,
-            (
-                updated.name,
-                updated.base_url,
-                updated.auth_mode,
-                updated.status,
-                dump_json(updated.variables),
-                updated.id,
-            ),
-        )
-        self._connection.commit()
+            updated = EnvironmentRecord(
+                id=environment_id,
+                name=name,
+                base_url=base_url,
+                auth_mode=auth_mode,
+                status=status,
+                variables=dict(variables),
+            )
+            self._connection.execute(
+                """
+                UPDATE environments
+                SET
+                    name = ?,
+                    base_url = ?,
+                    auth_mode = ?,
+                    status = ?,
+                    variables_json = ?
+                WHERE id = ?
+                """,
+                (
+                    updated.name,
+                    updated.base_url,
+                    updated.auth_mode,
+                    updated.status,
+                    dump_json(updated.variables),
+                    updated.id,
+                ),
+            )
 
-        return updated
+            return updated
 
     def delete_environment(self, environment_id: str) -> Optional[EnvironmentRecord]:
         """删除环境目录记录。"""
 
-        row = self._connection.execute(
-            """
-            SELECT id, name, base_url, auth_mode, status, variables_json
-            FROM environments
-            WHERE id = ?
-            """,
-            (environment_id,),
-        ).fetchone()
-        if row is None:
-            return None
-
-        self._connection.execute(
-            "DELETE FROM environments WHERE id = ?",
-            (environment_id,),
-        )
-        self._connection.commit()
-
-        return self._row_to_environment(row)
-
-    def _initialize_tables(self) -> None:
-        """初始化 environments 表。"""
-
-        self._connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS environments (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                base_url TEXT NOT NULL,
-                auth_mode TEXT NOT NULL,
-                status TEXT NOT NULL,
-                variables_json TEXT NOT NULL
-            )
-            """
-        )
-        self._connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_environments_name ON environments(name)"
-        )
-        self._connection.commit()
-
-    def _ensure_seed_environments(self) -> None:
-        """只在首次初始化时写入默认环境种子。"""
-
-        total = self._connection.execute("SELECT COUNT(*) FROM environments").fetchone()[0]
-        if total > 0:
-            return
-
-        for item in self._seed_environments:
-            self._connection.execute(
+        with self._lock, self._connection.transaction():
+            row = self._connection.execute(
                 """
-                INSERT INTO environments (
-                    id,
-                    name,
-                    base_url,
-                    auth_mode,
-                    status,
-                    variables_json
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                SELECT id, name, base_url, auth_mode, status, variables_json
+                FROM environments
+                WHERE id = ?
                 """,
-                (
-                    item.id,
-                    item.name,
-                    item.base_url,
-                    item.auth_mode,
-                    item.status,
-                    dump_json(item.variables),
-                ),
+                (environment_id,),
+            ).fetchone()
+            if row is None:
+                return None
+
+            self._connection.execute(
+                "DELETE FROM environments WHERE id = ?",
+                (environment_id,),
             )
-        self._connection.commit()
+
+            return self._row_to_environment(row)
 
     @staticmethod
     def _name_exists(connection, normalized_name: str, exclude_id: Optional[str] = None) -> bool:
@@ -579,7 +400,7 @@ class SqliteManagementRepository(InMemoryManagementRepository):
 
     @staticmethod
     def _row_to_environment(row) -> EnvironmentRecord:
-        """把 sqlite 行还原为 EnvironmentRecord。"""
+        """把数据库行还原为 EnvironmentRecord。"""
 
         return EnvironmentRecord(
             id=row["id"],
@@ -589,3 +410,6 @@ class SqliteManagementRepository(InMemoryManagementRepository):
             status=row["status"],
             variables=load_json(row["variables_json"], default={}),
         )
+
+
+SqliteManagementRepository = SqlManagementRepository

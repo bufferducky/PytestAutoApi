@@ -8,12 +8,12 @@
 
     <div class="app-header__summary">
       <div class="app-header__summary-card">
-        <span>架构</span>
-        <strong>FastAPI + Vue 3 + Worker</strong>
+        <span>执行方式</span>
+        <strong>真实接口测试</strong>
       </div>
       <div class="app-header__summary-card">
-        <span>团队尺度</span>
-        <strong>1-3 人协作优先</strong>
+        <span>工作台</span>
+        <strong>个人使用</strong>
       </div>
     </div>
   </header>
@@ -66,6 +66,10 @@ const appStore = useAppStore();
   min-width: 17rem;
 }
 
+.app-header > div {
+  min-width: 0;
+}
+
 .app-header__summary-card {
   display: grid;
   gap: 0.35rem;
@@ -85,14 +89,15 @@ const appStore = useAppStore();
   font-size: 0.95rem;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1080px) {
   .app-header {
     flex-direction: column;
   }
 
   .app-header__summary {
-    min-width: 100%;
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    min-width: 0;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

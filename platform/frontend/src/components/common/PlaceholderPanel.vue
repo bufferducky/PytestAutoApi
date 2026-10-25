@@ -32,6 +32,7 @@ defineProps<{
 
 .panel__header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
@@ -51,6 +52,7 @@ defineProps<{
 
 .panel__body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 </style>

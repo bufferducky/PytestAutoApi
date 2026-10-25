@@ -34,6 +34,7 @@ export type StatusTone = 'success' | 'warning' | 'running' | 'neutral' | 'attent
 export type ApiDataSource = 'api' | 'compatibility' | 'mock';
 
 export interface ApiResolvedData<T> {
+  total?: number;
   data: T;
   source: ApiDataSource;
   note?: string;
@@ -47,7 +48,7 @@ export interface FocusItem {
   summary: string;
 }
 
-export type RunStatus = 'queued' | 'running' | 'success' | 'failed' | 'warning';
+export type RunStatus = 'queued' | 'running' | 'success' | 'failed' | 'warning' | 'error' | 'skipped' | 'blocked' | 'cancelled' | 'timed_out' | 'interrupted';
 export type RunExecutionMode = 'mock' | 'live';
 
 export interface RunSummary {
@@ -61,6 +62,11 @@ export interface RunSummary {
   startedAt: string;
   duration: string;
   starter: string;
+  transportMode?: string;
+  executionMode?: string;
+  validationScope?: string;
+  cleanupStatus?: string;
+  eligibleForRelease?: boolean;
   rawStatus?: string;
   note?: string;
   errorSummary?: string;
@@ -72,14 +78,10 @@ export interface RunDetail extends RunSummary {
   requestedBy: string;
   payload: Record<string, unknown>;
   statusMessage?: string;
+  results?: unknown[];
+  counts?: Record<string, number>;
 }
 
-export interface SuiteRunPreset {
-  suiteId: string;
-  environmentId?: string;
-  mode: RunExecutionMode;
-  requestedBy: string;
-}
 
 export interface DashboardOverview {
   metrics: DashboardMetric[];
@@ -113,6 +115,7 @@ export interface EnvironmentSummary {
 }
 
 export interface EnvironmentDetail extends EnvironmentSummary {
+  revision?: string;
   variables: Record<string, unknown>;
 }
 
@@ -124,6 +127,7 @@ export interface CreateEnvironmentPayload {
 }
 
 export interface UpdateEnvironmentPayload {
+  expectedRevision?: string;
   name?: string;
   baseUrl?: string;
   authMode?: string;

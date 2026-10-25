@@ -35,4 +35,3 @@ def create_demo_suites_router(demo_suite_service: DemoSuiteService) -> APIRouter
         return demo_suite_service.create_run_from_suite(suite_id=suite_id, request=payload)
 
     return router
-

@@ -118,6 +118,7 @@ export const normalizeEnvironmentDetail = (payload: unknown, index: number): Env
   return {
     ...summary,
     variables,
+    revision: isRecord(payload) ? readString(payload.revision) : undefined,
   };
 };
 

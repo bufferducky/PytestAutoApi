@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         /**
          * 前端默认仍使用相对地址 `/api/v1`，这里把开发态请求转发到本地 FastAPI。
-         * 这样不开额外 `.env.local` 也能优先命中真实后端，而不是误打到 Vite 自己后回退 mock。
+         * 这样不开额外 `.env.local` 也能优先命中真实后端，避免误打到 Vite 自身。
          */
         '/api': {
           target: devProxyTarget,

@@ -1,5 +1,9 @@
 """平台管理页聚合服务。"""
 
+import hashlib
+import json
+from dataclasses import asdict
+from threading import RLock
 from typing import Optional
 
 from fastapi import HTTPException, status
@@ -22,6 +26,7 @@ from pyta_platform_backend.schemas.management import (
     UpdateEnvironmentResponse,
 )
 from pyta_platform_backend.schemas.run import RunSummaryResponse
+from pyta_platform_backend.services.redaction import Redactor
 
 
 class ManagementService:
@@ -38,6 +43,8 @@ class ManagementService:
     ) -> None:
         self._repository = repository
         self._run_repository = run_repository
+        self._environment_lock = RLock()
+        self.context_service = None
 
     def list_cases(self) -> list[CaseSummaryResponse]:
         """返回用例目录。"""
@@ -73,8 +80,7 @@ class ManagementService:
         """返回环境目录。"""
 
         return [
-            self._to_environment_summary(record)
-            for record in self._repository.list_environments()
+            self._to_environment_summary(record) for record in self._repository.list_environments()
         ]
 
     def get_environment_detail(self, environment_id: str) -> EnvironmentDetailResponse:
@@ -86,6 +92,8 @@ class ManagementService:
     def create_environment(self, payload: CreateEnvironmentRequest) -> CreateEnvironmentResponse:
         """创建新的环境目录。"""
 
+        if Redactor(payload.variables).clean(payload.variables) != payload.variables:
+            raise HTTPException(400, "variables 不能保存凭证明文，请使用引用")
         name = self._require_text(payload.name, field_name="name")
         base_url = self._normalize_base_url(payload.base_url)
         auth_mode = self._require_text(payload.auth_mode, field_name="auth_mode")
@@ -105,9 +113,7 @@ class ManagementService:
                 detail=str(exc),
             ) from exc
 
-        return CreateEnvironmentResponse(
-            **self._dump_model(self._to_environment_detail(record))
-        )
+        return CreateEnvironmentResponse(**self._dump_model(self._to_environment_detail(record)))
 
     def update_environment(
         self,
@@ -120,57 +126,76 @@ class ManagementService:
         即使前端这轮只编辑少数字段，也不会误伤未来补上的变量或密钥引用。
         """
 
-        existing = self._get_environment_or_404(environment_id)
-        name = (
-            self._require_text(payload.name, field_name="name")
-            if payload.name is not None
-            else existing.name
-        )
-        base_url = (
-            self._normalize_base_url(payload.base_url)
-            if payload.base_url is not None
-            else existing.base_url
-        )
-        auth_mode = (
-            self._require_text(payload.auth_mode, field_name="auth_mode")
-            if payload.auth_mode is not None
-            else existing.auth_mode
-        )
-        normalized_status = (
-            self._normalize_status(payload.status)
-            if payload.status is not None
-            else existing.status
-        )
-        variables = dict(existing.variables if payload.variables is None else payload.variables)
-
-        try:
-            updated = self._repository.update_environment(
-                environment_id,
-                name=name,
-                base_url=base_url,
-                auth_mode=auth_mode,
-                status=normalized_status,
-                variables=variables,
+        with self._environment_lock:
+            existing = self._get_environment_or_404(environment_id)
+            if payload.expected_revision != self._revision(existing):
+                raise HTTPException(409, "环境已变化或缺少 expected_revision，请刷新后保存")
+            if (
+                payload.variables is not None
+                and Redactor(payload.variables).clean(payload.variables) != payload.variables
+            ):
+                raise HTTPException(400, "variables 不能保存凭证明文，请使用引用")
+            name = (
+                self._require_text(payload.name, field_name="name")
+                if payload.name is not None
+                else existing.name
             )
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=str(exc),
-            ) from exc
-
-        if updated is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"environment 不存在: {environment_id}",
+            base_url = (
+                self._normalize_base_url(payload.base_url)
+                if payload.base_url is not None
+                else existing.base_url
             )
+            auth_mode = (
+                self._require_text(payload.auth_mode, field_name="auth_mode")
+                if payload.auth_mode is not None
+                else existing.auth_mode
+            )
+            normalized_status = (
+                self._normalize_status(payload.status)
+                if payload.status is not None
+                else existing.status
+            )
+            variables = dict(existing.variables if payload.variables is None else payload.variables)
 
-        return UpdateEnvironmentResponse(
-            **self._dump_model(self._to_environment_detail(updated))
-        )
+            try:
+                updated = self._repository.update_environment(
+                    environment_id,
+                    name=name,
+                    base_url=base_url,
+                    auth_mode=auth_mode,
+                    status=normalized_status,
+                    variables=variables,
+                )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=str(exc),
+                ) from exc
+
+            if updated is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"environment 不存在: {environment_id}",
+                )
+
+            return UpdateEnvironmentResponse(
+                **self._dump_model(self._to_environment_detail(updated))
+            )
 
     def delete_environment(self, environment_id: str) -> DeleteEnvironmentResponse:
         """删除环境目录。"""
 
+        if self.context_service and any(
+            target["environment_id"] == environment_id
+            for target in self.context_service.list("targets")
+        ):
+            raise HTTPException(409, "环境被目标配置引用，请先解除引用")
+        if any(
+            record.environment_id == environment_id
+            for record in self._run_repository.list_queued_records()
+            + self._run_repository.list_running_records()
+        ):
+            raise HTTPException(409, "环境被待执行/运行任务引用")
         deleted = self._repository.delete_environment(environment_id)
         if deleted is None:
             raise HTTPException(
@@ -178,9 +203,7 @@ class ManagementService:
                 detail=f"environment 不存在: {environment_id}",
             )
 
-        return DeleteEnvironmentResponse(
-            **self._dump_model(self._to_environment_summary(deleted))
-        )
+        return DeleteEnvironmentResponse(**self._dump_model(self._to_environment_summary(deleted)))
 
     def list_schedules(self) -> list[ScheduleSummaryResponse]:
         """返回调度目录。"""
@@ -248,8 +271,13 @@ class ManagementService:
         summary_payload = cls._dump_model(cls._to_environment_summary(record))
         return EnvironmentDetailResponse(
             **summary_payload,
-            variables=dict(record.variables),
+            variables=Redactor(record.variables).clean(record.variables),
+            revision=cls._revision(record),
         )
+
+    @staticmethod
+    def _revision(record):
+        return hashlib.sha256(json.dumps(asdict(record), sort_keys=True).encode()).hexdigest()
 
     @staticmethod
     def _dump_model(model) -> dict[str, object]:

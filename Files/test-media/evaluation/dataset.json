@@ -1,0 +1,614 @@
+{
+  "name": "言迹合成评估机制样本集",
+  "schema_version": 1,
+  "samples": [
+    {
+      "sample_id": "text-01",
+      "category": "事实覆盖",
+      "input": "测试客户希望了解基础护理，预算三百元。",
+      "reference_text": "测试客户希望了解基础护理，预算三百元。",
+      "known_facts": [
+        "基础护理",
+        "三百元"
+      ],
+      "required_concepts": [
+        [
+          "基础护理"
+        ],
+        [
+          "三百元"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-01"
+      }
+    },
+    {
+      "sample_id": "text-02",
+      "category": "关联一致",
+      "input": "测试项目甲的接诊单编号为模拟一号。",
+      "reference_text": "测试项目甲的接诊单编号为模拟一号。",
+      "known_facts": [
+        "项目甲",
+        "模拟一号"
+      ],
+      "required_concepts": [
+        [
+          "项目甲"
+        ],
+        [
+          "模拟一号"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-02"
+      }
+    },
+    {
+      "sample_id": "text-03",
+      "category": "否定约束",
+      "input": "测试客户明确不接受侵入式项目。",
+      "reference_text": "测试客户明确不接受侵入式项目。",
+      "known_facts": [
+        "不接受",
+        "侵入式"
+      ],
+      "required_concepts": [
+        [
+          "不接受"
+        ],
+        [
+          "侵入式"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-03"
+      }
+    },
+    {
+      "sample_id": "text-04",
+      "category": "任务完成",
+      "input": "演练需要先询问需求，再确认预约时间。",
+      "reference_text": "演练需要先询问需求，再确认预约时间。",
+      "known_facts": [
+        "询问需求",
+        "预约"
+      ],
+      "required_concepts": [
+        [
+          "询问需求"
+        ],
+        [
+          "预约"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-04"
+      }
+    },
+    {
+      "sample_id": "text-05",
+      "category": "中断恢复",
+      "input": "对话中断前已经确认客户偏好周末。",
+      "reference_text": "对话中断前已经确认客户偏好周末。",
+      "known_facts": [
+        "周末"
+      ],
+      "required_concepts": [
+        [
+          "周末"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-05"
+      }
+    },
+    {
+      "sample_id": "text-06",
+      "category": "失败降级",
+      "input": "语音不可用时提示改用文字沟通。",
+      "reference_text": "语音不可用时提示改用文字沟通。",
+      "known_facts": [
+        "语音",
+        "文字"
+      ],
+      "required_concepts": [
+        [
+          "语音"
+        ],
+        [
+          "文字"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-06"
+      }
+    },
+    {
+      "sample_id": "text-07",
+      "category": "信息遗漏",
+      "input": "测试客户关注恢复周期，不关心品牌。",
+      "reference_text": "测试客户关注恢复周期，不关心品牌。",
+      "known_facts": [
+        "恢复周期"
+      ],
+      "required_concepts": [
+        [
+          "恢复周期"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-07"
+      }
+    },
+    {
+      "sample_id": "text-08",
+      "category": "无依据内容",
+      "input": "输入没有提供客户年龄和诊断结论。",
+      "reference_text": "输入没有提供客户年龄和诊断结论。",
+      "known_facts": [
+        "没有",
+        "年龄"
+      ],
+      "required_concepts": [
+        [
+          "没有"
+        ],
+        [
+          "年龄"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-08"
+      }
+    },
+    {
+      "sample_id": "text-09",
+      "category": "需求识别",
+      "input": "模拟访客仅咨询价格，不代表同意购买。",
+      "reference_text": "模拟访客仅咨询价格，不代表同意购买。",
+      "known_facts": [
+        "价格",
+        "不代表"
+      ],
+      "required_concepts": [
+        [
+          "价格"
+        ],
+        [
+          "不代表"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-09"
+      }
+    },
+    {
+      "sample_id": "text-10",
+      "category": "结构完整",
+      "input": "测试报告应包括总结、依据、待办。",
+      "reference_text": "测试报告应包括总结、依据、待办。",
+      "known_facts": [
+        "总结",
+        "依据",
+        "待办"
+      ],
+      "required_concepts": [
+        [
+          "总结"
+        ],
+        [
+          "依据"
+        ],
+        [
+          "待办"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-10"
+      }
+    },
+    {
+      "sample_id": "text-11",
+      "category": "反向状态",
+      "input": "测试任务未完成，不应生成完成结论。",
+      "reference_text": "测试任务未完成，不应生成完成结论。",
+      "known_facts": [
+        "未完成"
+      ],
+      "required_concepts": [
+        [
+          "未完成"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-11"
+      }
+    },
+    {
+      "sample_id": "text-12",
+      "category": "项目隔离",
+      "input": "项目乙的模拟录音不能出现在项目甲。",
+      "reference_text": "项目乙的模拟录音不能出现在项目甲。",
+      "known_facts": [
+        "项目乙",
+        "项目甲"
+      ],
+      "required_concepts": [
+        [
+          "项目乙"
+        ],
+        [
+          "项目甲"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-12"
+      }
+    },
+    {
+      "sample_id": "text-13",
+      "category": "低信噪比文案",
+      "input": "噪声场景只核对人工参考，不猜未听清内容。",
+      "reference_text": "噪声场景只核对人工参考，不猜未听清内容。",
+      "known_facts": [
+        "人工参考",
+        "不猜"
+      ],
+      "required_concepts": [
+        [
+          "人工参考"
+        ],
+        [
+          "不猜"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-13"
+      }
+    },
+    {
+      "sample_id": "text-14",
+      "category": "数字实体",
+      "input": "测试套餐价格为一百二十元，有效期七天。",
+      "reference_text": "测试套餐价格为一百二十元，有效期七天。",
+      "known_facts": [
+        "一百二十元",
+        "七天"
+      ],
+      "required_concepts": [
+        [
+          "一百二十元"
+        ],
+        [
+          "七天"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-14"
+      }
+    },
+    {
+      "sample_id": "text-15",
+      "category": "会话结束",
+      "input": "用户结束本次演练后不能追加旧会话消息。",
+      "reference_text": "用户结束本次演练后不能追加旧会话消息。",
+      "known_facts": [
+        "结束",
+        "旧会话"
+      ],
+      "required_concepts": [
+        [
+          "结束"
+        ],
+        [
+          "旧会话"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-15"
+      }
+    },
+    {
+      "sample_id": "text-16",
+      "category": "空输出",
+      "input": "没有回答时应明确标记未评估或失败。",
+      "reference_text": "没有回答时应明确标记未评估或失败。",
+      "known_facts": [
+        "没有回答"
+      ],
+      "required_concepts": [
+        [
+          "没有回答"
+        ]
+      ],
+      "forbidden_concepts": [],
+      "applicable_tasks": [
+        "text",
+        "analysis",
+        "protocol"
+      ],
+      "source": "locally authored synthetic scenario 2026-10-25",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "authored_not_independently_reviewed",
+      "protocol_expected": {
+        "user_id": "synthetic-user",
+        "project_id": "synthetic-project",
+        "object_id": "object-16"
+      }
+    },
+    {
+      "sample_id": "audio-01",
+      "category": "non_speech_audio",
+      "input": "合成非语音样本，不作为ASR识别金标准",
+      "applicable_tasks": [
+        "audio_integrity",
+        "tts_format"
+      ],
+      "source": "locally synthesized sine/silence, not real speech",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "not_applicable_non_speech",
+      "media": {
+        "path": "Files/test-media/evaluation/synthetic-1.wav",
+        "sha256": "c726d333dd159a31423f3480dbb1c5c4a9dfcd30efe1f7e12ade390dc92e8908",
+        "byte_size": 1644,
+        "duration_seconds": 0.1,
+        "format": "wav",
+        "language": "none",
+        "noise": "silence"
+      }
+    },
+    {
+      "sample_id": "audio-02",
+      "category": "non_speech_audio",
+      "input": "合成非语音样本，不作为ASR识别金标准",
+      "applicable_tasks": [
+        "audio_integrity",
+        "tts_format"
+      ],
+      "source": "locally synthesized sine/silence, not real speech",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "not_applicable_non_speech",
+      "media": {
+        "path": "Files/test-media/evaluation/synthetic-2.wav",
+        "sha256": "35309226eb021c04c30ce9116c869beed1f48424fcecf491246c261d678b6841",
+        "byte_size": 4044,
+        "duration_seconds": 0.25,
+        "format": "wav",
+        "language": "none",
+        "noise": "tone"
+      }
+    },
+    {
+      "sample_id": "audio-03",
+      "category": "non_speech_audio",
+      "input": "合成非语音样本，不作为ASR识别金标准",
+      "applicable_tasks": [
+        "audio_integrity",
+        "tts_format"
+      ],
+      "source": "locally synthesized sine/silence, not real speech",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "not_applicable_non_speech",
+      "media": {
+        "path": "Files/test-media/evaluation/synthetic-3.wav",
+        "sha256": "a87935f7a2a541f42970d0416fcd97d7c1ad0e051d748a5b1814bd5aea6e10ac",
+        "byte_size": 16044,
+        "duration_seconds": 1,
+        "format": "wav",
+        "language": "none",
+        "noise": "tone"
+      }
+    },
+    {
+      "sample_id": "audio-04",
+      "category": "non_speech_audio",
+      "input": "合成非语音样本，不作为ASR识别金标准",
+      "applicable_tasks": [
+        "audio_integrity",
+        "tts_format"
+      ],
+      "source": "locally synthesized sine/silence, not real speech",
+      "authorized": true,
+      "redacted": true,
+      "human_reference_status": "not_applicable_non_speech",
+      "media": {
+        "path": "Files/test-media/evaluation/synthetic-4.wav",
+        "sha256": "78f82cd49af869013e8ec414a15d71f5f4f2ec8d006b6a0c50527c91eaa7a85f",
+        "byte_size": 32044,
+        "duration_seconds": 2,
+        "format": "wav",
+        "language": "none",
+        "noise": "silence"
+      }
+    }
+  ],
+  "limitations": [
+    "16个人工编写合成文本+4个非语音WAV，仅机制验证，不声称包含真人方言/噪声语音质量基线",
+    "未独立人工复核，不是已校准黄金集"
+  ]
+}

@@ -76,6 +76,14 @@ class AssertionOperator(str, Enum):
     GREATER_OR_EQUAL = "greater_or_equal"
     LESS_THAN = "less_than"
     LESS_OR_EQUAL = "less_or_equal"
+    NOT_CONTAINS = "not_contains"
+    IS_NULL = "is_null"
+    IS_MISSING = "is_missing"
+    TYPE_IS = "type_is"
+    SCHEMA = "schema"
+    SET_EQUALS = "set_equals"
+    KEYED_EQUALS = "keyed_equals"
+    UNIQUE = "unique"
 
 
 class ExtractionSource(str, Enum):
@@ -94,6 +102,9 @@ class ExecutionStatus(str, Enum):
     FAILED = "failed"
     ERROR = "error"
     SKIPPED = "skipped"
+    BLOCKED = "blocked"
+    CANCELLED = "cancelled"
+    TIMED_OUT = "timed_out"
 
 
 class CaseSource(BaseModel):
@@ -142,6 +153,13 @@ class AssertionSpec(BaseModel):
     source: AssertionSource = AssertionSource.RESPONSE_BODY
     operator: AssertionOperator = AssertionOperator.EQUALS
     expected: Any = None
+    expected_ref: Optional[str] = None
+    baseline_ref: Optional[str] = None
+    value_type: str = "native"
+    tolerance: float = Field(0, ge=0)
+    normalization: dict[str, Any] = Field(default_factory=dict)
+    select_by: dict[str, Any] = Field(default_factory=dict)
+    rule_ref: Optional[str] = None
     message: Optional[str] = None
     extras: dict[str, Any] = Field(default_factory=dict)
 
@@ -159,8 +177,27 @@ class ExtractionSpec(BaseModel):
     selector_type: SelectorType = SelectorType.FIELD_PATH
     source: ExtractionSource = ExtractionSource.RESPONSE_BODY
     target: str = ""
+    required: bool = True
     message: Optional[str] = None
     extras: dict[str, Any] = Field(default_factory=dict)
+
+
+class WaitPolicy(BaseModel):
+    adapter_ref: str = "configured-state@1"
+    contract_confirmed: bool = False
+    state_selector: str
+    state_map: dict[str, str]
+    success_code_path: str = "code"
+    success_code: int = 200
+    interval_seconds: float = Field(2, ge=0)
+    backoff: float = Field(1, ge=1, le=5)
+    max_interval_seconds: float = Field(10, gt=0)
+    deadline_seconds: float = Field(60, gt=0, le=86400)
+    max_attempts: int = Field(30, ge=1, le=10000)
+    network_retries: int = Field(0, ge=0, le=3)
+    trace_limit: int = Field(100, ge=2, le=1000)
+    success_assertions: list[AssertionSpec] = Field(default_factory=list)
+    failure_assertions: list[AssertionSpec] = Field(default_factory=list)
 
 
 class TestCaseDefinition(BaseModel):
@@ -174,6 +211,9 @@ class TestCaseDefinition(BaseModel):
     case_id: str
     title: str
     request: RequestSpec
+    depends_on: list[str] = Field(default_factory=list)
+    wait_policy: Optional[WaitPolicy] = None
+    required: bool = True
     assertions: list[AssertionSpec] = Field(default_factory=list)
     extractors: list[ExtractionSpec] = Field(default_factory=list)
     description: str = ""
@@ -194,6 +234,7 @@ class TestRunDefinition(BaseModel):
     run_id: str = Field(default_factory=lambda: str(uuid4()))
     name: str = "unnamed-run"
     cases: list[TestCaseDefinition] = Field(default_factory=list)
+    cleanup_cases: list[TestCaseDefinition] = Field(default_factory=list)
     variables: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -220,6 +261,9 @@ class AssertionResult(BaseModel):
     actual: Any = None
     expected: Any = None
     message: str = ""
+    rule_version: str = "builtin@1"
+    source_ref: str = ""
+    actual_missing: bool = False
 
 
 class StepExecutionResult(BaseModel):
@@ -232,6 +276,16 @@ class StepExecutionResult(BaseModel):
     name: str
     status: ExecutionStatus
     response: Optional[ResponseSnapshot] = None
+    request: Optional[RequestSpec] = None
+    request_sent: bool = False
+    attempts: list[dict[str, Any]] = Field(default_factory=list)
+    poll_trace: list[dict[str, Any]] = Field(default_factory=list)
+    poll_attempts: int = 0
+    network_attempts: list[dict[str, Any]] = Field(default_factory=list)
+    network_attempt_count: int = 0
+    http_attempt_count: int = 0
+    http_replay_count: int = 0
+    error_type: Optional[str] = None
     assertions: list[AssertionResult] = Field(default_factory=list)
     error: Optional[str] = None
     started_at: datetime
@@ -243,6 +297,7 @@ class CaseExecutionResult(BaseModel):
 
     case_id: str
     title: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
     status: ExecutionStatus
     steps: list[StepExecutionResult] = Field(default_factory=list)
     error: Optional[str] = None
@@ -258,6 +313,9 @@ class ReportSummary(BaseModel):
     failed: int = 0
     errors: int = 0
     skipped: int = 0
+    blocked: int = 0
+    requests: int = 0
+    assertions: int = 0
 
 
 class RunExecutionResult(BaseModel):
@@ -268,6 +326,9 @@ class RunExecutionResult(BaseModel):
     status: ExecutionStatus
     cases: list[CaseExecutionResult] = Field(default_factory=list)
     summary: ReportSummary = Field(default_factory=ReportSummary)
+    error: Optional[str] = None
+    cleanup_status: str = "not_started"
+    authentication_results: list[dict[str, Any]] = Field(default_factory=list)
     started_at: datetime
     finished_at: datetime
 

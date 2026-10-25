@@ -25,6 +25,7 @@ import SideNav from '@/components/layout/SideNav.vue';
 }
 
 .app-shell__body {
+  min-width: 0;
   position: relative;
   padding: 0 1.5rem 2rem;
 }
@@ -47,7 +48,7 @@ import SideNav from '@/components/layout/SideNav.vue';
   gap: 1.25rem;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;
   }

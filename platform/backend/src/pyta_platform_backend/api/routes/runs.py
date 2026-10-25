@@ -28,13 +28,37 @@ def create_runs_router(run_service: RunService) -> APIRouter:
         return run_service.create_run(payload)
 
     @router.get("", response_model=ListRunsResponse, status_code=status.HTTP_200_OK)
-    def list_runs(limit: int = 20, offset: int = 0) -> ListRunsResponse:
+    def list_runs(
+        limit: int = 20,
+        offset: int = 0,
+        environment_id: str = None,
+        target_id: str = None,
+        transport_mode: str = None,
+        scenario_id: str = None,
+        scenario_version: int = None,
+        status: str = None,
+        category: str = None,
+        since: str = None,
+        until: str = None,
+    ) -> ListRunsResponse:
         """返回 run 列表。
 
         这里优先给结果页和仪表盘提供真实数据来源。
         """
 
-        return run_service.list_runs(limit=limit, offset=offset)
+        return run_service.list_runs(
+            limit=limit,
+            offset=offset,
+            environment_id=environment_id,
+            target_id=target_id,
+            transport_mode=transport_mode,
+            scenario_id=scenario_id,
+            scenario_version=scenario_version,
+            status=status,
+            category=category,
+            since=since,
+            until=until,
+        )
 
     @router.get("/{run_id}", response_model=RunDetailResponse, status_code=status.HTTP_200_OK)
     def get_run_detail(run_id: str) -> RunDetailResponse:
@@ -54,5 +78,37 @@ def create_runs_router(run_service: RunService) -> APIRouter:
         """
 
         return run_service.update_run_status(run_id=run_id, payload=payload)
+
+    @router.post("/{run_id}/cancel", response_model=RunDetailResponse)
+    def cancel_run(run_id: str) -> RunDetailResponse:
+        return run_service.cancel_run(run_id)
+
+    @router.get("/{run_id}/results", response_model=RunDetailResponse)
+    def get_results(run_id: str) -> RunDetailResponse:
+        return run_service.get_run_detail(run_id)
+
+    @router.get("/{run_id}/steps/{step_id}/trace")
+    def get_trace(run_id: str, step_id: str):
+        from fastapi import HTTPException
+
+        record = next(
+            (
+                case
+                for case in run_service.get_run_detail(run_id).results
+                if case["case_id"] == step_id
+            ),
+            None,
+        )
+        if record is None:
+            raise HTTPException(404, "步骤结果不存在")
+        return record
+
+    @router.get("/{run_id}/export", response_model=RunDetailResponse)
+    def export_run(run_id: str) -> RunDetailResponse:
+        return run_service.get_run_detail(run_id)
+
+    @router.post("/{run_id}/rerun", response_model=CreateRunResponse, status_code=202)
+    def rerun(run_id: str, failed_only: bool = False) -> CreateRunResponse:
+        return run_service.rerun(run_id, failed_only)
 
     return router

@@ -30,6 +30,8 @@ dependencies = [
   "PyYAML>=6.0.2,<7.0.0",
   # SQLAlchemy 作为平台真源的数据层基础；第一阶段先把依赖放好，后续逐步落表结构。
   "SQLAlchemy>=2.0.40,<3.0.0",
+  "PyMySQL[rsa]>=1.1,<2.0",
+  "alembic>=1.14,<2.0",
   # APScheduler 用于轻量级调度。第一阶段不会上重型消息队列。
   "APScheduler>=3.10.4,<4.0.0",
   # 预留文件上传/导入接口能力，比如后续的 Excel / OpenAPI 导入。
@@ -37,6 +39,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+ui = ["playwright>=1.40,<2", "Appium-Python-Client>=3,<6"]
 dev = [
   # pytest 负责新引擎与新平台骨架的结构性测试。
   "pytest>=8.3.5,<9.0.0",

@@ -126,11 +126,14 @@ class APIRouter(_RouterBase):
 class FastAPI(_RouterBase):
     """测试替身版 FastAPI。"""
 
-    def __init__(self, title: str, debug: bool = False, version: str = "0.1.0") -> None:
+    def __init__(
+        self, title: str, debug: bool = False, version: str = "0.1.0", lifespan=None
+    ) -> None:
         super().__init__(prefix="")
         self.title = title
         self.debug = debug
         self.version = version
+        self.lifespan = lifespan
         self.state = SimpleNamespace()
 
 

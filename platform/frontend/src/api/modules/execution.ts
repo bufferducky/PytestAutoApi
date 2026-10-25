@@ -1,7 +1,6 @@
 import { normalizeRunDetail } from '@/api/adapters/runs';
 import { apiClient } from '@/api/client';
 import type { RunDetail } from '@/types/platform';
-import { resolveSuiteRunPreset } from '@/utils/suiteRunPresets';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -21,7 +20,8 @@ const readRunId = (payload: unknown) => {
 export const executionApi = {
   getRunDetail,
   executeRunNow,
-  runSuiteNow,
+  rerun,
+  cancelRun,
 };
 
 async function getRunDetail(runId: string): Promise<RunDetail> {
@@ -34,23 +34,11 @@ async function executeRunNow(runId: string): Promise<RunDetail> {
   return normalizeRunDetail(payload, 0);
 }
 
-async function runSuiteNow(suiteId: string): Promise<RunDetail> {
-  const preset = resolveSuiteRunPreset(suiteId);
-  if (!preset) {
-    throw new Error(`当前套件暂未配置一键运行预设：${suiteId}`);
-  }
+async function rerun(runId: string): Promise<RunDetail> {
+  const created = await apiClient.post<unknown>(`/runs/${runId}/rerun`, { transport_mode: 'live' });
+  return executeRunNow(readRunId(created));
+}
 
-  // 先创建 run，再立即按 run_id 定向执行，保证“点哪个跑哪个”。
-  const createdPayload = await apiClient.post<unknown>(`/demo-suites/${suiteId}/runs`, {
-    mode: preset.mode,
-    environment_id: preset.environmentId,
-    requested_by: preset.requestedBy,
-  });
-  const runId = readRunId(createdPayload);
-
-  if (!runId) {
-    throw new Error('后端未返回有效的 run_id，无法继续立即执行。');
-  }
-
-  return executeRunNow(runId);
+async function cancelRun(runId: string): Promise<RunDetail> {
+  return normalizeRunDetail(await apiClient.post<unknown>(`/runs/${runId}/cancel`), 0);
 }

@@ -22,7 +22,7 @@ const formatDateTime = (rawValue: unknown) => {
     return text;
   }
 
-  return parsedDate.toLocaleString('zh-CN', { hour12: false });
+  return parsedDate.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' });
 };
 
 const formatDuration = (rawValue: unknown, rawStatus?: string) => {
@@ -99,7 +99,7 @@ export const normalizeRunSummary = (payload: unknown, index: number): RunSummary
     };
   }
 
-  const rawStatus = readFirstString(payload.status, payload.run_status, payload.state, payload.result);
+  const rawStatus = readFirstString(payload.raw_status, payload.status, payload.run_status, payload.state, payload.result);
   const target = readFirstString(payload.target, payload.suite_id, payload.case_id);
 
   return {
@@ -111,7 +111,13 @@ export const normalizeRunSummary = (payload: unknown, index: number): RunSummary
       readFirstString(payload.environment_id, payload.environmentId) || undefined,
     environmentLabel:
       readFirstString(payload.environment_name, payload.environmentName) || undefined,
-    status: normalizeRunStatus(rawStatus),
+    transportMode: readString(payload.transport_mode) || 'historical_unknown',
+    executionMode: readString(payload.execution_mode) || 'historical_unknown',
+    validationScope: readString(payload.validation_scope) || 'historical_unknown',
+    cleanupStatus: readString(payload.cleanup_status) || 'not_recorded',
+    eligibleForRelease: payload.eligible_for_release === true,
+    status: payload.transport_mode !== 'live' && normalizeRunStatus(rawStatus) === 'success'
+      ? 'warning' : normalizeRunStatus(rawStatus),
     startedAt: formatDateTime(payload.started_at ?? payload.startedAt ?? payload.created_at ?? payload.createdAt),
     duration: formatDuration(payload.duration ?? payload.duration_ms ?? payload.elapsed_ms, rawStatus),
     starter: readFirstString(
@@ -153,6 +159,9 @@ export const normalizeRunDetail = (payload: unknown, index: number): RunDetail =
         readFirstString(payload.requested_by, payload.requestedBy, payload.starter)) ||
       summary.starter,
     payload: detailPayload,
+    results: isRecord(payload) && Array.isArray(payload.results) ? payload.results : [],
+    counts: isRecord(payload) && isRecord(payload.counts)
+      ? payload.counts as Record<string, number> : {},
     statusMessage:
       (isRecord(payload) &&
         readFirstString(payload.status_message, payload.statusMessage)) ||

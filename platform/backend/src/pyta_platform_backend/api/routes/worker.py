@@ -12,7 +12,7 @@ def create_worker_router(worker_control_service: WorkerControlService) -> APIRou
 
     router = APIRouter(prefix="/worker", tags=["worker"])
 
-    @router.post("/run-next", response_model=RunNextResponse, status_code=status.HTTP_200_OK)
+    @router.post("/run-next", response_model=RunNextResponse, status_code=status.HTTP_202_ACCEPTED)
     def run_next() -> RunNextResponse:
         """消费一条排队中的任务。
 
@@ -27,15 +27,19 @@ def create_worker_router(worker_control_service: WorkerControlService) -> APIRou
     @router.post(
         "/runs/{run_id}/execute",
         response_model=RunDetailResponse,
-        status_code=status.HTTP_200_OK,
+        status_code=status.HTTP_202_ACCEPTED,
     )
     def run_by_id(run_id: str) -> RunDetailResponse:
-        """立即执行指定 run_id。
+        """提交指定 run_id 到后台执行。
 
         这个入口专门服务单人工作台的一键运行：
         页面创建完 run 后，不必再赌 FIFO 队列，而是直接执行这次点击对应的任务。
         """
 
         return worker_control_service.run_by_id(run_id)
+
+    @router.get("/status")
+    def worker_status():
+        return worker_control_service.status()
 
     return router

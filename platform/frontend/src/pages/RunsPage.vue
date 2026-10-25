@@ -1,12 +1,12 @@
 <template>
   <section class="page-grid">
+    <EvidenceRetentionPanel />
     <section class="hero-banner">
       <div>
         <p class="hero-banner__eyebrow">执行结果</p>
         <h2 class="hero-banner__title">先把“最近跑了什么、现在处于什么状态”看清楚。</h2>
         <p class="hero-banner__copy">
-          本页优先接真实后端的运行记录契约；如果后端暂时只有创建 run、还没有列表查询，
-          前端会自动回退 mock，确保排障入口先可用。
+          查看真实运行、执行模式与步骤证据。连接失败会明确提示，模拟结果不代表真实业务通过。
         </p>
       </div>
 
@@ -31,6 +31,23 @@
           </button>
         </template>
 
+        <form class="run-filters" @submit.prevent="applyFilters">
+          <label>环境 ID<input v-model="serverFilters.environment_id" /></label>
+          <label>目标 ID<input v-model="serverFilters.target_id" /></label>
+          <label>历史模式筛选<select v-model="serverFilters.transport_mode"><option value="">全部（统计分开）</option><option value="live">真实</option><option value="mock">模拟</option></select></label>
+          <label>场景 ID<input v-model="serverFilters.scenario_id" /></label>
+          <label>发布版本<input v-model="serverFilters.scenario_version" type="number" min="1" /></label>
+          <label>终态<select v-model="serverFilters.status"><option value="">全部</option><option v-for="state in ['queued','running','succeeded','failed','error','blocked','skipped','cancelled','timed_out','interrupted']" :key="state">{{ state }}</option></select></label>
+          <label>错误类型<select v-model="serverFilters.category"><option value="">全部</option><option v-for="kind in ['config','authentication','context','data','network','assertion','executor','external_service','device','unknown']" :key="kind">{{ kind }}</option></select></label>
+          <label>开始时间（带时区 ISO）<input v-model="serverFilters.since" placeholder="2026-10-25T00:00:00+08:00" /></label>
+          <label>结束时间（带时区 ISO）<input v-model="serverFilters.until" /></label>
+          <button :disabled="loading">按真实条件筛选</button>
+        </form>
+        <p>共 {{ totalRuns }} 条；当前第 {{ Math.floor(pageOffset / 20) + 1 }} 页</p>
+        <button type="button" :disabled="loading || pageOffset === 0" @click="pageOffset -= 20; reloadRuns()">上一页</button>
+        <button type="button" :disabled="loading || pageOffset + 20 >= totalRuns" @click="pageOffset += 20; reloadRuns()">下一页</button>
+        <button type="button" @click="loadTrends" :disabled="!serverFilters.environment_id || !serverFilters.transport_mode || !serverFilters.scenario_id || !serverFilters.scenario_version">查看固定维度趋势</button>
+        <pre v-if="trendResult">{{ trendResult }}</pre>
         <p v-if="actionMessage" class="state-banner state-banner--info">{{ actionMessage }}</p>
         <p v-if="note" class="state-banner state-banner--info">{{ note }}</p>
         <p v-if="errorMessage" class="state-banner state-banner--error">{{ errorMessage }}</p>
@@ -52,6 +69,7 @@
                 <th>触发人</th>
                 <th>开始时间</th>
                 <th>耗时</th>
+                <th>模式</th>
                 <th>状态</th>
               </tr>
             </thead>
@@ -82,9 +100,10 @@
                 <td>{{ item.starter }}</td>
                 <td>{{ item.startedAt }}</td>
                 <td>{{ item.duration }}</td>
+                <td>{{ item.validationScope === 'historical_demo' ? '迁入演示历史' : item.transportMode === 'live' ? '真实测试' : item.transportMode === 'mock' ? 'Mock（模拟）' : '历史未记录' }}</td>
                 <td>
                   <StatusTag
-                    :label="getRunStatusMeta(item.status).label"
+                    :label="item.transportMode === 'mock' && item.rawStatus === 'succeeded' ? '模拟断言通过' : getRunStatusMeta(item.status).label"
                     :tone="getRunStatusMeta(item.status).tone"
                   />
                 </td>
@@ -216,6 +235,17 @@
           </section>
 
           <section class="detail-section">
+            <h3 class="detail-section__title">测试资源与清理</h3>
+            <button type="button" @click="resourcePreflight" :disabled="source !== 'api' || selectedRun.transportMode !== 'live'">资源/清理预检</button>
+            <button type="button" v-if="cleanupToken" @click="retryResourceCleanup">执行本次预检清理</button>
+            <pre>{{ resourceInfo }}</pre>
+            <RunDiagnosticsPanel v-if="selectedRunId && source === 'api'" :run-id="selectedRunId" />
+            <h3 class="detail-section__title">执行证据</h3>
+            <p>验证范围：{{ selectedRunDetail?.validationScope || '历史未记录' }}；清理：{{ selectedRunDetail?.cleanupStatus || '未记录' }}；发布条件：{{ selectedRunDetail?.eligibleForRelease ? '当前断言满足' : '不满足或未验证' }}</p>
+            <button v-if="selectedRun.transportMode === 'live' && (selectedRun.status === 'running' || selectedRun.status === 'queued')"
+              class="action-button" type="button" @click="cancelSelected">请求取消</button>
+            <pre>{{ JSON.stringify(selectedRunDetail?.counts || {}, null, 2) }}</pre>
+            <pre>{{ JSON.stringify(selectedRunDetail?.results || [], null, 2) }}</pre>
             <h3 class="detail-section__title">状态映射说明</h3>
             <div class="side-stack">
               <div class="status-legend">
@@ -229,7 +259,7 @@
                 <li>`queued / pending` 会统一展示为“排队中”。</li>
                 <li>`succeeded / passed` 会统一展示为“成功”。</li>
                 <li>`warning / partial_success` 会统一展示为“告警”。</li>
-                <li>如果真实列表接口缺失，页面会自动回退 mock，并在上方给出提示。</li>
+                <li>列表接口不可用时会显示错误，请检查后端连接。</li>
               </ul>
             </div>
           </section>
@@ -242,7 +272,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import RunDiagnosticsPanel from '@/components/RunDiagnosticsPanel.vue';
+import EvidenceRetentionPanel from '@/components/EvidenceRetentionPanel.vue';
+import { apiClient } from '@/api/client';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { executionApi, managementApi } from '@/api';
@@ -252,7 +285,6 @@ import StatusTag from '@/components/common/StatusTag.vue';
 import type { ApiDataSource, DashboardMetric, RunDetail, RunSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
 import { getRunStatusInsight, getRunStatusMeta } from '@/utils/runStatus';
-import { resolveSuiteRunPreset } from '@/utils/suiteRunPresets';
 
 interface RunDetailField {
   key: string;
@@ -276,6 +308,13 @@ const route = useRoute();
 const router = useRouter();
 
 const runs = ref<RunSummary[]>([]);
+const totalRuns=ref(0),pageOffset=ref(0),trendResult=ref('');
+const serverFilters=ref({environment_id:'',target_id:'',transport_mode:'',scenario_id:'',scenario_version:'',status:'',category:'',since:'',until:''});
+const applyFilters=async()=>{pageOffset.value=0;await loadRuns();};
+const loadTrends=async()=>{try{trendResult.value=JSON.stringify(await apiClient.get('/run-trends',{
+  environment_id:serverFilters.value.environment_id,transport_mode:serverFilters.value.transport_mode,
+  scenario_id:serverFilters.value.scenario_id,scenario_version:Number(serverFilters.value.scenario_version),
+}),null,2);}catch(cause){errorMessage.value=resolveApiErrorMessage(cause,'趋势读取失败');}};
 const loading = ref(false);
 const detailLoading = ref(false);
 const rerunLoading = ref(false);
@@ -283,7 +322,7 @@ const errorMessage = ref('');
 const detailErrorMessage = ref('');
 const actionMessage = ref('');
 const note = ref('');
-const source = ref<ApiDataSource>('mock');
+const source = ref<ApiDataSource>('api');
 const lastLoadedAt = ref('');
 const selectedRunId = ref('');
 const selectedRunDetail = ref<RunDetail | null>(null);
@@ -291,7 +330,7 @@ const selectedRunDetail = ref<RunDetail | null>(null);
 const sourceLabelMap: Record<ApiDataSource, string> = {
   api: '真实接口',
   compatibility: '兼容聚合',
-  mock: 'Mock 兜底',
+  mock: '历史模拟来源',
 };
 
 const sourceLabel = computed(() => sourceLabelMap[source.value]);
@@ -300,9 +339,9 @@ const routeRunId = computed(() => (typeof route.query.runId === 'string' ? route
 let detailRequestToken = 0;
 
 const summaryMetrics = computed<DashboardMetric[]>(() => {
-  const successCount = runs.value.filter((item) => item.status === 'success').length;
+  const successCount = runs.value.filter((item) => item.status === 'success' && item.transportMode === 'live').length;
   const failedCount = runs.value.filter(
-    (item) => item.status === 'failed' || item.status === 'warning',
+    (item) => ['failed','error','timed_out','interrupted'].includes(item.status),
   ).length;
   const inflightCount = runs.value.filter(
     (item) => item.status === 'queued' || item.status === 'running',
@@ -314,11 +353,11 @@ const summaryMetrics = computed<DashboardMetric[]>(() => {
       label: '运行总数',
       value: String(runs.value.length),
       description: '当前页已经拿到并展示的运行记录数量',
-      trend: source.value === 'api' ? '来自真实后端' : '当前为 mock/兼容数据',
+      trend: source.value === 'api' ? '来自真实后端' : '历史来源数据',
     },
     {
       key: 'runs-success',
-      label: '成功数',
+      label: '真实断言通过（本页）',
       value: String(successCount),
       description: '方便快速判断最近一批运行是否稳定',
       trend: failedCount ? `失败/告警 ${failedCount}` : '暂无失败',
@@ -432,7 +471,7 @@ const rerunnableSuiteId = computed(
   () => selectedRunDetail.value?.suiteId || selectedRun.value?.suiteId || '',
 );
 const canRerunSelected = computed(
-  () => !!rerunnableSuiteId.value && resolveSuiteRunPreset(rerunnableSuiteId.value) !== null,
+  () => !!selectedRun.value && selectedRun.value.transportMode === 'live' && !['queued','running'].includes(selectedRun.value.status),
 );
 
 /**
@@ -657,7 +696,7 @@ const reloadSelectedRunDetail = async () => {
 
 const rerunSelectedRun = async () => {
   const suiteId = rerunnableSuiteId.value;
-  if (!suiteId) {
+  if (!suiteId || !canRerunSelected.value) {
     return;
   }
 
@@ -665,8 +704,8 @@ const rerunSelectedRun = async () => {
   detailErrorMessage.value = '';
 
   try {
-    const detail = await executionApi.runSuiteNow(suiteId);
-    actionMessage.value = `已基于套件 ${suiteId} 重新发起并执行一条运行。`;
+    const detail = await executionApi.rerun(selectedRunId.value);
+    actionMessage.value = `已基于原运行快照创建关联复跑：${detail.id}。`;
     await loadRuns({ preferredRunId: detail.id });
   } catch (error) {
     detailErrorMessage.value = resolveApiErrorMessage(error, '快速复跑失败，请稍后重试。');
@@ -681,7 +720,7 @@ const reloadRuns = async () => {
 
 /**
  * 页面只关心“要展示什么状态”：
- * 真实接口、mock 兜底、来源标识、最后更新时间、默认选中项，
+ * 真实接口、来源标识、最后更新时间、默认选中项，
  * 都在加载函数里一次性收口，避免模板里再分散处理。
  */
 const loadRuns = async (options?: { preferredRunId?: string }) => {
@@ -689,11 +728,16 @@ const loadRuns = async (options?: { preferredRunId?: string }) => {
   errorMessage.value = '';
 
   try {
-    const result = await managementApi.listRuns();
+    const query:Record<string,string | number>={limit:20,offset:pageOffset.value};
+    for(const [key,value] of Object.entries(serverFilters.value))if(value)query[key]=key === 'scenario_version' ? Number(value) : value;
+    const result = await managementApi.listRuns({query});
+    totalRuns.value=result.total ?? result.data.length;
     runs.value = result.data;
     source.value = result.source;
     note.value = result.note ?? '';
+    const before = selectedRunId.value;
     syncSelectedRun(result.data, options?.preferredRunId || routeRunId.value);
+    if (before === selectedRunId.value) await loadSelectedRunDetail();
     lastLoadedAt.value = new Date().toLocaleString('zh-CN', { hour12: false });
   } catch (error) {
     runs.value = [];
@@ -724,15 +768,48 @@ watch(
   },
 );
 
+const resourceInfo = ref(''), cleanupToken = ref('');
+watch(selectedRunId, () => { resourceInfo.value = ''; cleanupToken.value = ''; });
+const resourcePreflight = async () => {
+  try {
+    const resources = await apiClient.get(`/runs/${selectedRunId.value}/resources`);
+    const plan = await apiClient.post<{preflight_token: string; ready: string[]}>(`/runs/${selectedRunId.value}/cleanup-preflight`);
+    resourceInfo.value = JSON.stringify({resources, plan}, null, 2);
+    cleanupToken.value = plan.ready.length ? plan.preflight_token : '';
+  } catch(cause) { detailErrorMessage.value = resolveApiErrorMessage(cause, '资源预检失败'); }
+};
+const retryResourceCleanup = async () => {
+  try {
+    resourceInfo.value = JSON.stringify(await apiClient.post(`/runs/${selectedRunId.value}/cleanup`, {preflight_token:cleanupToken.value}), null, 2);
+    cleanupToken.value = '';
+  } catch(cause) { detailErrorMessage.value = resolveApiErrorMessage(cause, '清理失败'); }
+};
+const cancelSelected = async () => {
+  try {
+    await executionApi.cancelRun(selectedRunId.value);
+    await loadRuns();
+  } catch (error) {
+    detailErrorMessage.value = resolveApiErrorMessage(error, '取消失败');
+  }
+};
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
+onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer); });
 onMounted(() => {
   void loadRuns();
+  refreshTimer = setInterval(() => {
+    if (!loading.value && runs.value.some(run => ['queued', 'running'].includes(run.status))) {
+      void loadRuns();
+    }
+  }, 1000);
 });
 </script>
 
 <style scoped>
+.run-filters {display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.5rem;}
+.run-filters label {display:grid;gap:.25rem;}
 .hero-banner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 1.25rem;
   padding: 1.35rem;
   border-radius: 1.5rem;
@@ -741,6 +818,12 @@ onMounted(() => {
     linear-gradient(135deg, rgba(255, 195, 113, 0.16), transparent);
   border: 1px solid rgba(148, 163, 184, 0.18);
   box-shadow: var(--shadow-soft);
+}
+
+/* 与仪表盘一致：标题与元信息按可用空间换行，避免标题列归零。 */
+.hero-banner > div:first-child {
+  flex: 1 1 24rem;
+  min-width: 0;
 }
 
 .hero-banner__eyebrow {
@@ -767,6 +850,8 @@ onMounted(() => {
 }
 
 .hero-banner__meta {
+  flex: 1 1 18rem;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
@@ -775,6 +860,8 @@ onMounted(() => {
 }
 
 .hero-banner__pill {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   min-height: 2.3rem;
@@ -871,12 +958,14 @@ onMounted(() => {
 
 .detail-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
 .detail-hero,
 .detail-section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
   padding: 1rem;
   border-radius: 1rem;
@@ -1061,10 +1150,6 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
-  .hero-banner {
-    grid-template-columns: 1fr;
-  }
-
   .hero-banner__meta {
     justify-content: flex-start;
   }

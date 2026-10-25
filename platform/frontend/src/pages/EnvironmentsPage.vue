@@ -1,5 +1,6 @@
 <template>
   <section class="page-grid">
+    <ContextProfilesPanel />
     <div class="content-grid">
       <PlaceholderPanel
         title="环境目录"
@@ -194,6 +195,7 @@
 </template>
 
 <script setup lang="ts">
+import ContextProfilesPanel from '@/components/ContextProfilesPanel.vue';
 import { computed, onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';
@@ -343,7 +345,7 @@ const submitEnvironment = async () => {
 
   try {
     if (formMode.value === 'edit' && selectedEnvironmentId.value) {
-      const updated = await managementApi.updateEnvironment(selectedEnvironmentId.value, formState.value);
+      const updated = await managementApi.updateEnvironment(selectedEnvironmentId.value, { ...formState.value, expectedRevision: currentEnvironmentDetail.value?.revision });
       note.value = `环境已更新：${updated.name}。`;
       await loadEnvironments({ preferredId: updated.id });
       return;

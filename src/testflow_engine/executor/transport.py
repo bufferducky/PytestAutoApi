@@ -168,8 +168,8 @@ class HttpxTransport(TransportAdapter):
         if "json" in content_type:
             try:
                 return response.json()
-            except ValueError:
-                return response.text
+            except ValueError as exc:
+                raise ValueError("JSON响应解析失败") from exc
         if content_type.startswith("text/") or "xml" in content_type or "html" in content_type:
             return response.text
         return response.content

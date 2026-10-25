@@ -34,7 +34,11 @@ class ReportCollector:
 
         summary = ReportSummary(total=len(cases))
         for case in cases:
-            if case.status == ExecutionStatus.PASSED:
+            summary.requests += sum(step.request_sent for step in case.steps)
+            summary.assertions += sum(len(step.assertions) for step in case.steps)
+            if case.status == ExecutionStatus.BLOCKED:
+                summary.blocked += 1
+            elif case.status == ExecutionStatus.PASSED:
                 summary.passed += 1
             elif case.status == ExecutionStatus.FAILED:
                 summary.failed += 1

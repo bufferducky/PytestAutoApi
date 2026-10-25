@@ -2,8 +2,11 @@
 
 import os
 from pathlib import Path
+from tempfile import gettempdir
+from uuid import uuid4
 
 from pydantic import BaseModel
+from sqlalchemy.engine import URL, make_url
 
 
 class BackendSettings(BaseModel):
@@ -23,6 +26,8 @@ class BackendSettings(BaseModel):
     run_dispatch_channel: str = "memory-worker"
     scheduler_poll_interval_seconds: int = 30
     state_db_path: str = ""
+    database_url: str = ""
+    artifact_root: str = ""
 
     @classmethod
     def _field_default(cls, field_name: str):
@@ -77,6 +82,18 @@ class BackendSettings(BaseModel):
                 cls._field_default("state_db_path"),
             ),
         }
+        raw_values["database_url"] = os.getenv("PLATFORM_BACKEND_DATABASE_URL", "")
+        if not raw_values["database_url"] and os.getenv("MYSQL_HOST"):
+            raw_values["database_url"] = URL.create(
+                "mysql+pymysql",
+                username=os.getenv("MYSQL_USER", "pyta"),
+                password=os.getenv("MYSQL_PASSWORD", ""),
+                host=os.environ["MYSQL_HOST"],
+                port=int(os.getenv("MYSQL_PORT", "3306")),
+                database=os.getenv("MYSQL_DATABASE", "pyta_platform"),
+                query={"charset": "utf8mb4"},
+            ).render_as_string(hide_password=False)
+        raw_values["artifact_root"] = os.getenv("PLATFORM_BACKEND_ARTIFACT_ROOT", "")
         return cls(**raw_values)
 
     @staticmethod
@@ -87,20 +104,25 @@ class BackendSettings(BaseModel):
             return default
         return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
+    def resolve_database_url(self) -> str:
+        """生产/开发必须显式配置 MySQL；仅 test 环境允许离线数据库。"""
+        if self.database_url:
+            if make_url(self.database_url).drivername != "mysql+pymysql":
+                raise ValueError("平台数据库必须使用 mysql+pymysql")
+            return self.database_url
+        if self.app_env != "test":
+            raise ValueError("请配置 PLATFORM_BACKEND_DATABASE_URL 或 MYSQL_HOST 等 MySQL 参数")
+        if not self.state_db_path:
+            self.state_db_path = str(Path(gettempdir()) / ("pyta-test-" + uuid4().hex + ".sqlite3"))
+        return self.state_db_path
+
     def resolve_state_db_path(self) -> str:
-        """解析平台状态库路径。
+        """旧装配调用名暂留；返回的是连接设置，不再默认为本地 SQLite。"""
+        return self.resolve_database_url()
 
-        规则保持很克制：
-        - 显式传了 `state_db_path` 就直接使用
-        - test 环境默认走 sqlite 内存库，避免测试相互污染
-        - 其他环境默认落到仓库内 `.runtime/platform-state.sqlite3`
-        """
-
-        if self.state_db_path:
-            return self.state_db_path
-
+    def resolve_artifact_root(self) -> Path:
+        if self.artifact_root:
+            return Path(self.artifact_root).expanduser().resolve()
         if self.app_env == "test":
-            return ":memory:"
-
-        root = Path(__file__).resolve().parents[4]
-        return str(root / ".runtime" / "platform-state.sqlite3")
+            return Path(gettempdir()) / ("pyta-artifacts-" + uuid4().hex)
+        return Path(".runtime/artifacts").resolve()

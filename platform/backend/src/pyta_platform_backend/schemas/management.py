@@ -54,6 +54,7 @@ class EnvironmentDetailResponse(EnvironmentSummaryResponse):
     """
 
     variables: dict[str, object] = Field(default_factory=dict)
+    revision: str = ""
 
 
 class CreateEnvironmentRequest(BaseModel):
@@ -73,6 +74,7 @@ class CreateEnvironmentResponse(EnvironmentDetailResponse):
 class UpdateEnvironmentRequest(BaseModel):
     """更新环境的 patch 请求体。"""
 
+    expected_revision: Optional[str] = None
     name: Optional[str] = Field(None, description="环境名称")
     base_url: Optional[str] = Field(None, description="环境基础地址")
     auth_mode: Optional[str] = Field(None, description="鉴权模式说明")

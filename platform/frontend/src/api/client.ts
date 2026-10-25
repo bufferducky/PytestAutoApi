@@ -4,7 +4,6 @@
  * 这样做的好处：
  * 1. 后续接入统一鉴权头、请求追踪、错误提示时，只改这一层。
  * 2. 页面组件只关心“要什么数据”，不关心“怎么拼 URL / 怎么 parse JSON”。
- * 3. 当前骨架使用 mock，未来切到真实 FastAPI 时，页面基本不用重写。
  */
 
 type QueryValue = string | number | boolean | null | undefined;

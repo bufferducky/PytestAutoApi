@@ -1,6 +1,6 @@
 """演示/迁移样例套件相关 schema。"""
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -29,16 +29,18 @@ class ListDemoSuitesResponse(BaseModel):
 
 
 class CreateDemoSuiteRunRequest(BaseModel):
-    """从样例套件创建运行任务。
+    """Retired endpoint request, retained for explicit compatibility errors."""
 
-    mode:
-    - `live`：走真实 HTTP
-    - `mock`：走内置 mock 响应
-    """
+    class Config:
+        extra = "forbid"
 
-    mode: str = Field("live", description="运行模式：live / mock")
+    mode: Literal["live"] = Field(..., description="显式运行模式")
     requested_by: str = Field("platform-user", description="发起人")
     environment_id: Optional[str] = Field(None, description="可选：绑定平台环境资源 ID")
+    target_id: Optional[str] = None
+    identity_id: Optional[str] = None
+    context_binding_id: Optional[str] = None
+    fixture_values: dict[str, str] = Field(default_factory=dict)
     host_override: Optional[str] = Field(None, description="可选：覆盖默认 host")
 
 

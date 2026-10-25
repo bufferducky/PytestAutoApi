@@ -1,42 +1,36 @@
-"""worker 本地控制服务。"""
+"""HTTP 控制只唤醒后台执行，不在请求内消费长任务。"""
 
-from fastapi import HTTPException, status
-
-from pyta_platform_backend.schemas.run import RunDetailResponse
+from pyta_platform_backend.schemas.run import RunStatus
 from pyta_platform_backend.schemas.worker import RunNextResponse
-from pyta_platform_backend.services.run_service import RunService
 
 
 class WorkerControlService:
-    """给本地开发提供一个最小的 worker 控制入口。"""
-
-    def __init__(self, worker_runner, run_service: RunService) -> None:
+    def __init__(self, worker_runner, run_service, worker_host=None):
         self._worker_runner = worker_runner
         self._run_service = run_service
+        self._worker_host = worker_host
 
-    def run_next(self) -> RunNextResponse:
-        """消费一条排队中的任务。"""
+    def run_next(self):
+        records = self._run_service.repository.list_queued_records()
+        if not records:
+            return RunNextResponse(consumed=False, detail=None)
+        return RunNextResponse(consumed=False, detail=self.run_by_id(records[0].run_id))
 
-        detail = self._worker_runner.run_next()
-        return RunNextResponse(
-            consumed=detail is not None,
-            detail=detail,
-        )
+    def run_by_id(self, run_id):
+        detail = self._run_service.ensure_resumable(run_id)
+        if detail.status == RunStatus.QUEUED:
+            self._run_service.dispatcher.prioritize(run_id)
+            if self._worker_host:
+                self._worker_host.wake()
+        if detail.status == RunStatus.QUEUED and (
+            self._worker_host is None or not self._worker_host.available
+        ):
+            detail.status_message = "worker 未启动；任务保留在 queued，没有同步执行兜底"
+        return detail
 
-    def run_by_id(self, run_id: str) -> RunDetailResponse:
-        """消费指定 run_id 的待执行任务。"""
-
-        detail = self._worker_runner.run_by_id(run_id)
-        if detail is not None:
-            return detail
-
-        if self._run_service.repository.get_by_id(run_id) is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"run 不存在: {run_id}",
-            )
-
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"run 当前不在待执行队列中: {run_id}",
-        )
+    def status(self):
+        return {
+            "available": bool(self._worker_host and self._worker_host.available),
+            "last_error": self._worker_host.last_error if self._worker_host else None,
+            "queued": len(self._run_service.repository.list_queued_records()),
+        }

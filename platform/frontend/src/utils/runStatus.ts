@@ -10,7 +10,7 @@ interface RunStatusPresentation {
 
 /**
  * 运行状态会同时来自两类来源：
- * 1. 当前页面里的 mock 数据
+ * 1. 历史模拟运行状态
  * 2. 后端真实接口里的 queued / succeeded / failed 等原始枚举
  *
  * 这里统一做“后端状态 -> 前端展示状态”的映射，避免 Dashboard 和 Runs 两页各写一套。
@@ -47,10 +47,16 @@ const runStatusMetaMap: Record<RunStatus, RunStatusPresentation> = {
   warning: {
     label: '告警',
     tone: 'warning',
-    summary: '任务没有完全失败，但存在需要人工确认的异常信号。',
-    description: '告警态一般意味着主链路通过了，但有部分步骤、断言或数据校验结果不够稳定。',
+    summary: '结果范围或状态需要确认，不能据此判定真实业务通过。',
+    description: '检查执行模式、未知状态和证据完整性，勿把告警当作已通过。',
     nextSteps: ['确认哪些步骤被标记成非阻塞告警。', '评估是否需要把当前告警升级成阻塞失败。'],
   },
+  error: { label: '执行错误', tone: 'attention', summary: '执行器、配置或外部调用异常，需要检查错误明细。', description: '执行器、配置或外部调用异常，需要检查错误明细。', nextSteps: ['查看步骤证据和清理状态。'] },
+  skipped: { label: '已跳过', tone: 'attention', summary: '本次没有完成有效业务验证，不计真实通过。', description: '本次没有完成有效业务验证，不计真实通过。', nextSteps: ['查看步骤证据和清理状态。'] },
+  blocked: { label: '被阻塞', tone: 'attention', summary: '缺少前置条件或有效断言，业务尚未验证。', description: '缺少前置条件或有效断言，业务尚未验证。', nextSteps: ['查看步骤证据和清理状态。'] },
+  cancelled: { label: '已取消', tone: 'attention', summary: '已停止新步骤；已到达服务端的写请求需要检查。', description: '已停止新步骤；已到达服务端的写请求需要检查。', nextSteps: ['查看步骤证据和清理状态。'] },
+  timed_out: { label: '已超时', tone: 'attention', summary: '运行预算耗尽，需检查已发请求与清理结果。', description: '运行预算耗尽，需检查已发请求与清理结果。', nextSteps: ['查看步骤证据和清理状态。'] },
+  interrupted: { label: '执行中断', tone: 'attention', summary: 'worker 中断，未盲目重放，需核查资源。', description: 'worker 中断，未盲目重放，需核查资源。', nextSteps: ['查看步骤证据和清理状态。'] },
 };
 
 export const normalizeRunStatus = (rawStatus?: string | null): RunStatus => {
@@ -68,8 +74,14 @@ export const normalizeRunStatus = (rawStatus?: string | null): RunStatus => {
     case 'passed':
       return 'success';
     case 'failed':
-    case 'error':
       return 'failed';
+    case 'error':
+    case 'skipped':
+    case 'blocked':
+    case 'cancelled':
+    case 'timed_out':
+    case 'interrupted':
+      return normalizedStatus;
     case 'warning':
     case 'partial_success':
       return 'warning';

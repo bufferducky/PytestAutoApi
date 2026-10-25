@@ -9,9 +9,14 @@
 后续若引入表达式脚本、数据库断言、快照断言，可以继续在这里扩展。
 """
 
+import json
+import math
+from copy import deepcopy
+from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
-from .._field_path import resolve_field_path
+from .._field_path import has_field_path, resolve_field_path
 from ..models import (
     AssertionOperator,
     AssertionResult,
@@ -22,6 +27,7 @@ from ..models import (
     ResponseSnapshot,
     SelectorType,
 )
+from .business import BUILTIN_RULES, CUSTOM_RULES, keyed, normalize, schema_matches, type_matches
 
 try:
     from jsonpath import jsonpath as jsonpath_extract
@@ -53,27 +59,174 @@ class AssertionEngine:
     ) -> AssertionResult:
         """执行单条断言。"""
 
-        actual = self._resolve_actual(
-            assertion=assertion,
-            response=response,
-            context=context,
-        )
-        passed = self._match(
-            operator=assertion.operator,
-            actual=actual,
-            expected=assertion.expected,
-        )
-        message = assertion.message or self._build_default_message(
-            assertion=assertion,
-            actual=actual,
-        )
+        actual, expected, missing = None, assertion.expected, False
+        try:
+            expected = (
+                self._context_ref(context, assertion.expected_ref)
+                if assertion.expected_ref
+                else assertion.expected
+            )
+            source = (
+                response.headers
+                if assertion.source == AssertionSource.RESPONSE_HEADERS
+                else context.variables
+                if assertion.source == AssertionSource.CONTEXT
+                else response.body
+            )
+            if assertion.source != AssertionSource.STATUS_CODE:
+                selector = assertion.selector
+                if (
+                    assertion.selector_type == SelectorType.JSONPATH
+                    and selector.startswith("$.")
+                    and not any(x in selector for x in ["*", "?", ".."])
+                ):
+                    selector = selector[2:].replace("[", ".").replace("]", "")
+                missing = bool(selector) and not has_field_path(source, selector)
+                if assertion.selector_type == SelectorType.JSONPATH and any(
+                    x in selector for x in ["*", "?", ".."]
+                ):
+                    missing = False
+            actual = self._resolve_actual(assertion, response, context)
+            if assertion.selector_type == SelectorType.JSONPATH and any(
+                x in assertion.selector for x in ["*", "?", ".."]
+            ):
+                if jsonpath_extract is None:
+                    raise ValueError("复杂JSONPath需要jsonpath依赖，不能猜测结果")
+                missing = jsonpath_extract(source, assertion.selector) is False
+            if not math.isfinite(assertion.tolerance):
+                raise ValueError("tolerance必须有限")
+            for value in [actual, expected]:
+                if isinstance(value, (float, Decimal)) and not math.isfinite(value):
+                    raise ValueError("断言值不能为NaN/Infinity")
+            if assertion.select_by:
+                selection = assertion.select_by
+                wanted = (
+                    self._context_ref(context, selection["value_ref"])
+                    if selection.get("value_ref")
+                    else selection.get("value")
+                )
+                if not isinstance(actual, list):
+                    raise ValueError("精确对象选择需要数组")
+                matches = [
+                    item
+                    for item in actual
+                    if isinstance(item, dict)
+                    and resolve_field_path(item, selection["key"]) == wanted
+                ]
+                if len(matches) != 1:
+                    raise ValueError("目标对象缺失或不唯一，不能取首条")
+                if selection.get("field") and not has_field_path(matches[0], selection["field"]):
+                    raise ValueError("目标对象字段缺失")
+                actual = resolve_field_path(matches[0], selection.get("field", ""))
+                missing = False
+            if missing and assertion.operator not in {
+                AssertionOperator.IS_MISSING,
+                AssertionOperator.EXISTS,
+            }:
+                raise ValueError("断言字段缺失: " + assertion.selector)
+            if assertion.rule_ref in CUSTOM_RULES:
+                callback, reads = CUSTOM_RULES[assertion.rule_ref]
+                inputs = {ref: deepcopy(self._context_ref(context, ref)) for ref in reads}
+                outcome = callback(actual=actual, expected=expected, inputs=inputs)
+                if not isinstance(outcome, bool):
+                    raise ValueError("规则插件须返回bool")
+                return AssertionResult(
+                    name=assertion.name,
+                    status=ExecutionStatus.PASSED if outcome else ExecutionStatus.FAILED,
+                    actual=actual,
+                    expected=expected,
+                    message=assertion.message or "受控业务规则比较",
+                    rule_version=assertion.rule_ref,
+                    source_ref=assertion.source.value + ":" + assertion.selector,
+                    actual_missing=missing,
+                )
+            if assertion.operator == AssertionOperator.IS_MISSING:
+                passed = missing
+            elif assertion.operator == AssertionOperator.EXISTS:
+                passed = not missing
+            elif missing:
+                raise ValueError("断言字段缺失: " + assertion.selector)
+            elif assertion.operator == AssertionOperator.IS_NULL:
+                passed = actual is None
+            else:
+                if assertion.rule_ref:
+                    if assertion.rule_ref not in BUILTIN_RULES:
+                        raise ValueError("不支持的规则版本: " + assertion.rule_ref)
+                    baseline = (
+                        self._context_ref(context, assertion.baseline_ref)
+                        if assertion.baseline_ref
+                        else None
+                    )
+                    if assertion.rule_ref == "count_delta@1":
+                        if not isinstance(actual, (list, int)) or not isinstance(
+                            baseline, (list, int)
+                        ):
+                            raise ValueError("count_delta须是精确对象的集合或计数")
+                        actual = (len(actual) if isinstance(actual, list) else actual) - (
+                            len(baseline) if isinstance(baseline, list) else baseline
+                        )
+                    elif assertion.rule_ref == "unchanged@1":
+                        expected = baseline
+                actual_value = normalize(actual, assertion.value_type, assertion.normalization)
+                expected_value = normalize(expected, assertion.value_type, assertion.normalization)
+                if (
+                    assertion.operator == AssertionOperator.EQUALS
+                    and assertion.value_type != "native"
+                ):
+                    difference = abs(actual_value - expected_value)
+                    if isinstance(actual_value, datetime):
+                        difference = difference.total_seconds()
+                    passed = (
+                        difference <= Decimal(str(assertion.tolerance))
+                        if isinstance(difference, Decimal)
+                        else difference <= assertion.tolerance
+                    )
+                elif assertion.operator == AssertionOperator.TYPE_IS:
+                    passed = type_matches(actual, expected)
+                elif assertion.operator == AssertionOperator.SCHEMA:
+                    passed = schema_matches(actual, expected)
+                elif assertion.operator in {
+                    AssertionOperator.SET_EQUALS,
+                    AssertionOperator.KEYED_EQUALS,
+                    AssertionOperator.UNIQUE,
+                }:
+                    key = assertion.extras.get("key", "id")
+                    if assertion.operator == AssertionOperator.KEYED_EQUALS:
+                        passed = keyed(actual, key) == keyed(expected, key)
+                    elif assertion.operator == AssertionOperator.UNIQUE:
+                        if not isinstance(actual, list):
+                            raise ValueError("unique需要数组")
+                        passed = len(actual) == len(
+                            set(json.dumps(item, sort_keys=True, default=str) for item in actual)
+                        )
+                    else:
+                        passed = sorted(
+                            json.dumps(item, sort_keys=True, default=str) for item in actual
+                        ) == sorted(str(item) for item in expected)
+                else:
+                    passed = self._match(assertion.operator, actual_value, expected_value)
+            status = ExecutionStatus.PASSED if passed else ExecutionStatus.FAILED
+            message = (
+                assertion.message or f"断言[{assertion.name}] 实际值={actual!r} 期望值={expected!r}"
+            )
+        except Exception as exc:
+            status, message = ExecutionStatus.ERROR, str(exc)
         return AssertionResult(
             name=assertion.name,
-            status=ExecutionStatus.PASSED if passed else ExecutionStatus.FAILED,
+            status=status,
             actual=actual,
-            expected=assertion.expected,
+            expected=expected,
             message=message,
+            rule_version=assertion.rule_ref or "builtin@1",
+            source_ref=assertion.source.value + ":" + assertion.selector,
+            actual_missing=missing,
         )
+
+    @staticmethod
+    def _context_ref(context, reference):
+        if not reference or not has_field_path(context.variables, reference):
+            raise ValueError("断言上下文引用不存在: " + str(reference))
+        return resolve_field_path(context.variables, reference)
 
     def _resolve_actual(
         self,
@@ -154,9 +307,11 @@ class AssertionEngine:
         """根据操作符比较 actual 和 expected。"""
 
         if operator == AssertionOperator.EQUALS:
-            return actual == expected
+            return actual == expected and (isinstance(actual, bool) == isinstance(expected, bool))
         if operator == AssertionOperator.NOT_EQUALS:
             return actual != expected
+        if operator == AssertionOperator.NOT_CONTAINS:
+            return actual is not None and expected not in actual
         if operator == AssertionOperator.CONTAINS:
             if actual is None:
                 return False

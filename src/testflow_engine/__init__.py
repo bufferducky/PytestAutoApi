@@ -39,6 +39,7 @@ from .models import (
     StepExecutionResult,
     TestCaseDefinition,
     TestRunDefinition,
+    WaitPolicy,
 )
 from .plugins import BootstrapAuthPlugin, EnginePlugin, LegacyCachePlugin
 from .reporting import ReportCollector, ReportSnapshot
@@ -79,6 +80,7 @@ __all__ = [
     "TestCaseDefinition",
     "TestFlowEngine",
     "TestRunDefinition",
+    "WaitPolicy",
     "TransportAdapter",
     "TransportNotConfiguredError",
 ]

@@ -17,7 +17,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const loading = ref(false);
   const lastLoadedAt = ref('');
   const errorMessage = ref('');
-  const source = ref<ApiDataSource>('mock');
+  const source = ref<ApiDataSource>('api');
   const note = ref('');
 
   const loadOverview = async () => {

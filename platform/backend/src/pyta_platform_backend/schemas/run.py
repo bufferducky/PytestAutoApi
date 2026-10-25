@@ -14,13 +14,26 @@ class RunStatus(str, Enum):
     RUNNING = "running"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
+    ERROR = "error"
+    SKIPPED = "skipped"
+    BLOCKED = "blocked"
+    CANCELLED = "cancelled"
+    TIMED_OUT = "timed_out"
+    INTERRUPTED = "interrupted"
 
 
 class CreateRunRequest(BaseModel):
     """创建 run 的最小请求体。"""
 
+    class Config:
+        extra = "forbid"
+
     suite_id: str = Field(..., description="要执行的测试套件或计划标识")
     environment_id: Optional[str] = Field(None, description="要使用的环境资源 ID")
+    target_id: Optional[str] = None
+    identity_id: Optional[str] = None
+    context_binding_id: Optional[str] = None
+    additional_context_binding_ids: list[str] = Field(default_factory=list)
     trigger_source: str = Field("manual", description="触发来源，例如 manual / scheduler")
     requested_by: str = Field("platform-user", description="请求发起者")
     payload: dict[str, Any] = Field(default_factory=dict, description="运行时附加参数")
@@ -53,6 +66,17 @@ class RunSummaryResponse(BaseModel):
     updated_at: datetime
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
+    execution_mode: str = "historical_unknown"
+    transport_mode: str = "historical_unknown"
+    validation_scope: str = "historical_unknown"
+    legacy_sensitive: bool = False
+    definition_hash: Optional[str] = None
+    scenario_version_ref: Optional[str] = None
+    version: int = 0
+    attempt_id: Optional[str] = None
+    counts: dict[str, int] = Field(default_factory=dict)
+    cleanup_status: str = "not_started"
+    eligible_for_release: bool = False
 
 
 class RunDetailResponse(RunSummaryResponse):
@@ -63,6 +87,12 @@ class RunDetailResponse(RunSummaryResponse):
 
     payload: dict[str, Any] = Field(default_factory=dict)
     status_message: Optional[str] = Field(None, description="最近一次状态更新的附加说明")
+    results: list[dict[str, Any]] = Field(default_factory=list)
+    cancel_requested_at: Optional[datetime] = None
+    deadline_at: Optional[datetime] = None
+    original_run_id: Optional[str] = None
+    evidence_pruned_at: Optional[str] = None
+    retention_summary: Optional[str] = None
 
 
 class ListRunsResponse(BaseModel):
@@ -83,3 +113,5 @@ class UpdateRunStatusRequest(BaseModel):
 
     status: RunStatus
     status_message: Optional[str] = Field(None, description="状态补充说明，例如失败原因")
+    expected_version: Optional[int] = None
+    attempt_id: Optional[str] = None

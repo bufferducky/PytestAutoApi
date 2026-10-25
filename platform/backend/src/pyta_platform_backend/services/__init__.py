@@ -1,8 +1,19 @@
-"""服务层。"""
+"""Service exports load lazily so repository helpers do not import orchestration."""
 
-from pyta_platform_backend.services.demo_suite_service import DemoSuiteService
-from pyta_platform_backend.services.management_service import ManagementService
-from pyta_platform_backend.services.run_service import RunService
-from pyta_platform_backend.services.worker_control_service import WorkerControlService
+from importlib import import_module
 
-__all__ = ["DemoSuiteService", "ManagementService", "RunService", "WorkerControlService"]
+_EXPORTS = {
+    "DemoSuiteService": "demo_suite_service",
+    "ManagementService": "management_service",
+    "RunService": "run_service",
+    "WorkerControlService": "worker_control_service",
+}
+__all__ = list(_EXPORTS)
+
+
+def __getattr__(name):
+    if name not in _EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(f"{__name__}.{_EXPORTS[name]}"), name)
+    globals()[name] = value
+    return value

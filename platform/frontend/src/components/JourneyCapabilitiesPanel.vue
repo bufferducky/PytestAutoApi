@@ -1,0 +1,50 @@
+<template>
+  <section class="journeys">
+    <h3>Web / Android关键旅程能力</h3><p>驱动能力、测试构建和业务契约缺失时明确阻塞。受控session协议测试不是公司Web/真机通过。</p>
+    <p v-if="error" class="state-banner state-banner--error">{{ error }}</p><button type="button" @click="load">刷新能力与风险</button>
+    <pre>{{ capabilities }}</pre><pre>{{ readiness }}</pre>
+    <form @submit.prevent="resolveIsolation"><label>隔离记录 ID<input v-model="quarantineId" required /></label><label>修复/验证依据<textarea v-model="resolutionReason" required /></label><button>追加解除隔离记录（保留历史）</button></form>
+    <form @submit.prevent="save">
+      <label>旅程名称<input v-model="name" required /></label><label>runner<select v-model="runner"><option>web</option><option>android</option></select></label>
+      <label>已确认的业务风险编号（可选）<select v-model="riskId"><option value="">仅机制/调试，不归入W/A风险</option><option v-for="id in (runner === 'web' ? ['W01','W02','W03','W04'] : ['A01','A02','A03','A04'])" :key="id">{{ id }}</option></select></label>
+      <label>构建标识<input v-model="build" placeholder="真实结果绑定的构建" /></label>
+      <label>目标ID<input v-model="target" required /></label><label>身份ID<input v-model="identity" /></label><label>项目绑定ID<input v-model="binding" /></label>
+      <label>Chromium精确版本<input v-model="browserVersion" /></label><label>设备配置ID / 版本<input v-model="device" /><input v-model.number="deviceVersion" type="number" min="1" /></label>
+      <label><input v-model="confirmed" type="checkbox" />业务旅程契约已确认</label><label><input v-model="synthetic" type="checkbox" />只使用合成/已核验脱敏测试数据</label>
+      <label><input v-model="captureTrace" type="checkbox" />原生Web trace（仅合成且无凭证身份）</label>
+      <label><input v-model="captureVideo" type="checkbox" />Web录屏（同上限制）</label>
+      <label>资源声明JSON（name / definition_id / version / depends_on）<textarea v-model="fixturesJson" rows="4" /></label>
+      <label>动作JSON（语义定位或显式api_assert回读）<textarea v-model="actions" rows="10" /></label><button>保存旅程版本</button>
+    </form>
+    <p>设备配置通过公开JSON登记，必须提供设备secret_ref、Android版本、App包名/版本/SHA256、本机Appium地址与能力；页面不读取设备序列号原值。</p>
+    <details><summary>设备公开配置JSON</summary><textarea v-model="deviceJson" rows="8" /><button type="button" @click="saveDevice">登记设备版本</button></details>
+    <ul><li v-for="row in journeys" :key="row.id+'-'+row.version">{{ row.data.name }} v{{ row.version }}
+      <button type="button" @click="preflight(row)">能力预检</button><button type="button" @click="run(row)">提交（缺能力会阻塞）</button>
+      <label>隔离原因<input v-model="reason" /></label><label>到期（时区ISO）<input v-model="expires" /></label><button type="button" @click="quarantine(row)">标记隔离/仍未验证</button>
+    </li></ul><pre>{{ result }}</pre>
+  </section>
+</template>
+<script setup lang="ts">
+import { onMounted,ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { apiClient } from '@/api/client';
+import { resolveApiErrorMessage } from '@/utils/apiErrors';
+interface Journey {id:string;version:number;data:{name:string}}
+const router=useRouter();
+const error=ref(''),capabilities=ref(''),readiness=ref(''),result=ref(''),journeys=ref<Journey[]>([]);
+const riskId=ref(''),build=ref('unspecified');
+const name=ref(''),runner=ref('web'),target=ref(''),identity=ref(''),binding=ref(''),browserVersion=ref(''),device=ref(''),deviceVersion=ref(1),confirmed=ref(false),synthetic=ref(false);
+const actions=ref('[{"step_id":"open","name":"打开目标","action":"navigate","path":"/"},{"step_id":"check","name":"验证可见状态","action":"assert_visible","selector":{"strategy":"testid","value":"请按真实页面填写"}}]');
+const fixturesJson=ref('[]'),captureTrace=ref(false),captureVideo=ref(false);
+const deviceJson=ref('{}'),reason=ref(''),expires=ref(''),quarantineId=ref(''),resolutionReason=ref('');
+async function act(fn:()=>Promise<void>){error.value='';try{await fn();}catch(cause){error.value=resolveApiErrorMessage(cause,'旅程操作失败');}}
+async function load(){await act(async()=>{capabilities.value=JSON.stringify(await apiClient.get('/runner-capabilities'),null,2);readiness.value=JSON.stringify(await apiClient.get('/journey-readiness'),null,2);journeys.value=await apiClient.get<Journey[]>('/journeys');});}
+async function save(){await act(async()=>{result.value=JSON.stringify(await apiClient.post('/journeys',{name:name.value,risk_id:riskId.value || null,runner_type:runner.value,target_ref:target.value,identity_ref:identity.value||null,identity_binding_ref:binding.value||null,chromium_version:browserVersion.value||null,device_profile_id:device.value||null,device_profile_version:device.value?deviceVersion.value:null,contract_confirmed:confirmed.value,synthetic_test_data:synthetic.value,capture_trace:captureTrace.value,capture_video:captureVideo.value,actions:JSON.parse(actions.value),fixtures:JSON.parse(fixturesJson.value)}),null,2);await load();});}
+async function saveDevice(){await act(async()=>{result.value=JSON.stringify(await apiClient.post('/device-profiles',JSON.parse(deviceJson.value)),null,2);});}
+async function preflight(row:Journey){await act(async()=>{result.value=JSON.stringify(await apiClient.post(`/journeys/${row.id}/versions/${row.version}/preflight`),null,2);});}
+async function run(row:Journey){await act(async()=>{const run=await apiClient.post<{run_id:string}>(`/journeys/${row.id}/versions/${row.version}/runs`,{build:build.value,transport_mode:'live'});await router.push({name:'runs',query:{runId:run.run_id}});});}
+async function quarantine(row:Journey){await act(async()=>{await apiClient.post(`/journeys/${row.id}/versions/${row.version}/quarantine`,{reason:reason.value,expires_at:expires.value});await load();});}
+async function resolveIsolation(){await act(async()=>{result.value=JSON.stringify(await apiClient.post(`/journey-quarantines/${quarantineId.value}/resolve`,{reason:resolutionReason.value}),null,2);await load();});}
+onMounted(()=>{void load();});
+</script>
+<style scoped>.journeys {padding:1.2rem;background:var(--color-surface,white);border-radius:1rem;}form,label {display:grid;gap:.4rem;margin-block:.5rem;}input,textarea {max-width:100%;}pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:25rem;overflow:auto;}</style>
