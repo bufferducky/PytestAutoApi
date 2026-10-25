@@ -1,0 +1,385 @@
+{
+  "observed_at": "2026-10-25T12:48:31.190360+00:00",
+  "dashboard": {
+    "metrics": [
+      {
+        "key": "runs",
+        "label": "累计运行",
+        "value": "3",
+        "description": "真实测试运行总数，不含迁入演示历史",
+        "trend": "最近 4 条可在结果页查看"
+      },
+      {
+        "key": "queued",
+        "label": "排队中",
+        "value": "0",
+        "description": "已经创建但尚未开始执行的 run",
+        "trend": "等待执行器处理"
+      },
+      {
+        "key": "running",
+        "label": "执行中",
+        "value": "0",
+        "description": "当前仍在 worker 中运行的 run",
+        "trend": "刷新可查看最新执行状态"
+      },
+      {
+        "key": "failed",
+        "label": "失败数",
+        "value": "0",
+        "description": "用于快速发现最近需要优先排查的问题",
+        "trend": "失败记录可在执行结果中查看"
+      }
+    ],
+    "focus_items": [],
+    "recent_runs": [
+      {
+        "id": "c959df89304c430c926767e64b329e74",
+        "name": "运行 c959df89",
+        "target": "c6185cc6008d498389c75d9f61c67539",
+        "status": "success",
+        "started_at": "2026-10-25 19:06:45",
+        "duration": "0m 0s",
+        "starter": "platform-owner",
+        "transport_mode": "live",
+        "validation_scope": "live",
+        "raw_status": "succeeded"
+      },
+      {
+        "id": "75e1f82513ea42f08e4b106ab75ea130",
+        "name": "运行 75e1f825",
+        "target": "98059065c83b44d5b216690765f48644",
+        "status": "success",
+        "started_at": "2026-10-25 19:06:44",
+        "duration": "0m 0s",
+        "starter": "platform-owner",
+        "transport_mode": "live",
+        "validation_scope": "live",
+        "raw_status": "succeeded"
+      },
+      {
+        "id": "be9ecf61c3f34b74940483f92015a1dd",
+        "name": "运行 be9ecf61",
+        "target": "f536687005df42d8b5cd538871d9810e",
+        "status": "success",
+        "started_at": "2026-10-25 19:05:53",
+        "duration": "0m 1s",
+        "starter": "platform-user",
+        "transport_mode": "live",
+        "validation_scope": "live",
+        "raw_status": "succeeded"
+      }
+    ]
+  },
+  "environment_summary": [
+    {
+      "id": "5f9521b908874fb19a58fa855fec40fd",
+      "name": "平台自检环境",
+      "base_url": "http://127.0.0.1:8000",
+      "auth_mode": "无需鉴权（平台只读自检）",
+      "status": "online"
+    },
+    {
+      "id": "env-default-live",
+      "name": "默认联调环境",
+      "base_url": "https://api-test.yanjiai.com",
+      "auth_mode": "账号密码登录 + Token 注入",
+      "status": "online"
+    },
+    {
+      "id": "env-demo-mock",
+      "name": "离线演示环境",
+      "base_url": "https://mock.platform.local",
+      "auth_mode": "Mock Token / 本地演示",
+      "status": "draft"
+    }
+  ],
+  "targets": [
+    {
+      "id": "06bb29a9de0f4f23967278a1d814cc3c",
+      "name": "测试平台自身服务",
+      "environment_id": "5f9521b908874fb19a58fa855fec40fd",
+      "kind": "default",
+      "base_url": "http://127.0.0.1:8000",
+      "requires_context": false,
+      "auth_mode": "none",
+      "auth_contract_confirmed": false
+    },
+    {
+      "id": "default-env-default-live",
+      "name": "默认联调环境（迁移目标）",
+      "environment_id": "env-default-live",
+      "kind": "default",
+      "base_url": "https://api-test.yanjiai.com",
+      "requires_context": false,
+      "auth_mode": "none",
+      "auth_contract_confirmed": false
+    },
+    {
+      "id": "default-env-demo-mock",
+      "name": "离线演示环境（迁移目标）",
+      "environment_id": "env-demo-mock",
+      "kind": "default",
+      "base_url": "https://mock.platform.local",
+      "requires_context": false,
+      "auth_mode": "none",
+      "auth_contract_confirmed": false
+    }
+  ],
+  "identity_count": 0,
+  "binding_count": 0,
+  "coverage": {
+    "calculation_version": 1,
+    "freshness_days": 7,
+    "total_observations": 0,
+    "confirmed_risks": 0,
+    "verified_risks": 0,
+    "unverified": [],
+    "required_unverified": [],
+    "items": []
+  },
+  "scenarios": [
+    {
+      "id": "98059065c83b44d5b216690765f48644",
+      "name": "平台服务存活检查",
+      "target_ref": "06bb29a9de0f4f23967278a1d814cc3c",
+      "source": {
+        "kind": "manual",
+        "purpose": "平台自身服务的真实HTTP只读自检"
+      },
+      "step_count": 1,
+      "published_versions": 1,
+      "migration_blockers": []
+    },
+    {
+      "id": "b7f5c1bf98df4e1f9cbcb01feea87f4e",
+      "name": "平台执行器可用检查",
+      "target_ref": "06bb29a9de0f4f23967278a1d814cc3c",
+      "source": {
+        "kind": "manual",
+        "purpose": "平台自身服务的真实HTTP只读自检"
+      },
+      "step_count": 1,
+      "published_versions": 1,
+      "migration_blockers": []
+    },
+    {
+      "id": "c6185cc6008d498389c75d9f61c67539",
+      "name": "平台运行记录查询",
+      "target_ref": "06bb29a9de0f4f23967278a1d814cc3c",
+      "source": {
+        "kind": "manual",
+        "purpose": "平台自身服务的真实HTTP只读自检"
+      },
+      "step_count": 1,
+      "published_versions": 1,
+      "migration_blockers": []
+    },
+    {
+      "id": "migrated-demo-login-auth",
+      "name": "demo-login-auth",
+      "target_ref": "default-env-default-live",
+      "source": {
+        "id": "demo-login-auth",
+        "kind": "demo"
+      },
+      "step_count": 3,
+      "published_versions": 0,
+      "migration_blockers": [
+        "需按params/outputs整理，确认契约与专属资源后再发布"
+      ]
+    },
+    {
+      "id": "migrated-demo-persona-library",
+      "name": "demo-persona-library",
+      "target_ref": "default-env-default-live",
+      "source": {
+        "id": "demo-persona-library",
+        "kind": "demo"
+      },
+      "step_count": 6,
+      "published_versions": 0,
+      "migration_blockers": [
+        "需按params/outputs整理，确认契约与专属资源后再发布"
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "f536687005df42d8b5cd538871d9810e",
+      "revision": 1,
+      "archived": false,
+      "draft": {
+        "name": "平台基础服务真实冒烟",
+        "tags": [
+          "platform",
+          "smoke",
+          "readonly"
+        ],
+        "priority": "P0",
+        "scenarios": [
+          {
+            "version": 1,
+            "scenario_id": "98059065c83b44d5b216690765f48644"
+          },
+          {
+            "version": 1,
+            "scenario_id": "c6185cc6008d498389c75d9f61c67539"
+          },
+          {
+            "version": 1,
+            "scenario_id": "b7f5c1bf98df4e1f9cbcb01feea87f4e"
+          }
+        ],
+        "timeout_seconds": 30.0
+      }
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "c959df89304c430c926767e64b329e74",
+      "suite_id": "c6185cc6008d498389c75d9f61c67539",
+      "status": "succeeded",
+      "environment_id": "5f9521b908874fb19a58fa855fec40fd",
+      "environment_name": null,
+      "execution_mode": "standard_run",
+      "transport_mode": "live",
+      "validation_scope": "live",
+      "eligible_for_release": true,
+      "counts": {
+        "total": 1,
+        "errors": 0,
+        "failed": 0,
+        "passed": 1,
+        "blocked": 0,
+        "planned": 1,
+        "skipped": 0,
+        "executed": 1,
+        "requests": 1,
+        "assertions": 2,
+        "authentication_requests": 0
+      },
+      "build": "platform-self-check-20261025",
+      "asset_ref": {
+        "id": "c6185cc6008d498389c75d9f61c67539",
+        "hash": "cd17ff99db7d33a0caa66f1b9a35d0d24156d432195b22a44460603986b872ea",
+        "kind": "scenarios",
+        "version": 1
+      },
+      "snapshot_environment_ids": [
+        "5f9521b908874fb19a58fa855fec40fd"
+      ],
+      "case_urls": [
+        "{{host}}/api/v1/runs?limit=20&offset=0"
+      ]
+    },
+    {
+      "run_id": "75e1f82513ea42f08e4b106ab75ea130",
+      "suite_id": "98059065c83b44d5b216690765f48644",
+      "status": "succeeded",
+      "environment_id": "5f9521b908874fb19a58fa855fec40fd",
+      "environment_name": null,
+      "execution_mode": "standard_run",
+      "transport_mode": "live",
+      "validation_scope": "live",
+      "eligible_for_release": true,
+      "counts": {
+        "total": 1,
+        "errors": 0,
+        "failed": 0,
+        "passed": 1,
+        "blocked": 0,
+        "planned": 1,
+        "skipped": 0,
+        "executed": 1,
+        "requests": 1,
+        "assertions": 2,
+        "authentication_requests": 0
+      },
+      "build": "platform-self-check-20261025",
+      "asset_ref": {
+        "id": "98059065c83b44d5b216690765f48644",
+        "hash": "567c414d164b3525785a26acb3b38e6df32223419f28d4d32708b69b550349bc",
+        "kind": "scenarios",
+        "version": 1
+      },
+      "snapshot_environment_ids": [
+        "5f9521b908874fb19a58fa855fec40fd"
+      ],
+      "case_urls": [
+        "{{host}}/api/v1/health/live"
+      ]
+    },
+    {
+      "run_id": "be9ecf61c3f34b74940483f92015a1dd",
+      "suite_id": "f536687005df42d8b5cd538871d9810e",
+      "status": "succeeded",
+      "environment_id": null,
+      "environment_name": null,
+      "execution_mode": "standard_run",
+      "transport_mode": "live",
+      "validation_scope": "live",
+      "eligible_for_release": true,
+      "counts": {
+        "total": 3,
+        "errors": 0,
+        "failed": 0,
+        "passed": 3,
+        "blocked": 0,
+        "planned": 3,
+        "skipped": 0,
+        "executed": 3,
+        "requests": 3,
+        "assertions": 6,
+        "authentication_requests": 0
+      },
+      "build": "unspecified",
+      "asset_ref": {
+        "id": "f536687005df42d8b5cd538871d9810e",
+        "hash": "257437ec6dd61f33a7fe54a3c1ee01d0bb5fe03b869e4affe51984ac78764564",
+        "kind": "suites",
+        "version": 1
+      },
+      "snapshot_environment_ids": [
+        "5f9521b908874fb19a58fa855fec40fd"
+      ],
+      "case_urls": [
+        "{{host}}/api/v1/health/live",
+        "{{host}}/api/v1/runs?limit=20&offset=0",
+        "{{host}}/api/v1/worker/status"
+      ]
+    },
+    {
+      "run_id": "98ca8cfc3a6d47f886b21f6a27d8090a",
+      "suite_id": "demo-login-auth",
+      "status": "succeeded",
+      "environment_id": null,
+      "environment_name": null,
+      "execution_mode": "standard_run",
+      "transport_mode": "mock",
+      "validation_scope": "historical_demo",
+      "eligible_for_release": false,
+      "counts": {
+        "total": 3,
+        "errors": 0,
+        "failed": 0,
+        "passed": 3,
+        "blocked": 0,
+        "planned": 3,
+        "skipped": 0,
+        "executed": 3,
+        "requests": 3,
+        "assertions": 9,
+        "authentication_requests": 0
+      },
+      "build": null,
+      "asset_ref": null,
+      "snapshot_environment_ids": [],
+      "case_urls": [
+        "{{host}}/api/v1/user/password_login",
+        "{{host}}/api/v1/user/password_login",
+        "{{host}}/api/v1/user/password_login"
+      ]
+    }
+  ]
+}

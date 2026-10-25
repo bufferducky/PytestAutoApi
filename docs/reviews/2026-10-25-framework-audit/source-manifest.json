@@ -1,0 +1,27 @@
+{
+  "baseline_head": "221aba83a1ac758f531f1bd2bb6dd0b8820563c4",
+  "initial_uncommitted_entries": 135,
+  "scope": "Current working tree, not HEAD alone",
+  "sha256": {
+    "platform/backend/src/pyta_platform_backend/workers/context_transport.py": "b170c5261a8dab9d22b788341c9cd7e283abb7f9b40a52e0002ad3c6c5460959",
+    "platform/backend/src/pyta_platform_backend/services/asset_service.py": "138955a55b5b73b1c71661da94053cef218919a8a7e6bbabda50d38b35cc8ba3",
+    "platform/backend/src/pyta_platform_backend/services/scenario_compiler.py": "75ed34d3686f82fc60512fe90e6c8f3bf0a0b3d868dd8af06e29c730dd82513f",
+    "platform/backend/src/pyta_platform_backend/services/run_service.py": "1c69260f0cfcc1c9e11c03a8cc633d92df6b7a6a0ef9d87069770f63f789660d",
+    "platform/backend/src/pyta_platform_backend/services/release_service.py": "7289491c5b31ea63069324a03c5cc7cca033c5944f71769b49dceba4ef4b907d",
+    "platform/backend/src/pyta_platform_backend/services/context_service.py": "fd736f9d68cd035bfb8b55b1d63da11c232b7357b11b94951fcb29d67322b650",
+    "platform/backend/src/pyta_platform_backend/services/dashboard_service.py": "90e45e24f8dcb2563f9990734f83412b77fa38bc3bd65239299cdbf30a73f631",
+    "platform/backend/src/pyta_platform_backend/repositories/run_repository.py": "fa52fd6f7b584ed608499d8afb23567855494066dc53315ba5790ef5bf0f341e",
+    "platform/backend/src/pyta_platform_backend/workers/runner.py": "2c3f88b2c0ef808939ed58c4836612cf45d40c230c8fffb3386ddfaa0d523f4f",
+    "platform/backend/src/pyta_platform_backend/workers/host.py": "c43140d9de4187f781d4d8cecaa1a4b7c1034a837e82dc818f09bc70c7a2dfa0",
+    "platform/backend/src/pyta_platform_backend/db/store.py": "690b6d425706f06fe960c9c848c2134b39edbdba85043c553cc2af21f5786dfb",
+    "platform/backend/src/pyta_platform_backend/schemas/assets.py": "b1e0368c3bf54198818654286bb7ded06d40d8d550730d885b4c55a736d23f81",
+    "platform/backend/src/pyta_platform_backend/schemas/context.py": "bc445f91c52d05db3791252e846ca065073a2015686d50fe5f0416ef391faef7",
+    "platform/frontend/src/pages/CasesPage.vue": "ba79da8e7625fa2d3de568433338b54000fbcc51849f6df0169fb885b0170453",
+    "platform/frontend/src/components/ScenarioAssetsPanel.vue": "81a40d01e069a65ef2badd37f95e433e74c7bb9e2ce6e46d133bf6b7f8d50fce",
+    "platform/frontend/src/components/ContextProfilesPanel.vue": "707c91c6fcf8451f50c55d8a097f6639c2d4acf565b77c2991fe368e2b5ba95f",
+    "deploy/Dockerfile": "38eb4605593f51c703f12b99e02ef165f798fc4c02efe7da0d0efe27f1979cdc",
+    "deploy/compose.yaml": "0d0738ea6facfc8887af75f6e7e7d4dcebffd90f28f451bd4dd6d7b36bb70220",
+    "pytest.ini": "7bf92eb28ed5e0a1106a1731f6f5516163767b5890c2311f47c7049c137f57cf",
+    "pyproject.toml": "a8e8fe1e58704fb9c032a49fd14621d052d9c5ad854795676a9a9c81f68fa308"
+  }
+}

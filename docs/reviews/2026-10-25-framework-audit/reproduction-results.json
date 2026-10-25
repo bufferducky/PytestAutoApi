@@ -1,0 +1,25 @@
+{
+  "asset_run_missing_scope": {
+    "run_environment_id": null,
+    "snapshot_environment_id": "dcb76cee341d4a078cbcb5938dcbc552",
+    "build": "unspecified",
+    "status": "queued",
+    "business_requests": 0
+  },
+  "declared_plugin_discarded": {
+    "declared_plugin": "bootstrap-auth@1",
+    "compiled_definition_identical": true
+  },
+  "context_without_ownership_assertion": {
+    "actual_response_scope": "other-tenant/other-project",
+    "expected_scope": "expected-tenant/expected-project",
+    "tenant_path": null,
+    "project_path": null,
+    "preflight": {
+      "configuration": "passed",
+      "authentication": "not_required",
+      "context": "passed",
+      "service": "passed"
+    }
+  }
+}
