@@ -21,6 +21,8 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
+      args:
+        INSTALL_WEB_RUNNER: ${INSTALL_WEB_RUNNER:-1}
     restart: unless-stopped
     environment:
       PLATFORM_BACKEND_APP_ENV: production
@@ -30,6 +32,10 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-pyta_platform}
       PLATFORM_BACKEND_ARTIFACT_ROOT: /state/artifacts
+      PYTA_SECRET_YANJI_TEST_USER: ${PYTA_SECRET_YANJI_TEST_USER:-}
+      PYTA_SECRET_YANJI_TEST_PASSWORD_DIGEST: ${PYTA_SECRET_YANJI_TEST_PASSWORD_DIGEST:-}
+      PYTA_SECRET_YANJI_WEB_USER: ${PYTA_SECRET_YANJI_WEB_USER:-}
+      PYTA_SECRET_YANJI_WEB_PASSWORD: ${PYTA_SECRET_YANJI_WEB_PASSWORD:-}
     depends_on:
       mysql:
         condition: service_healthy

@@ -1,10 +1,10 @@
 <template>
   <section class="page-grid">
-    <ContextProfilesPanel />
+    <details><summary aria-label="目标系统、身份与项目绑定">目标系统、身份与项目绑定<HelpHint topic="profileKind" /></summary><ContextProfilesPanel /></details>
     <div class="content-grid">
       <PlaceholderPanel
         title="环境目录"
-        description="环境页负责把 base_url、鉴权方式和执行上下文收口到平台主真源里，避免这些配置继续散落在 YAML 和脚本里。"
+        description="配置基础地址与环境变量，供场景和套件运行使用。"
       >
         <template #actions>
           <div class="action-row">
@@ -12,7 +12,7 @@
               class="action-button action-button--secondary"
               type="button"
               :disabled="saving || deleting || detailLoading"
-              @click="startCreateMode"
+              @click="startCreateMode()"
             >
               新增环境
             </button>
@@ -22,14 +22,14 @@
           </div>
         </template>
 
-        <p v-if="note" class="state-banner state-banner--info">{{ note }}</p>
-        <p v-if="errorMessage" class="state-banner state-banner--error">{{ errorMessage }}</p>
-        <p v-if="environments.length" class="panel-tip">点击任意一行，可在右侧切换到编辑视角。</p>
+        <p v-if="note" class="state-banner state-banner--info" role="status">{{ note }}</p>
+        <p v-if="errorMessage" class="state-banner state-banner--error" role="alert">{{ errorMessage }}</p>
+        <p v-if="environments.length" class="panel-tip">选择一条环境配置进行编辑。</p>
 
         <div v-if="loading && !environments.length" class="empty-copy">正在加载环境配置...</div>
 
         <div v-else-if="!loading && !environments.length" class="empty-copy">
-          当前还没有环境目录数据。可先在右侧创建一个新的执行环境。
+          暂无环境，请填写表单创建第一个执行环境。
         </div>
 
         <div v-else class="table-shell">
@@ -37,9 +37,9 @@
             <thead>
               <tr>
                 <th>环境</th>
-                <th>Base URL</th>
-                <th>鉴权方式</th>
-                <th>状态</th>
+                <th aria-label="Base URL">Base URL<HelpHint topic="baseUrl" /></th>
+                <th aria-label="鉴权方式">鉴权方式<HelpHint topic="authMode" /></th>
+                <th aria-label="状态">状态<HelpHint topic="environmentStatus" /></th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -93,6 +93,7 @@
         <p v-if="detailLoading" class="empty-copy">正在加载环境详情...</p>
 
         <form class="environment-form" @submit.prevent="submitEnvironment">
+          <fieldset :disabled="saving || deleting || detailLoading" class="editor-fields">
           <section v-if="formMode === 'edit' && currentEnvironmentDetail" class="environment-hero">
             <div class="environment-hero__header">
               <div>
@@ -113,9 +114,7 @@
               <span class="detail-pill">Base URL：{{ currentEnvironmentDetail.baseUrl }}</span>
             </div>
 
-            <p class="form-tip">
-              当前还没有变量编辑器；这轮更新基础字段时会保留已有 variables，不会被 patch 覆盖掉。
-            </p>
+
           </section>
 
           <div class="form-grid">
@@ -130,44 +129,40 @@
               />
             </label>
 
-            <label class="field-stack">
-              <span>Base URL</span>
-              <input
+            <label class="field-stack"><span class="field-caption"><span>Base URL</span><HelpHint topic="baseUrl" /></span><input
                 v-model.trim="formState.baseUrl"
                 type="url"
                 placeholder="https://staging.example.com"
                 required
-              />
+              aria-label="Base URL" />
             </label>
 
-            <label class="field-stack">
-              <span>鉴权方式</span>
-              <select v-model="formState.authMode">
+            <label class="field-stack"><span class="field-caption"><span>鉴权方式</span><HelpHint topic="authMode" /></span><select v-model="formState.authMode" aria-label="鉴权方式">
                 <option v-for="item in authModeOptions" :key="item" :value="item">
                   {{ item }}
                 </option>
               </select>
             </label>
 
-            <label class="field-stack">
-              <span>状态</span>
-              <select v-model="formState.status">
+            <label class="field-stack"><span class="field-caption"><span>状态</span><HelpHint topic="environmentStatus" /></span><select v-model="formState.status" aria-label="状态">
                 <option value="draft">待配置</option>
                 <option value="online">可用</option>
               </select>
             </label>
           </div>
 
+          <EnvironmentVariablesEditor v-model="variablesText" @validity="variablesValid = $event" />
+          <p v-if="dirty" role="status">有未保存修改</p>
           <div class="form-actions">
-            <button class="action-button" type="submit" :disabled="saving || detailLoading">
+            <button class="action-button" type="submit" :disabled="saving || deleting || detailLoading || !variablesValid">
               {{ primaryActionLabel }}
             </button>
             <button
               v-if="formMode === 'edit'"
               class="action-button action-button--secondary"
               type="button"
-              :disabled="saving || deleting"
-              @click="startCreateMode"
+              :disabled="saving || deleting || detailLoading"
+              @click="startCreateMode()"
             >
               取消编辑
             </button>
@@ -175,28 +170,29 @@
               v-if="formMode === 'edit'"
               class="action-button action-button--danger"
               type="button"
-              :disabled="deleting || saving"
+              :disabled="deleting || saving || detailLoading"
               @click="removeEnvironment"
             >
               {{ deleting ? '删除中...' : '删除环境' }}
             </button>
             <p class="form-tip">{{ formTip }}</p>
           </div>
+          </fieldset>
         </form>
 
-        <ul class="hint-list">
-          <li>第一阶段先把环境做成平台的一等资源，停止继续依赖仓库硬编码地址。</li>
-          <li>这轮已经补到资源完整闭环，后续可以在同一资源上继续长变量、密钥引用和 signer 配置。</li>
-          <li>如果后续接入 worker 真执行，环境页会成为 run 创建时的重要输入源。</li>
-        </ul>
+
       </PlaceholderPanel>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import HelpHint from '@/components/common/HelpHint.vue';
 import ContextProfilesPanel from '@/components/ContextProfilesPanel.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
+import EnvironmentVariablesEditor from '@/components/EnvironmentVariablesEditor.vue';
+import { apiClient } from '@/api/client';
 
 import { managementApi } from '@/api';
 import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
@@ -242,6 +238,16 @@ const formState = ref<CreateEnvironmentPayload>({
   status: 'draft',
 });
 
+const variablesText = ref('{}'), variablesValid = ref(true);
+const snapshot = () => JSON.stringify([formState.value, variablesText.value]);
+const savedSnapshot = ref(snapshot());
+const dirty = computed(() => snapshot() !== savedSnapshot.value || !variablesValid.value);
+const mayDiscard = () => !dirty.value || window.confirm('有未保存修改，确认放弃？');
+let detailSequence = 0, listSequence = 0;
+const beforeUnload = (event: BeforeUnloadEvent) => { if (dirty.value || saving.value) { event.preventDefault(); event.returnValue = ''; } };
+onBeforeRouteLeave(() => !saving.value && !deleting.value && mayDiscard());
+onBeforeUnmount(() => { ++detailSequence; ++listSequence; window.removeEventListener('beforeunload', beforeUnload); });
+
 const resetFormState = () => {
   formState.value = {
     name: '',
@@ -266,8 +272,8 @@ const formPanelTitle = computed(() =>
 
 const formPanelDescription = computed(() =>
   formMode.value === 'edit'
-    ? '编辑模式会直接更新平台目录中的真实环境资源，并保留尚未可视化的 variables。'
-    : '先把环境资源做成真实平台输入项，而不是继续依赖仓库里的硬编码地址。'
+    ? '保存后更新环境配置，环境变量会按当前类型保存。'
+    : '填写名称与基础地址，创建可供测试运行使用的环境。'
 );
 
 const primaryActionLabel = computed(() => {
@@ -283,77 +289,72 @@ const formTip = computed(() =>
     : '保存成功后会自动切到新环境的编辑态，便于继续补充配置。'
 );
 
-const startCreateMode = () => {
+const resetCreateState = () => {
+  ++detailSequence;
   formMode.value = 'create';
   selectedEnvironmentId.value = '';
   currentEnvironmentDetail.value = null;
   detailLoading.value = false;
   resetFormState();
+  variablesText.value = '{}'; variablesValid.value = true; savedSnapshot.value = snapshot();
+};
+
+const startCreateMode = () => {
+  if (saving.value || deleting.value || !mayDiscard()) return;
+  resetCreateState();
 };
 
 const startEditMode = async (environmentId: string, options?: { silent?: boolean }) => {
+  if (saving.value || deleting.value) return;
+  if (!options?.silent && environmentId === selectedEnvironmentId.value) return;
+  if (!options?.silent && !mayDiscard()) return;
+  const sequence = ++detailSequence;
   detailLoading.value = true;
-  selectedEnvironmentId.value = environmentId;
-  formMode.value = 'edit';
-
-  if (!options?.silent) {
-    note.value = '';
-    errorMessage.value = '';
-  }
-
+  if (!options?.silent) { note.value = ''; errorMessage.value = ''; }
   try {
     const detail = await managementApi.getEnvironmentDetail(environmentId);
-    currentEnvironmentDetail.value = detail;
-    applyFormState(detail);
+    if (sequence !== detailSequence) return;
+    selectedEnvironmentId.value = environmentId; formMode.value = 'edit';
+    currentEnvironmentDetail.value = detail; applyFormState(detail);
+    variablesText.value = JSON.stringify(detail.variables, null, 2); variablesValid.value = true;
+    savedSnapshot.value = snapshot();
   } catch (error) {
-    currentEnvironmentDetail.value = null;
-    errorMessage.value = resolveApiErrorMessage(error, '环境详情加载失败，请稍后重试。');
-  } finally {
-    detailLoading.value = false;
-  }
+    if (sequence === detailSequence) errorMessage.value = resolveApiErrorMessage(error, '环境详情更新失败，保留原有内容。');
+  } finally { if (sequence === detailSequence) detailLoading.value = false; }
 };
 
-const loadEnvironments = async (options?: { preferredId?: string; preserveSelection?: boolean }) => {
-  loading.value = true;
-  errorMessage.value = '';
-
+const loadEnvironments = async (_options?: { preferredId?: string; preserveSelection?: boolean }) => {
+  const sequence = ++listSequence;
+  loading.value = true; errorMessage.value = '';
   try {
-    environments.value = await managementApi.listEnvironments();
-    const preferredId = options?.preferredId;
-    const preservedId =
-      options?.preserveSelection && selectedEnvironmentId.value
-        ? selectedEnvironmentId.value
-        : '';
-    const nextSelectedId = preferredId || preservedId;
-
-    if (nextSelectedId && environments.value.some((item) => item.id === nextSelectedId)) {
-      await startEditMode(nextSelectedId, { silent: true });
-    } else if (formMode.value === 'edit') {
-      startCreateMode();
-    }
+    const items = await managementApi.listEnvironments();
+    if (sequence !== listSequence) return;
+    environments.value = items;
   } catch (error) {
-    errorMessage.value = resolveApiErrorMessage(error, '环境目录加载失败，请稍后重试。');
-  } finally {
-    loading.value = false;
-  }
+    if (sequence === listSequence) errorMessage.value = resolveApiErrorMessage(error, '环境目录更新失败，保留原有内容。');
+  } finally { if (sequence === listSequence) loading.value = false; }
 };
 
 const submitEnvironment = async () => {
+  if (saving.value || deleting.value || detailLoading.value) return;
   saving.value = true;
   note.value = '';
   errorMessage.value = '';
 
   try {
-    if (formMode.value === 'edit' && selectedEnvironmentId.value) {
-      const updated = await managementApi.updateEnvironment(selectedEnvironmentId.value, { ...formState.value, expectedRevision: currentEnvironmentDetail.value?.revision });
-      note.value = `环境已更新：${updated.name}。`;
-      await loadEnvironments({ preferredId: updated.id });
-      return;
-    }
-
-    const created = await managementApi.createEnvironment(formState.value);
-      note.value = `环境已创建：${created.name}，当前已回写到平台目录。`;
-      await loadEnvironments({ preferredId: created.id });
+    if (!variablesValid.value) throw new Error('请先修正环境变量');
+    const variables: unknown = JSON.parse(variablesText.value);
+    if (!variables || typeof variables !== 'object' || Array.isArray(variables)) throw new Error('环境变量必须为 JSON 对象');
+    const payload = { name: formState.value.name, base_url: formState.value.baseUrl, auth_mode: formState.value.authMode, status: formState.value.status, variables, expected_revision: currentEnvironmentDetail.value?.revision };
+    const result = formMode.value === 'edit' && selectedEnvironmentId.value
+      ? await apiClient.patch<{id: string}>(`/environments/${selectedEnvironmentId.value}`, payload)
+      : await apiClient.post<{id: string}>('/environments', payload);
+    selectedEnvironmentId.value = result.id; formMode.value = 'edit';
+    savedSnapshot.value = snapshot();
+    note.value = '环境已保存。';
+    saving.value = false;
+    await startEditMode(result.id, { silent: true });
+    await loadEnvironments();
   } catch (error) {
     errorMessage.value = resolveApiErrorMessage(error, '保存环境失败，请稍后重试。');
   } finally {
@@ -362,7 +363,7 @@ const submitEnvironment = async () => {
 };
 
 const removeEnvironment = async () => {
-  if (!selectedEnvironmentId.value || !currentEnvironmentDetail.value) {
+  if (detailLoading.value || saving.value || deleting.value || !selectedEnvironmentId.value || !currentEnvironmentDetail.value) {
     return;
   }
 
@@ -377,7 +378,7 @@ const removeEnvironment = async () => {
 
   try {
     const deleted = await managementApi.deleteEnvironment(selectedEnvironmentId.value);
-    startCreateMode();
+    resetCreateState();
     await loadEnvironments();
     note.value = `环境已删除：${deleted.name}。`;
   } catch (error) {
@@ -388,11 +389,14 @@ const removeEnvironment = async () => {
 };
 
 onMounted(() => {
+  window.addEventListener('beforeunload', beforeUnload);
   void loadEnvironments();
 });
 </script>
 
 <style scoped>
+.editor-fields { border:0; padding:0; margin:0; min-width:0; display:grid;gap:1rem; }
+.detail-pill { max-width:100%;overflow-wrap:anywhere; }
 .action-row {
   display: flex;
   gap: 0.75rem;

@@ -3,19 +3,20 @@
     <h3>证据保留与回收预览</h3><p>默认元数据90天、普通附件14天、失败附件30天。先预览，再只回收本次选择范围；活跃或保留标记的证据不会回收。</p>
     <p v-if="error" class="state-banner state-banner--error">{{ error }}</p>
     <form @submit.prevent="save">
-      <label>详细元数据保留天数<input v-model.number="policy.metadata_days" type="number" min="1" max="3650" /></label>
-      <label>普通附件保留天数<input v-model.number="policy.attachment_days" type="number" min="1" max="3650" /></label>
-      <label>失败附件保留天数<input v-model.number="policy.failure_attachment_days" type="number" min="1" max="3650" /></label>
+      <label><span class="field-caption"><span>详细元数据保留天数</span><HelpHint topic="retentionDays" /></span><input v-model.number="policy.metadata_days" type="number" min="1" max="3650" aria-label="详细元数据保留天数" /></label>
+      <label><span class="field-caption"><span>普通附件保留天数</span><HelpHint topic="retentionDays" /></span><input v-model.number="policy.attachment_days" type="number" min="1" max="3650" aria-label="普通附件保留天数" /></label>
+      <label><span class="field-caption"><span>失败附件保留天数</span><HelpHint topic="retentionDays" /></span><input v-model.number="policy.failure_attachment_days" type="number" min="1" max="3650" aria-label="失败附件保留天数" /></label>
       <button>保存未来保留策略</button>
     </form>
-    <button type="button" @click="preview">只读预览</button>
+    <span class="action-help"><button type="button" @click="preview">只读预览</button><HelpHint topic="retention" /></span>
     <pre v-if="plan">{{ JSON.stringify(plan,null,2) }}</pre>
-    <label><input v-model="confirmed" type="checkbox" />已核对上方到期范围，保留其他证据</label>
-    <button type="button" :disabled="!plan || !confirmed" @click="apply">回收预览中的到期证据</button>
+    <label><input v-model="confirmed" type="checkbox" aria-label="已核对上方到期范围，保留其他证据" /><span class="field-caption">已核对上方到期范围，保留其他证据<HelpHint topic="reclaim" /></span></label>
+    <span class="action-help"><button type="button" :disabled="!plan || !confirmed" @click="apply">回收预览中的到期证据</button><HelpHint topic="reclaim" /></span>
     <pre v-if="result">{{ result }}</pre>
   </section>
 </template>
 <script setup lang="ts">
+import HelpHint from '@/components/common/HelpHint.vue';
 import { onMounted, ref } from 'vue';
 import { apiClient } from '@/api/client';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';

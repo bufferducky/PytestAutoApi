@@ -61,7 +61,7 @@ def test_real_chromium_journey_isolated_storage_failure_artifact_and_baseline(tm
             self.end_headers()
             self.wfile.write(
                 """<!doctype html><html><body>
-<label>测试名称<input id="name"></label><button id="save">保存</button>
+<label>测试名称<input id="name" placeholder="请输入测试名称"></label><button id="save">保存</button>
 <div data-testid="result"></div>
 <script>
 const output=document.querySelector('[data-testid=result]');
@@ -101,7 +101,7 @@ localStorage.setItem('state',output.textContent);};
                     "step_id": "fill",
                     "name": "fill",
                     "action": "fill",
-                    "selector": {"strategy": "label", "value": "测试名称"},
+                    "selector": {"strategy": "placeholder", "value": "请输入测试名称"},
                     "value": "synthetic-first",
                 },
                 {

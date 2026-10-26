@@ -75,6 +75,8 @@ def auth_server():
                 and counters[self.path] == 1
             ):
                 self.send_json({"code": 401}, 401)
+            elif self.path == "/wrong-scope":
+                self.send_json({"code": 200, "data": {"tenant": "other", "project": "other"}})
             elif self.path == "/info":
                 self.send_json({"code": 200, "data": {"tenant": tenant, "project": project}})
             else:
@@ -683,3 +685,95 @@ def test_profile_delete_keeps_revision_history_and_requires_detaching(platform):
             app.state.context_service.save("targets", target, creating=True)
         assert exc.value.status_code == 409
         assert app.state.context_service.repository.exists("targets", target["id"])
+
+
+@pytest.mark.parametrize(
+    ("fields", "path", "expected"),
+    [
+        ({}, "/info", "not_verified"),
+        ({"tenant_path": "data.tenant"}, "/info", "not_verified"),
+        ({"tenant_path": "data.tenant", "project_path": "data.project"}, "/wrong-scope", "failed"),
+        ({"tenant_path": "data.tenant", "project_path": "data.project"}, "/info", "passed"),
+    ],
+)
+def test_preflight_requires_both_scope_dimensions(platform, fields, path, expected):
+    from fastapi.testclient import TestClient
+
+    app, _ = platform
+    with auth_server() as (base, requests, logins):
+        target, identity, binding = profiles(app, base)
+        app.state.context_service.save(
+            "targets",
+            {
+                **target,
+                "checks": [
+                    {"name": "scope", "path": path, "query_contract_confirmed": True, **fields}
+                ],
+            },
+        )
+        # 走公开预检路由，证明可达/登录成功不能被升级为项目归属通过。
+        client = TestClient(app)
+        result = client.post(
+            "/api/v1/environments/env-default-live/preflight",
+            json={
+                "target_id": target["id"],
+                "context_binding_id": binding["id"],
+                "execute_login": True,
+            },
+        )
+        assert result.status_code == 200
+        assert result.json()["context"] == expected
+        assert len(logins) == 1 and len(requests) == 1
+
+
+def test_preflight_without_context_requirement_is_not_required(platform):
+    app, _ = platform
+    with auth_server() as (base, requests, logins):
+        target = app.state.context_service.save(
+            "targets",
+            {
+                "name": "public",
+                "environment_id": "env-default-live",
+                "base_url": base,
+                "checks": [{"name": "health", "path": "/health", "query_contract_confirmed": True}],
+            },
+            creating=True,
+        )
+        model = importlib.import_module("pyta_platform_backend.schemas.context").PreflightRequest
+        result = app.state.context_service.preflight(
+            "env-default-live", model(target_id=target["id"], execute_login=True)
+        )
+        assert result["context"] == "not_required" and result["service"] == "passed"
+        assert not logins
+
+
+def test_public_terminal_headers_apply_to_login_and_context_queries(platform, monkeypatch):
+    app, _ = platform
+    transport_module = importlib.import_module("pyta_platform_backend.workers.context_transport")
+    original = transport_module.HttpxTransport
+    seen = []
+
+    class CapturingTransport(original):
+        def send(self, request, context, case):
+            seen.append((request.url, dict(request.headers)))
+            return super().send(request, context, case)
+
+    monkeypatch.setattr(transport_module, "HttpxTransport", CapturingTransport)
+    with auth_server() as (base, requests, logins):
+        target, identity, binding = profiles(app, base)
+        context = app.state.context_service
+        context.save("targets", {**target, "request_headers": {"User-Agent": "test-mobile"}})
+        model = importlib.import_module("pyta_platform_backend.schemas.context").PreflightRequest
+        result = context.preflight(
+            "env-default-live",
+            model(target_id=target["id"], context_binding_id=binding["id"], execute_login=True),
+        )
+        assert result["context"] == "passed"
+        assert len(seen) == 2
+        assert all(headers["User-Agent"] == "test-mobile" for _, headers in seen)
+        from fastapi import HTTPException
+
+        current = context.get("targets", target["id"])
+        with pytest.raises(HTTPException) as exc:
+            context.save("targets", {**current, "request_headers": {"Dept-Id": "other"}})
+        assert exc.value.status_code == 400

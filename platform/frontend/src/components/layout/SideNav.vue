@@ -1,199 +1,58 @@
 <template>
   <aside class="side-nav">
-    <div class="side-nav__brand">
-      <div class="side-nav__mark">TF</div>
-      <div>
-        <p class="side-nav__title">{{ appStore.platformName }}</p>
-        <p class="side-nav__caption">{{ appStore.platformSlogan }}</p>
-      </div>
+    <RouterLink to="/dashboard" class="side-nav__brand" aria-label="TestFlow 工作台首页">
+      <span class="side-nav__mark"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M5 5h14M12 5v14M5 12h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg></span>
+      <span><strong class="side-nav__title">TestFlow<span class="side-nav__edition">工作台</span></strong><span class="side-nav__caption">个人 API 测试</span></span>
+    </RouterLink>
+    <div class="side-nav__navigation">
+      <p class="side-nav__group">测试工作空间</p>
+      <nav class="side-nav__menu" aria-label="平台主导航">
+        <RouterLink v-for="item in appStore.navigation" :key="item.name" :to="{ name: item.name }" class="side-nav__item" :class="{ 'side-nav__item--active': route.name === item.name }" :aria-current="route.name === item.name ? 'page' : undefined">
+          <NavIcon :name="item.name" /><span>{{ item.label }}</span>
+        </RouterLink>
+      </nav>
+      <RouterLink to="/extensions" class="side-nav__extension" :aria-current="route.name === 'extensions' ? 'page' : undefined">扩展工具 <span aria-hidden="true">↗</span></RouterLink>
     </div>
-
-    <nav class="side-nav__menu" aria-label="平台主导航">
-      <RouterLink
-        v-for="item in appStore.navigation"
-        :key="item.name"
-        :to="{ name: item.name }"
-        class="side-nav__item"
-        :class="{ 'side-nav__item--active': route.name === item.name }"
-      >
-        <span class="side-nav__badge">{{ item.shortLabel }}</span>
-        <span class="side-nav__content">
-          <strong>{{ item.label }}</strong>
-          <small>{{ item.description }}</small>
-        </span>
-      </RouterLink>
-    </nav>
-
-    <div class="side-nav__footer">
-      <p class="side-nav__footer-title">当前聚焦</p>
-      <p class="side-nav__footer-copy">{{ appStore.phaseLabel }}</p>
-      <p class="side-nav__footer-copy">管理测试资产，执行真实请求，追溯运行结果。</p>
-    </div>
+    <div class="side-nav__footer"><span class="side-nav__avatar">YS</span><div><strong>个人工作空间</strong><small>测试资产与执行记录</small></div></div>
   </aside>
 </template>
-
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-
+import NavIcon from '@/components/common/NavIcon.vue';
 import { useAppStore } from '@/stores/app';
-
 const route = useRoute();
 const appStore = useAppStore();
 </script>
-
 <style scoped>
-.side-nav {
-  display: grid;
-  /* 内容页变长时，只让底部留白增长，不拉伸品牌与菜单行。 */
-  grid-template-rows: auto auto 1fr;
-  gap: 1.75rem;
-  padding: 1.5rem;
-  min-height: 100dvh;
-  background:
-    radial-gradient(circle at top, rgba(92, 141, 255, 0.22), transparent 38%),
-    linear-gradient(180deg, rgba(16, 30, 58, 0.96), rgba(9, 19, 40, 0.98));
-  color: var(--color-ink-inverse);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.side-nav__brand {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.side-nav__mark {
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.95), rgba(56, 189, 248, 0.8));
-  color: #031225;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.side-nav__title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.side-nav__caption {
-  margin: 0.3rem 0 0;
-  color: rgba(230, 238, 255, 0.72);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.side-nav__menu {
-  display: grid;
-  align-content: start;
-  gap: 0.75rem;
-}
-
-.side-nav__item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.9rem;
-  padding: 0.9rem 1rem;
-  border-radius: 1rem;
-  color: inherit;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid transparent;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-}
-
-.side-nav__item:hover {
-  transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(148, 197, 255, 0.24);
-}
-
-.side-nav__item--active {
-  background: rgba(122, 162, 255, 0.16);
-  border-color: rgba(148, 197, 255, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.side-nav__badge {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.8rem;
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.side-nav__content {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.side-nav__content strong {
-  font-size: 0.96rem;
-}
-
-.side-nav__content small {
-  color: rgba(230, 238, 255, 0.7);
-  line-height: 1.5;
-}
-
-.side-nav__footer {
-  align-self: end;
-  padding: 1rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.side-nav__footer-title {
-  margin: 0 0 0.45rem;
-  font-size: 0.85rem;
-  color: rgba(191, 219, 254, 0.86);
-}
-
-.side-nav__footer-copy {
-  margin: 0;
-  color: rgba(230, 238, 255, 0.76);
-  line-height: 1.7;
-}
-
-.side-nav__footer-copy + .side-nav__footer-copy {
-  margin-top: 0.45rem;
-}
-
+.side-nav { position: sticky; top: 0; display: grid; grid-template-rows: auto auto 1fr; gap: 32px; height: 100dvh; padding: 26px 16px 18px; background: #fff; border-right: 1px solid var(--color-border); }
+.side-nav__brand { display: flex; gap: 10px; align-items: center; color: var(--color-ink-base); text-decoration: none; padding: 0 8px; }
+.side-nav__mark { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; background: var(--color-accent-strong); color: white; border-radius: 9px; }
+.side-nav__title { display: flex; align-items: center; gap: 8px; font-size: 18px; letter-spacing: -.6px; }
+.side-nav__edition { font-size: 10px; font-weight: 500; letter-spacing: 0; padding: 0 5px; color: var(--color-ink-subtle); border: 1px solid var(--color-border); border-radius: 4px; }
+.side-nav__caption { display: block; color: var(--color-ink-subtle); font-size: 10px; margin-top: 2px; }
+.side-nav__group { margin: 0 12px 12px; color: #8a94a5; font-size: 11px; letter-spacing: 1px; }
+.side-nav__menu { display: grid; gap: 6px; }
+.side-nav__item { display: flex; align-items: center; gap: 12px; padding: 11px 13px; color: #586476; text-decoration: none; border-radius: 7px; font-size: 13px; font-weight: 500; }
+.side-nav__item:hover { background: #f5f7fc; }
+.side-nav__item--active { background: var(--color-accent-soft); color: var(--color-accent-strong); }
+.side-nav__item--active::after { content: ''; width: 5px; height: 5px; margin-left: auto; border-radius: 50%; background: currentColor; }
+.side-nav__extension { display: flex; justify-content: space-between; margin: 18px 0 0; padding: 10px 13px; border-top: 1px solid var(--color-border); color: var(--color-ink-muted); font-size: 12px; text-decoration: none; }
+.side-nav__extension[aria-current="page"] { color: var(--color-accent-strong); background: var(--color-accent-soft); }
+.side-nav__footer { align-self: end; display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--color-border); padding: 18px 8px 0; }
+.side-nav__avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: #6377a3; background: #edf0f7; font-size: 11px; font-weight: 600; }
+.side-nav__footer strong { display: block; font-size: 12px; font-weight: 500; }
+.side-nav__footer small { display: block; color: var(--color-ink-subtle); font-size: 10px; }
 @media (max-width: 1080px) {
-  .side-nav {
-    grid-template-rows: auto auto;
-    gap: 1rem;
-    padding: 1rem;
-    min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .side-nav__menu {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-  }
-
-  .side-nav__item {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 0.75rem 0.4rem;
-    text-align: center;
-  }
-
-  .side-nav__badge,
-  .side-nav__content small,
-  .side-nav__footer {
-    display: none;
-  }
+  .side-nav { position: static; grid-template-rows: auto auto; height: auto; padding: 14px 20px 10px; gap: 16px; border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .side-nav__extension { margin: 6px 0 0; padding: 6px 10px; justify-content: flex-end; gap: 8px; }
+  .side-nav__group, .side-nav__footer { align-self: end; display: none; }
+  .side-nav__menu { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+  .side-nav__item { justify-content: center; padding: 9px 4px; gap: 6px; font-size: 12px; }
+  .side-nav__item--active::after { display: none; }
+}
+@media (max-width: 540px) {
+  .side-nav { padding: 12px; gap: 12px; }
+  .side-nav__menu { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .side-nav__item svg { width: 16px; height: 16px; }
 }
 </style>
-

@@ -147,6 +147,7 @@ class DiagnosticService:
                 "status": detail.status.value,
                 "transport_mode": detail.transport_mode,
                 "validation_scope": detail.validation_scope,
+                "business_scope": detail.business_scope,
                 "execution_mode": detail.execution_mode,
                 "environment_id": detail.environment_id,
                 "environment_name": detail.environment_name,
@@ -392,6 +393,7 @@ class DiagnosticService:
         offset=0,
         environment_id=None,
         target_id=None,
+        build=None,
         transport_mode=None,
         scenario_id=None,
         scenario_version=None,
@@ -426,8 +428,10 @@ class DiagnosticService:
                 continue
             if lower and record.created_at < lower or upper and record.created_at > upper:
                 continue
-            if target_id or scenario_id or category:
+            if target_id or scenario_id or category or build:
                 detail = self.runs.get_run_detail(record.run_id)
+                if build and detail.payload.get("build", "unspecified") != build:
+                    continue
                 if target_id and not any(
                     s["target"]["id"] == target_id
                     for s in detail.payload.get("context_snapshots", {}).values()
@@ -477,6 +481,8 @@ class DiagnosticService:
             if not record.finished_at:
                 continue
             detail = self.runs.get_run_detail(record.run_id)
+            if detail.payload.get("run_purpose") == "debug":
+                continue
             cases = [
                 case
                 for case in detail.results

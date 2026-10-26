@@ -93,6 +93,8 @@ def run_ui(worker, task, claimed, redactor):
         context = {
             "identity": {
                 "alias": identity.get("name"),
+                "tenant_id": binding.get("tenant_id"),
+                "project_id": binding.get("project_id"),
                 "username": {"secret_ref": identity.get("username_secret_ref")}
                 if identity
                 else None,

@@ -2,11 +2,20 @@
 
 from fastapi import APIRouter, HTTPException
 
-from pyta_platform_backend.schemas.assets import AssetRunRequest, PublishRequest, SaveDraftRequest
+from pyta_platform_backend.schemas.assets import (
+    AssetRunRequest,
+    DraftDebugRequest,
+    PublishRequest,
+    SaveDraftRequest,
+)
 
 
 def create_assets_router(service, prefix):
     router = APIRouter(prefix=prefix, tags=["assets"])
+
+    @router.post("/scenarios/debug", status_code=202)
+    def debug_draft(payload: DraftDebugRequest):
+        return service.debug(payload)
 
     def register(kind):
         def list_assets(offset: int = 0, limit: int = 100):
@@ -77,9 +86,35 @@ def create_assets_router(service, prefix):
     def import_standard(payload: dict):
         return service.import_standard(payload)
 
+    @router.post("/imports/yanji-query", status_code=201)
+    def import_yanji_query(payload: dict):
+        from pyta_platform_backend.services.yanji_regression import import_query_pack
+
+        return import_query_pack(service, payload)
+
+    @router.get("/regression-packs/yanji")
+    def yanji_contracts():
+        import json
+        from importlib.resources import files
+
+        try:
+            return json.loads(
+                files("testflow_engine.business_data")
+                .joinpath("yanji-contracts.json")
+                .read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError) as exc:
+            raise HTTPException(503, "yanji_contract_bundle_unavailable") from exc
+
     @router.post("/imports/legacy", status_code=201)
     def import_legacy(payload: dict):
-        return service.import_legacy(payload["path"], payload["target_ref"])
+        if not payload.get("target_ref"):
+            raise HTTPException(400, "请选择导入场景的目标系统")
+        if not payload.get("path") and "yaml_text" not in payload:
+            raise HTTPException(400, "请上传 YAML 内容或提供旧路径")
+        return service.import_legacy(
+            payload.get("path", "uploaded.yaml"), payload["target_ref"], payload.get("yaml_text")
+        )
 
     @router.post("/imports/demo", status_code=201)
     def import_demo(payload: dict):

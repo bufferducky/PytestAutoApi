@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "source_repository": "yanji/yanji",
+  "source_commit": "1c061499eec685c476f7762528e233ec627f6985",
+  "observed_at": "2026-10-26",
+  "authority": "source_observed",
+  "contracts": [
+    {
+      "regression_id": "S01",
+      "group": "identity",
+      "risk": "正确身份/角色",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/controller/UserController.java",
+          "sha256": "ba87ee8a1449802ed0594b9289eec1cccc494e95d16bfc77271bbb13c65f8ac7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/service/user/UserServiceImpl.java",
+          "sha256": "87da8b5324c780e7672d15723cad778018068f04d8bb3fc3ff22036001b4b863"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/config/ApiInterceptor.java",
+          "sha256": "b512bef68dd31873f6e69ab39517e1d017a47f7e52a1917ae84cf56410ce4be7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/vo/result/UserLoginResult.java",
+          "sha256": "41fffae02550d446164f14dfaad19f244126cf6de58247955e76eda0a04bb9ac"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "two_test_projects",
+        "restricted_identity",
+        "known_object_and_denial_contract"
+      ],
+      "acceptance_reference": "R07-AC02"
+    },
+    {
+      "regression_id": "S02",
+      "group": "identity",
+      "risk": "错误密码拒绝会话",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/controller/UserController.java",
+          "sha256": "ba87ee8a1449802ed0594b9289eec1cccc494e95d16bfc77271bbb13c65f8ac7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/service/user/UserServiceImpl.java",
+          "sha256": "87da8b5324c780e7672d15723cad778018068f04d8bb3fc3ff22036001b4b863"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/config/ApiInterceptor.java",
+          "sha256": "b512bef68dd31873f6e69ab39517e1d017a47f7e52a1917ae84cf56410ce4be7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/vo/result/UserLoginResult.java",
+          "sha256": "41fffae02550d446164f14dfaad19f244126cf6de58247955e76eda0a04bb9ac"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "two_test_projects",
+        "restricted_identity",
+        "known_object_and_denial_contract"
+      ],
+      "acceptance_reference": "R07-AC02"
+    },
+    {
+      "regression_id": "S03",
+      "group": "identity",
+      "risk": "项目切换归属",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/controller/UserController.java",
+          "sha256": "ba87ee8a1449802ed0594b9289eec1cccc494e95d16bfc77271bbb13c65f8ac7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/service/user/UserServiceImpl.java",
+          "sha256": "87da8b5324c780e7672d15723cad778018068f04d8bb3fc3ff22036001b4b863"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/config/ApiInterceptor.java",
+          "sha256": "b512bef68dd31873f6e69ab39517e1d017a47f7e52a1917ae84cf56410ce4be7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/vo/result/UserLoginResult.java",
+          "sha256": "41fffae02550d446164f14dfaad19f244126cf6de58247955e76eda0a04bb9ac"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "two_test_projects",
+        "restricted_identity",
+        "known_object_and_denial_contract"
+      ],
+      "acceptance_reference": "R07-AC02"
+    },
+    {
+      "regression_id": "S04",
+      "group": "identity",
+      "risk": "低权限固定对象拒绝",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/controller/UserController.java",
+          "sha256": "ba87ee8a1449802ed0594b9289eec1cccc494e95d16bfc77271bbb13c65f8ac7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/service/user/UserServiceImpl.java",
+          "sha256": "87da8b5324c780e7672d15723cad778018068f04d8bb3fc3ff22036001b4b863"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/config/ApiInterceptor.java",
+          "sha256": "b512bef68dd31873f6e69ab39517e1d017a47f7e52a1917ae84cf56410ce4be7"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/vo/result/UserLoginResult.java",
+          "sha256": "41fffae02550d446164f14dfaad19f244126cf6de58247955e76eda0a04bb9ac"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "two_test_projects",
+        "restricted_identity",
+        "known_object_and_denial_contract"
+      ],
+      "acceptance_reference": "R07-AC02"
+    },
+    {
+      "regression_id": "S05",
+      "group": "recording",
+      "risk": "绑定专属录音",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingController.java",
+          "sha256": "604010533e0ef7ba6133426356e83ba895c343de6a76aa459bb679bdb90c85a5"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingService.java",
+          "sha256": "0082cf8bc1a6dfd8cbe8e9bc9ea343ce2312534bf00dd21a994fc43350b423c2"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_asr/NewAsrRecordStatusEnum.java",
+          "sha256": "9c6c787415c9f45c39a1794c1aaca3cf042f6d3267a0c6159ff1916692db7fee"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_reception",
+        "dedicated_recording",
+        "authorized_synthetic_media",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC03"
+    },
+    {
+      "regression_id": "S06",
+      "group": "recording",
+      "risk": "解绑两端一致",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingController.java",
+          "sha256": "604010533e0ef7ba6133426356e83ba895c343de6a76aa459bb679bdb90c85a5"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingService.java",
+          "sha256": "0082cf8bc1a6dfd8cbe8e9bc9ea343ce2312534bf00dd21a994fc43350b423c2"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_asr/NewAsrRecordStatusEnum.java",
+          "sha256": "9c6c787415c9f45c39a1794c1aaca3cf042f6d3267a0c6159ff1916692db7fee"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_reception",
+        "dedicated_recording",
+        "authorized_synthetic_media",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC03"
+    },
+    {
+      "regression_id": "S07",
+      "group": "recording",
+      "risk": "分析一次触发与结果归属",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingController.java",
+          "sha256": "604010533e0ef7ba6133426356e83ba895c343de6a76aa459bb679bdb90c85a5"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingService.java",
+          "sha256": "0082cf8bc1a6dfd8cbe8e9bc9ea343ce2312534bf00dd21a994fc43350b423c2"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_asr/NewAsrRecordStatusEnum.java",
+          "sha256": "9c6c787415c9f45c39a1794c1aaca3cf042f6d3267a0c6159ff1916692db7fee"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_reception",
+        "dedicated_recording",
+        "authorized_synthetic_media",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC03"
+    },
+    {
+      "regression_id": "S08",
+      "group": "recording",
+      "risk": "失败/超时与清理",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingController.java",
+          "sha256": "604010533e0ef7ba6133426356e83ba895c343de6a76aa459bb679bdb90c85a5"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_task/RecordingBindingService.java",
+          "sha256": "0082cf8bc1a6dfd8cbe8e9bc9ea343ce2312534bf00dd21a994fc43350b423c2"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/new_asr/NewAsrRecordStatusEnum.java",
+          "sha256": "9c6c787415c9f45c39a1794c1aaca3cf042f6d3267a0c6159ff1916692db7fee"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_reception",
+        "dedicated_recording",
+        "authorized_synthetic_media",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC03"
+    },
+    {
+      "regression_id": "S09",
+      "group": "distribution",
+      "risk": "目标项目下发内容",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/controller/OpsController.java",
+          "sha256": "aedc5b0eef03ad0f652073cbce6be842fc1b43dc30cb36602d88182ddd6703ef"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/service/IssueQualityPackageServiceImpl.java",
+          "sha256": "7bba239e17d62eea07b29416601a01cee02685b09cc44f2ff050f72f2df6c911"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/vo/param/IssueQualityPackageParam.java",
+          "sha256": "26de50b8692f8dce8f31ecbcb7581c239c45fa8553abb335341b6bc5c088268f"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "center_test_identity",
+        "target_and_non_target_test_projects",
+        "dedicated_package",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC04"
+    },
+    {
+      "regression_id": "S10",
+      "group": "distribution",
+      "risk": "非目标不变",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/controller/OpsController.java",
+          "sha256": "aedc5b0eef03ad0f652073cbce6be842fc1b43dc30cb36602d88182ddd6703ef"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/service/IssueQualityPackageServiceImpl.java",
+          "sha256": "7bba239e17d62eea07b29416601a01cee02685b09cc44f2ff050f72f2df6c911"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/vo/param/IssueQualityPackageParam.java",
+          "sha256": "26de50b8692f8dce8f31ecbcb7581c239c45fa8553abb335341b6bc5c088268f"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "center_test_identity",
+        "target_and_non_target_test_projects",
+        "dedicated_package",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC04"
+    },
+    {
+      "regression_id": "S11",
+      "group": "distribution",
+      "risk": "自定义覆盖策略",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/controller/OpsController.java",
+          "sha256": "aedc5b0eef03ad0f652073cbce6be842fc1b43dc30cb36602d88182ddd6703ef"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/service/IssueQualityPackageServiceImpl.java",
+          "sha256": "7bba239e17d62eea07b29416601a01cee02685b09cc44f2ff050f72f2df6c911"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/vo/param/IssueQualityPackageParam.java",
+          "sha256": "26de50b8692f8dce8f31ecbcb7581c239c45fa8553abb335341b6bc5c088268f"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "center_test_identity",
+        "target_and_non_target_test_projects",
+        "dedicated_package",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC04"
+    },
+    {
+      "regression_id": "S12",
+      "group": "distribution",
+      "risk": "重复下发与恢复",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/controller/OpsController.java",
+          "sha256": "aedc5b0eef03ad0f652073cbce6be842fc1b43dc30cb36602d88182ddd6703ef"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/service/IssueQualityPackageServiceImpl.java",
+          "sha256": "7bba239e17d62eea07b29416601a01cee02685b09cc44f2ff050f72f2df6c911"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/ops/vo/param/IssueQualityPackageParam.java",
+          "sha256": "26de50b8692f8dce8f31ecbcb7581c239c45fa8553abb335341b6bc5c088268f"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "center_test_identity",
+        "target_and_non_target_test_projects",
+        "dedicated_package",
+        "restore_contract"
+      ],
+      "acceptance_reference": "R07-AC04"
+    },
+    {
+      "regression_id": "S13",
+      "group": "persona",
+      "risk": "精确人设筛选",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/controller/PracticeController.java",
+          "sha256": "3f12a04f9f17f49bf167b323e863a0068efbb799ea46f1c581502f50a49c821e"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/service/impl/PracticePersonaServiceImpl.java",
+          "sha256": "eb869313ec33dfd3467efa55b84f1dbb6de8d1836cf73149e7dfb28b08c6ffab"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/model/dto/PracticePersonaDto.java",
+          "sha256": "b7339f6383cd0e6bd3e15b17a0e57b6aeb22a0239562eae8171927d3ac8cca61"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_persona",
+        "dedicated_evaluation_package",
+        "original_binding_and_restore"
+      ],
+      "acceptance_reference": "R07-AC05"
+    },
+    {
+      "regression_id": "S14",
+      "group": "persona",
+      "risk": "绑定评估包与章节",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/controller/PracticeController.java",
+          "sha256": "3f12a04f9f17f49bf167b323e863a0068efbb799ea46f1c581502f50a49c821e"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/service/impl/PracticePersonaServiceImpl.java",
+          "sha256": "eb869313ec33dfd3467efa55b84f1dbb6de8d1836cf73149e7dfb28b08c6ffab"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/model/dto/PracticePersonaDto.java",
+          "sha256": "b7339f6383cd0e6bd3e15b17a0e57b6aeb22a0239562eae8171927d3ac8cca61"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_persona",
+        "dedicated_evaluation_package",
+        "original_binding_and_restore"
+      ],
+      "acceptance_reference": "R07-AC05"
+    },
+    {
+      "regression_id": "S15",
+      "group": "persona",
+      "risk": "更换/重复绑定",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/controller/PracticeController.java",
+          "sha256": "3f12a04f9f17f49bf167b323e863a0068efbb799ea46f1c581502f50a49c821e"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/service/impl/PracticePersonaServiceImpl.java",
+          "sha256": "eb869313ec33dfd3467efa55b84f1dbb6de8d1836cf73149e7dfb28b08c6ffab"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/model/dto/PracticePersonaDto.java",
+          "sha256": "b7339f6383cd0e6bd3e15b17a0e57b6aeb22a0239562eae8171927d3ac8cca61"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_persona",
+        "dedicated_evaluation_package",
+        "original_binding_and_restore"
+      ],
+      "acceptance_reference": "R07-AC05"
+    },
+    {
+      "regression_id": "S16",
+      "group": "persona",
+      "risk": "错误评估包与恢复",
+      "source_refs": [
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/controller/PracticeController.java",
+          "sha256": "3f12a04f9f17f49bf167b323e863a0068efbb799ea46f1c581502f50a49c821e"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/service/impl/PracticePersonaServiceImpl.java",
+          "sha256": "eb869313ec33dfd3467efa55b84f1dbb6de8d1836cf73149e7dfb28b08c6ffab"
+        },
+        {
+          "path": "src/main/java/com/neuron/yanji/practice/model/dto/PracticePersonaDto.java",
+          "sha256": "b7339f6383cd0e6bd3e15b17a0e57b6aeb22a0239562eae8171927d3ac8cca61"
+        }
+      ],
+      "source_status": "observed",
+      "live_validation": "not_verified",
+      "required_resources": [
+        "dedicated_persona",
+        "dedicated_evaluation_package",
+        "original_binding_and_restore"
+      ],
+      "acceptance_reference": "R07-AC05"
+    }
+  ]
+}

@@ -1,333 +1,110 @@
 <template>
-  <section class="page-grid">
-    <section class="hero-banner">
-      <div>
-        <p class="hero-banner__eyebrow">工作台总览</p>
-        <h2 class="hero-banner__title">管理测试资产，查看真实执行结果。</h2>
-        <p class="hero-banner__copy">
-          统计来自真实测试运行，迁入演示历史不计入真实统计。
-        </p>
+  <section class="page-grid" :aria-busy="loading">
+    <div class="section-heading">
+      <div class="toolbar quick-actions" aria-label="快捷执行入口">
+        <RouterLink class="action-button" to="/cases">编写与调试</RouterLink>
+        <RouterLink class="action-button action-button--secondary" to="/suites">执行固定版本套件</RouterLink>
+        <RouterLink class="action-button action-button--secondary" to="/runs">查看执行结果</RouterLink>
       </div>
-
-      <div class="hero-banner__meta">
-        <button class="action-button" type="button" :disabled="dashboardStore.loading" @click="reload">刷新数据</button>
-        <span class="hero-banner__pill">{{ appStore.phaseLabel }}</span>
-        <span class="hero-banner__pill">数据源：{{ sourceLabel }}</span>
-        <span class="hero-banner__pill" v-if="dashboardStore.lastLoadedAt">
-          更新于 {{ dashboardStore.lastLoadedAt }}
-        </span>
-      </div>
-    </section>
-
-    <p v-if="dashboardStore.note" class="state-banner state-banner--info">{{ dashboardStore.note }}</p>
-    <p v-if="dashboardStore.errorMessage" class="state-banner state-banner--error">
-      {{ dashboardStore.errorMessage }}
-    </p>
-
-    <div v-if="dashboardStore.loading && !dashboardStore.overview.metrics.length" class="empty-copy">
-      正在加载仪表盘数据...
+      <div class="toolbar"><small v-if="loadedAt">更新于 {{ loadedAt }}</small><button :disabled="loading" @click="reload">{{ loading ? '更新中…' : '刷新' }}</button></div>
     </div>
-
-    <div v-else-if="dashboardStore.overview.metrics.length" class="metrics-grid">
-      <MetricCard
-        v-for="metric in dashboardStore.overview.metrics"
-        :key="metric.key"
-        :metric="metric"
-      />
-    </div>
-
-    <div v-else class="empty-card">
-      <p class="empty-copy">当前没有可展示的仪表盘统计数据。</p>
-      <button class="action-button" type="button" :disabled="dashboardStore.loading" @click="reload">
-        {{ dashboardStore.loading ? '加载中...' : '重新加载' }}
-      </button>
-    </div>
-
-    <div class="content-grid">
-      <PlaceholderPanel
-        v-if="dashboardStore.overview.focusItems.length"
-        title="当前重点"
-        description="这些卡片用于提示团队近期最值得产品化的平台能力。"
-      >
-        <template #actions>
-          <button class="action-button" type="button" :disabled="dashboardStore.loading" @click="reload">
-            {{ dashboardStore.loading ? '加载中...' : '刷新数据' }}
-          </button>
-        </template>
-
-        <div v-if="dashboardStore.loading && !dashboardStore.overview.focusItems.length" class="empty-copy">
-          正在整理当前重点...
+    <p v-if="error" role="alert" class="state-banner state-banner--error">{{ error }} 已加载内容继续保留。</p>
+    <div v-if="overview.metrics.length" class="metrics-grid"><MetricCard v-for="metric in overview.metrics" :key="metric.key" :metric="metric" /></div>
+    <div class="workbench-grid">
+      <PlaceholderPanel :title="recentAssets.length ? '最近资产' : '资产目录'" :description="recentAssets.length ? '本机最近打开或保存的场景与套件。' : '尚无本机访问记录，按名称展示已保存资产。'">
+        <div v-if="visibleAssets.length" class="work-list">
+          <RouterLink v-for="asset in visibleAssets" :key="asset.id" class="work-row" :to="{ path: asset.kind === 'scenarios' ? '/cases' : '/suites', query: { assetId: asset.id } }">
+            <span class="work-row__body"><strong>{{ asset.draft.name }}</strong><small>{{ asset.kind === 'scenarios' ? '场景' : '套件' }} · 草稿 r{{ asset.revision }}</small></span><span aria-hidden="true">→</span>
+          </RouterLink>
         </div>
-
-        <div v-else-if="dashboardStore.overview.focusItems.length" class="focus-list">
-          <article
-            v-for="item in dashboardStore.overview.focusItems"
-            :key="item.id"
-            class="focus-item"
-          >
-            <div class="focus-item__header">
-              <h3>{{ item.title }}</h3>
-              <StatusTag :label="focusLabelMap[item.status]" :tone="focusToneMap[item.status]" />
-            </div>
-            <p class="focus-item__meta">归属：{{ item.owner }}</p>
-            <p class="focus-item__summary">{{ item.summary }}</p>
-          </article>
-        </div>
-
-        <div v-else class="empty-copy">当前暂无重点事项，等后端补齐 overview 后可展示更细粒度建议。</div>
+        <p v-else class="empty-copy">{{ loading ? '正在加载资产…' : '还没有资产。创建场景，保存后即可继续编辑。' }}</p>
       </PlaceholderPanel>
-
-      <PlaceholderPanel
-        title="最近运行"
-        description="最近创建的运行记录；历史演示结果单独标注。"
-      >
-        <div v-if="dashboardStore.loading && !dashboardStore.overview.recentRuns.length" class="empty-copy">
-          正在整理最近运行...
+      <PlaceholderPanel title="失败待处理" description="最近失败与异常，独立于最近运行列表查询。点击查看诊断。">
+        <div v-if="failedRuns.length" class="work-list">
+          <RouterLink v-for="run in failedRuns" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
+            <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.errorSummary || run.note || run.startedAt }}</small></span><StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
+          </RouterLink>
         </div>
-
-        <div v-else-if="dashboardStore.overview.recentRuns.length" class="run-list">
-          <article
-            v-for="run in dashboardStore.overview.recentRuns"
-            :key="run.id"
-            class="run-item"
-          >
-            <div class="run-item__header">
-              <div>
-                <h3>{{ run.name }}</h3>
-                <p>{{ run.target }}</p>
-              </div>
-              <StatusTag
-                :label="run.validationScope === 'historical_demo' ? '演示历史 · ' + getRunStatusMeta(run.status).label : run.transportMode === 'mock' ? '模拟历史 · ' + getRunStatusMeta(run.status).label : getRunStatusMeta(run.status).label"
-                :tone="getRunStatusMeta(run.status).tone"
-              />
-            </div>
-            <dl class="run-item__meta">
-              <div>
-                <dt>触发人</dt>
-                <dd>{{ run.starter }}</dd>
-              </div>
-              <div>
-                <dt>开始时间</dt>
-                <dd>{{ run.startedAt }}</dd>
-              </div>
-              <div>
-                <dt>耗时</dt>
-                <dd>{{ run.duration }}</dd>
-              </div>
-            </dl>
-          </article>
-        </div>
-
-        <div v-else class="empty-copy">
-          当前没有可展示的最近运行摘要。若后端只有 health/live，本区会先保持空态而不伪造真实记录。
-        </div>
+        <p v-else class="empty-copy">{{ loading ? '正在检查运行…' : '暂无失败与异常记录。' }}</p>
       </PlaceholderPanel>
     </div>
+    <PlaceholderPanel title="最近运行" description="保留历史结果标识，点击进入执行详情。">
+      <div v-if="overview.recentRuns.length" class="work-list">
+        <RouterLink v-for="run in overview.recentRuns.slice(0, 6)" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
+          <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.startedAt }} · {{ run.duration }}</small></span>
+          <StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
+        </RouterLink>
+      </div>
+      <p v-else class="empty-copy">{{ loading ? '正在加载运行…' : '暂无运行记录。可先调试草稿，或发布固定版本后正式执行。' }}</p>
+    </PlaceholderPanel>
   </section>
 </template>
-
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-
+import { computed, onMounted, ref } from 'vue';
+import { dashboardApi } from '@/api/modules/dashboard';
+import { apiClient } from '@/api/client';
+import { normalizeRunSummary } from '@/api/adapters/runs';
 import MetricCard from '@/components/common/MetricCard.vue';
 import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import { useAppStore } from '@/stores/app';
-import { useDashboardStore } from '@/stores/dashboard';
-import type { ApiDataSource } from '@/types/platform';
+import type { DashboardOverview, RunSummary } from '@/types/platform';
 import { getRunStatusMeta } from '@/utils/runStatus';
-
+import { resolveApiErrorMessage } from '@/utils/apiErrors';
+interface Asset { id: string; revision: number; draft: { name: string }; kind: 'scenarios' | 'suites' }
 const appStore = useAppStore();
-const dashboardStore = useDashboardStore();
-
-const focusToneMap = {
-  stable: 'success',
-  attention: 'attention',
-  planned: 'neutral',
-} as const;
-
-const focusLabelMap = {
-  stable: '稳定',
-  attention: '需关注',
-  planned: '规划中',
-} as const;
-
-const sourceLabelMap: Record<ApiDataSource, string> = {
-  api: '真实接口',
-  compatibility: '兼容聚合',
-  mock: '历史模拟来源',
+const assets = ref<Asset[]>([]);
+const overview = ref<DashboardOverview>({ metrics: [], focusItems: [], recentRuns: [] });
+const loading = ref(false);
+const loadedAt = ref('');
+const error = ref('');
+const recentAssets = computed(() => appStore.recentAssetIds.flatMap((id) => assets.value.filter((asset) => asset.id === id)));
+const visibleAssets = computed(() => (recentAssets.value.length ? recentAssets.value : [...assets.value].sort((a, b) => a.draft.name.localeCompare(b.draft.name))).slice(0, 6));
+const failedRuns = ref<RunSummary[]>([]);
+const runLabel = (run: RunSummary) => {
+  const prefix = run.validationScope === 'debug' || run.businessScope === 'draft_debug' ? '草稿调试 · '
+    : run.validationScope === 'historical_demo' ? '演示历史 · ' : run.transportMode === 'mock' ? '模拟历史 · ' : '';
+  return prefix + getRunStatusMeta(run.status).label;
 };
-
-const sourceLabel = computed(() => sourceLabelMap[dashboardStore.source]);
-
-// 页面本身不再区分接口来源 的细节，统一交给 store + API 适配层收口。
-const reload = async () => {
-  await dashboardStore.loadOverview();
-};
-
-onMounted(async () => {
-  if (!dashboardStore.overview.metrics.length && !dashboardStore.loading) {
-    await reload();
-  }
-});
+async function reload() {
+  if (loading.value) return;
+  loading.value = true;
+  error.value = '';
+  // 各区域独立更新；某个请求失败不会擦除另一块的历史数据。
+  const results = await Promise.allSettled([
+    dashboardApi.getOverview().then((result) => { overview.value = result.data; }),
+    // 不能只过滤首页最近三条：后续成功运行不应把已有失败入口挤掉。
+    Promise.all(['failed', 'error', 'blocked', 'timed_out', 'interrupted'].map(status =>
+      apiClient.get<{ items: Record<string, unknown>[] }>('/runs', { status, limit: 6 }),
+    )).then(groups => {
+      failedRuns.value = groups.flatMap(group => group.items)
+        .sort((a, b) => Date.parse(String(b.created_at)) - Date.parse(String(a.created_at)))
+        .slice(0, 6).map(normalizeRunSummary);
+    }),
+    Promise.all([apiClient.get<Omit<Asset, 'kind'>[]>('/scenarios'), apiClient.get<Omit<Asset, 'kind'>[]>('/suite-assets')]).then(([scenarios, suites]) => {
+      assets.value = [...scenarios.map((asset) => ({ ...asset, kind: 'scenarios' as const })), ...suites.map((asset) => ({ ...asset, kind: 'suites' as const }))];
+    }),
+  ]);
+  const failure = results.find((result) => result.status === 'rejected');
+  if (failure?.status === 'rejected') error.value = resolveApiErrorMessage(failure.reason, '工作台更新失败。');
+  else loadedAt.value = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+  loading.value = false;
+}
+onMounted(() => { void reload(); });
 </script>
-
 <style scoped>
-.hero-banner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  padding: 1.35rem;
-  border-radius: 1.5rem;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.92)),
-    linear-gradient(135deg, rgba(96, 165, 250, 0.16), transparent);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: var(--shadow-soft);
-}
-
-/* 元信息不能用 auto 网格列抢光标题宽度；空间不足时整块换行。 */
-.hero-banner > div:first-child {
-  flex: 1 1 24rem;
-  min-width: 0;
-}
-
-.hero-banner__eyebrow {
-  margin: 0 0 0.55rem;
-  color: var(--color-accent-strong);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.hero-banner__title {
-  margin: 0;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  line-height: 1.2;
-  letter-spacing: -0.04em;
-}
-
-.hero-banner__copy {
-  max-width: 46rem;
-  margin: 0.85rem 0 0;
-  color: var(--color-ink-muted);
-  line-height: 1.8;
-}
-
-.hero-banner__meta {
-  flex: 1 1 18rem;
-  min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  align-content: flex-start;
-  justify-content: flex-end;
-}
-
-.hero-banner__pill {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.3rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  color: var(--color-ink-base);
-  font-size: 0.88rem;
-  box-shadow: var(--shadow-soft);
-}
-
-.empty-card {
-  display: grid;
-  gap: 1rem;
-  justify-items: start;
-  padding: 1.2rem;
-  border-radius: 1.2rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-soft);
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.focus-list,
-.run-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.focus-item,
-.run-item {
-  padding: 1rem;
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-}
-
-.focus-item__header,
-.run-item__header {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.focus-item__header h3,
-.run-item__header h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.focus-item__meta,
-.run-item__header p {
-  margin: 0.4rem 0 0;
-  color: var(--color-ink-subtle);
-}
-
-.focus-item__summary {
-  margin: 0.8rem 0 0;
-  line-height: 1.8;
-  color: var(--color-ink-muted);
-}
-
-.run-item__meta {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin: 0.9rem 0 0;
-}
-
-.run-item__meta dt {
-  color: var(--color-ink-subtle);
-  font-size: 0.82rem;
-}
-
-.run-item__meta dd {
-  margin: 0.28rem 0 0;
-  font-weight: 600;
-}
-
-@media (max-width: 1200px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 960px) {
-  .hero-banner__meta {
-    justify-content: flex-start;
-  }
-
-  .metrics-grid,
-  .run-item__meta {
-    grid-template-columns: 1fr;
-  }
-}
+.quick-actions a { text-decoration: none; display: inline-flex; align-items: center; }
+small { color: var(--color-ink-subtle); font-size: 11px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.workbench-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.workbench-grid > *, .metrics-grid > * { min-width: 0; }
+.work-list { display: grid; }
+.work-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--color-border); text-decoration: none; color: var(--color-ink-base); transition: background 140ms; }
+.work-row:hover { background: var(--color-bg-secondary); }
+.work-row:last-child { border-bottom: 0; }
+.work-row__body { flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; }
+.work-row strong { display: block; font-size: 13px; font-weight: 600; }
+.work-row small { display: block; margin-top: 3px; }
+@media (max-width: 760px) { .workbench-grid { grid-template-columns: minmax(0, 1fr); } .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .metrics-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

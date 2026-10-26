@@ -114,6 +114,7 @@ export const normalizeRunSummary = (payload: unknown, index: number): RunSummary
     transportMode: readString(payload.transport_mode) || 'historical_unknown',
     executionMode: readString(payload.execution_mode) || 'historical_unknown',
     validationScope: readString(payload.validation_scope) || 'historical_unknown',
+    businessScope: readString(payload.business_scope) || 'unclassified',
     cleanupStatus: readString(payload.cleanup_status) || 'not_recorded',
     eligibleForRelease: payload.eligible_for_release === true,
     status: payload.transport_mode !== 'live' && normalizeRunStatus(rawStatus) === 'success'

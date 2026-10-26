@@ -477,3 +477,200 @@ def test_old_version_evidence_does_not_claim_current_risk(platform):
     summary = service.coverage_summary()
     assert summary["verified_risks"] == 0
     assert summary["items"][0]["coverage_status"] == "version_stale"
+
+
+@pytest.mark.parametrize("kind", ["scenarios", "suites"])
+def test_default_asset_run_infers_environment_and_preserves_build(platform, kind):
+    from fastapi.testclient import TestClient
+
+    app, settings = platform
+    service = app.state.asset_service
+    scenario = service.create("scenarios", draft())
+    publish(app, scenario)
+    identifier = scenario["id"]
+    if kind == "suites":
+        suite = service.create(
+            "suites",
+            {"name": "same-environment", "scenarios": [{"scenario_id": identifier, "version": 1}]},
+        )
+        model = importlib.import_module("pyta_platform_backend.schemas.assets").PublishRequest
+        service.publish("suites", suite["id"], model(expected_revision=1, change_note="pin"))
+        identifier = suite["id"]
+    client = TestClient(app)
+    response = client.post(
+        f"/api/v1/{kind}/{identifier}/versions/1/runs",
+        json={
+            "transport_mode": "live",
+            "build": "source-fixture-v1",
+            "parameters": {},
+        },
+    )
+    assert response.status_code == 202, response.text
+    run_id = response.json()["run_id"]
+    detail = app.state.run_service.get_run_detail(run_id)
+    assert detail.environment_id == app.state.test_environment_id
+    assert detail.environment_name == "asset-test"
+    assert detail.payload["environment"]["id"] == detail.environment_id
+    assert detail.payload["build"] == "source-fixture-v1"
+    listed = client.get(
+        "/api/v1/runs",
+        params={
+            "environment_id": detail.environment_id,
+            "target_id": "asset-test",
+            "build": "source-fixture-v1",
+        },
+    )
+    assert listed.status_code == 200
+    assert run_id in [row["run_id"] for row in listed.json()["items"]]
+    assert client.get("/api/v1/runs", params={"build": "wrong-build"}).json()["total"] == 0
+    wrong = client.post(
+        f"/api/v1/{kind}/{identifier}/versions/1/runs",
+        json={"transport_mode": "live", "environment_id": "different-environment"},
+    )
+    assert wrong.status_code == 400
+
+
+def test_suite_rejects_mixed_environments_without_creating_a_run(platform):
+    app, _ = platform
+    service = app.state.asset_service
+    first = service.create("scenarios", draft())
+    publish(app, first)
+    env_model = importlib.import_module("pyta_platform_backend.schemas.management")
+    env = app.state.management_service.create_environment(
+        env_model.CreateEnvironmentRequest(
+            name="other", base_url="http://127.0.0.1:1", auth_mode="none"
+        )
+    )
+    app.state.context_service.save(
+        "targets",
+        {
+            "id": "other",
+            "name": "other",
+            "base_url": "http://127.0.0.1:1",
+            "environment_id": env.id,
+        },
+        creating=True,
+    )
+    data = draft()
+    data["target_ref"] = "other"
+    second = service.create("scenarios", data)
+    publish(app, second)
+    suite = service.create(
+        "suites",
+        {
+            "name": "mixed",
+            "scenarios": [
+                {"scenario_id": first["id"], "version": 1},
+                {"scenario_id": second["id"], "version": 1},
+            ],
+        },
+    )
+    model = importlib.import_module("pyta_platform_backend.schemas.assets").PublishRequest
+    service.publish("suites", suite["id"], model(expected_revision=1, change_note="mixed"))
+    before = app.state.run_service.list_runs().total
+    with pytest.raises(Exception, match="mixed_environment"):
+        service.run("suites", suite["id"], 1, request())
+    assert app.state.run_service.list_runs().total == before
+
+
+@pytest.mark.parametrize("ref", ["legacy-cache@1", "bootstrap-auth@1"])
+def test_step_plugin_selection_without_consumer_is_rejected(platform, ref):
+    from fastapi import HTTPException
+
+    app, _ = platform
+    data = draft()
+    data["steps"][1]["plugin_refs"] = [ref]
+    scenario = app.state.asset_service.create("scenarios", data)
+    check = app.state.asset_service.preview("scenarios", scenario["id"])
+    assert not check["valid"]
+    assert any(item["path"].endswith("plugin_refs") for item in check["errors"])
+    with pytest.raises(HTTPException) as exc:
+        publish(app, scenario)
+    assert exc.value.status_code == 400
+
+
+def test_yanji_pack_import_is_test_only_idempotent_and_draft_only(platform):
+    from fastapi.testclient import TestClient
+
+    app, _ = platform
+    context = app.state.context_service
+    target = context.get("targets", "asset-test")
+    identity = context.save(
+        "identity-profiles",
+        {
+            "name": "tester",
+            "target_ids": [target["id"]],
+            "username_secret_ref": "env:PYTA_SECRET_YANJI_U",
+            "password_secret_ref": "env:PYTA_SECRET_YANJI_P",
+        },
+        creating=True,
+    )
+    binding = context.save(
+        "context-bindings",
+        {
+            "name": "project",
+            "target_id": target["id"],
+            "identity_id": identity["id"],
+            "tenant_id": "test-tenant",
+            "project_id": "test-project",
+        },
+        creating=True,
+    )
+    payload = {
+        "target_ref": target["id"],
+        "identity_ref": identity["id"],
+        "binding_ref": binding["id"],
+        "expected_user_id": "known-test-user",
+    }
+    client = TestClient(app)
+    assert client.post("/api/v1/imports/yanji-query", json=payload).status_code == 400
+    context.save(
+        "targets",
+        {
+            **target,
+            "base_url": "https://api-test.yanjiai.com",
+            "requires_context": True,
+            "auth": {"mode": "password", "contract_confirmed": True},
+        },
+    )
+    first = client.post("/api/v1/imports/yanji-query", json=payload)
+    assert first.status_code == 201, first.text
+    second = client.post("/api/v1/imports/yanji-query", json=payload)
+    assert first.json()["assets"] == second.json()["assets"]
+    assert first.json()["network_executed"] is False
+    assert app.state.run_service.list_runs().total == 0
+    for scenario in first.json()["assets"]:
+        assert not app.state.asset_service.repository.versions("scenarios", scenario["id"])
+        assert app.state.asset_service.preview("scenarios", scenario["id"])["valid"]
+        request = scenario["draft"]["steps"][0]["request"]
+        assert request["method"] == "GET"
+        assert scenario["draft"]["source"]["scope"] == "query_smoke"
+
+
+def test_uploaded_yaml_import_needs_no_server_source_tree(platform):
+    from fastapi.testclient import TestClient
+
+    app, _ = platform
+    client = TestClient(app)
+    document = """case_common: {allureEpic: imported}
+query:
+  host: http://localhost
+  url: /health
+  method: GET
+  detail: imported query
+  headers: {}
+  requestType: JSON
+  data: {}
+  assert: {code: {jsonpath: $.code, type: ==, value: 200}}
+"""
+    response = client.post(
+        "/api/v1/imports/legacy", json={"target_ref": "asset-test", "yaml_text": document}
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["report"]["network_executed"] is False
+    assert response.json()["asset"]["draft"]["source"]["path"] == "uploaded.yaml"
+    invalid = client.post(
+        "/api/v1/imports/legacy",
+        json={"target_ref": "asset-test", "yaml_text": "private-secret: [unterminated"},
+    )
+    assert invalid.status_code == 400 and "private-secret" not in invalid.text

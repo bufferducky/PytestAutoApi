@@ -11,8 +11,10 @@ def create_journeys_router(service, prefix):
         import importlib.util
         import shutil
 
+        from pyta_platform_backend.runners.ui import web_runtime
+
         return {
-            "web": {"playwright_installed": importlib.util.find_spec("playwright") is not None},
+            "web": web_runtime(),
             "android": {
                 "appium_installed": importlib.util.find_spec("appium") is not None,
                 "adb_available": shutil.which("adb") is not None,
@@ -40,6 +42,12 @@ def create_journeys_router(service, prefix):
     @router.post("/journeys", status_code=201)
     def define(payload: dict):
         return service.define(payload)
+
+    @router.post("/journeys/import-yanji-query", status_code=201)
+    def import_yanji_query(payload: dict):
+        from pyta_platform_backend.services.yanji_regression import import_web_query
+
+        return import_web_query(service, payload)
 
     @router.post("/journeys/{identifier}/versions/{version}/preflight")
     def preflight(identifier: str, version: int):

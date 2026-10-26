@@ -1,189 +1,78 @@
-html {
-  font-size: 16px;
-}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; min-width: 0; min-height: 100vh; font-family: var(--font-sans); color: var(--color-ink-base); background: var(--color-bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+#app { min-height: 100vh; }
+a { color: var(--color-accent-strong); text-underline-offset: 3px; }
+a, button, input, textarea, select { min-width: 0; font: inherit; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 7px 13px; border: 1px solid #d5dae3; border-radius: var(--radius-small); background: white; color: var(--color-ink-muted); font-weight: 500; line-height: 1.4; cursor: pointer; transition: background 150ms, border-color 150ms, box-shadow 150ms; }
+button:hover:not(:disabled) { background: #f8fafc; border-color: #a8b4ca; color: var(--color-ink-base); }
+button:disabled { opacity: .48; cursor: not-allowed; }
+:where(button, a, summary, [tabindex]):focus-visible { outline: 3px solid #9ab0ff; outline-offset: 3px; }
+form, fieldset, label { min-width: 0; overflow-wrap: anywhere; }
+label { align-content: start; font-size: 13px; font-weight: 500; color: var(--color-ink-muted); }
+label:has(> input:is([type='checkbox'], [type='radio'])) { display: flex; align-items: flex-start; gap: 8px; font-weight: 400; }
+input, textarea, select { width: 100%; max-width: 100%; padding: 7px 10px; border-radius: var(--radius-small); border: 1px solid #d7dce5; background: white; color: var(--color-ink-base); transition: border-color 150ms, box-shadow 150ms; }
+input::placeholder, textarea::placeholder { color: #8993a3; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-soft); }
+input:is([type='checkbox'], [type='radio']) { flex: 0 0 auto; width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--color-accent-strong); }
+textarea { resize: vertical; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; }
+fieldset { margin: 0; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-medium); }
+legend { padding: 0 7px; font-weight: 600; font-size: 13px; }
+pre { min-width: 0; max-width: 100%; overflow: auto; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: #f8fafc; font: 12px/1.7 var(--font-mono); }
+pre:empty { display: none; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #edf0f4; vertical-align: middle; }
+th { background: #f8fafc; color: var(--color-ink-subtle); font-size: 12px; font-weight: 600; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #fafbfe; }
+td button + button { margin-left: 5px; }
+.page-grid { display: grid; min-width: 0; gap: 16px; }
+.content-grid { display: grid; min-width: 0; grid-template-columns: minmax(0, 1.55fr) minmax(20rem, 1fr); gap: 20px; align-items: start; }
+.page-grid > *, .content-grid > * { min-width: 0; }
+.table-shell { min-width: 0; max-width: 100%; overflow-x: auto; border-radius: var(--radius-medium); border: 1px solid var(--color-border); background: white; }
+.hint-list { margin: 0; padding-left: 18px; color: var(--color-ink-muted); line-height: 1.9; }
+.empty-copy { color: var(--color-ink-subtle); line-height: 1.8; padding: 16px 0; }
+.state-banner { margin: 0; padding: 10px 13px; border: 1px solid transparent; border-radius: var(--radius-small); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.state-banner--info { background: #f0f5ff; border-color: #dde7fc; color: #3559a0; }
+.state-banner--error { background: #fff3f3; border-color: #ffdada; color: #b42332; }
+.action-button { min-height: 34px; padding: 7px 14px; border: 1px solid var(--color-accent-strong); border-radius: var(--radius-small); background: var(--color-accent-strong); color: white; cursor: pointer; }
+.action-button:hover:not(:disabled) { background: #294ac0; border-color: #294ac0; color: white; }
+.action-button--secondary { background: white; border-color: #d5dae3; color: var(--color-ink-muted); }
+.action-button--secondary:hover:not(:disabled) { background: var(--color-accent-soft); color: var(--color-accent-strong); border-color: #bccaf8; }
+.action-button--danger { background: #fff5f5; border-color: #ffdada; color: #b42332; }
+.action-button--danger:hover:not(:disabled) { background: #ffe7e7; border-color: #f9a5ad; color: #b42332; }
+.action-row, .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.page-grid > details, .auxiliary-panels > details { min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: white; }
+summary { cursor: pointer; color: var(--color-ink-muted); font-size: 13px; font-weight: 600; padding: 12px 14px; }
+summary:hover { color: var(--color-accent-strong); }
+details[open] > summary { border-bottom: 1px solid var(--color-border); margin-bottom: 12px; }
+details > :is(label, p, textarea, button, pre) { margin: 10px 14px; }
+details > :is(textarea, label) { width: calc(100% - 28px); }
+.auxiliary-panels { display: grid; gap: 10px; min-width: 0; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.section-heading h3 { margin: 0; font-size: 15px; }
+.section-heading p { margin: 4px 0 0; color: var(--color-ink-subtle); font-size: 12px; }
+/* 这些面板共用同一表单规范，避免后加功能退回浏览器默认控件。 */
+:is(.context-panel, .plans, .resource-panel, .journeys, .coverage-panel, .evaluation, .retention) { border: 1px solid var(--color-border); border-radius: var(--radius-large); box-shadow: var(--shadow-soft); }
+:is(.context-panel, .plans) > h3 { margin: 0 0 6px; font-size: 16px; }
+:is(.context-panel, .plans) > p { color: var(--color-ink-subtle); font-size: 13px; }
+:is(.context-panel, .plans) > button { margin: 0 6px 16px 0; }
+@media (max-width: 1080px) { .content-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
-body {
-  margin: 0;
-  min-width: 0;
-  min-height: 100vh;
-  font-family: var(--font-sans);
-  color: var(--color-ink-base);
-  background:
-    radial-gradient(circle at top left, rgba(191, 219, 254, 0.9), transparent 28%),
-    radial-gradient(circle at top right, rgba(255, 237, 213, 0.72), transparent 26%),
-    linear-gradient(180deg, var(--color-bg-secondary), var(--color-bg));
-}
+.field-caption { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.action-help { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 3px; min-width: 0; max-width: 100%; vertical-align: middle; }
+.action-help > button { min-width: 0; }
+summary > .help-hint, :is(h2,h3,h4,th) > .help-hint { margin-left: 4px; }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-#app {
-  min-height: 100vh;
-}
-
-a,
-button,
-input,
-textarea,
-select {
-  min-width: 0;
-  font: inherit;
-}
-
-form,
-fieldset,
-label {
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  overflow-wrap: anywhere;
-}
-
-input[type='checkbox'],
-input[type='radio'] {
-  width: auto;
-  justify-self: start;
-}
-
-/* 原始 JSON 证据保留横向滚动，不把整个页面撑到文本固有宽度。 */
-pre {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-input,
-textarea,
-select {
-  width: 100%;
-  padding: 0.82rem 0.95rem;
-  border-radius: 0.9rem;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--color-ink-base);
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: rgba(54, 94, 230, 0.36);
-  box-shadow: 0 0 0 4px rgba(54, 94, 230, 0.1);
-  background: rgba(255, 255, 255, 0.98);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 0.9rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-  vertical-align: middle;
-}
-
-th {
-  color: var(--color-ink-subtle);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-td {
-  color: var(--color-ink-base);
-}
-
-.page-grid {
-  display: grid;
-  min-width: 0;
-  gap: 1.25rem;
-}
-
-.content-grid {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
-  gap: 1rem;
-}
-
-/* Grid 子项默认的 min-width:auto 会被表单、长 ID 和证据内容撑开。 */
-.page-grid > *,
-.content-grid > * {
-  min-width: 0;
-}
-
-.table-shell {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.hint-list {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: var(--color-ink-muted);
-  line-height: 1.85;
-}
-
-.empty-copy {
-  color: var(--color-ink-muted);
-  line-height: 1.8;
-}
-
-.state-banner {
-  margin: 0;
-  padding: 0.95rem 1rem;
-  border-radius: 1rem;
-  line-height: 1.7;
-}
-
-.state-banner--info {
-  background: rgba(59, 130, 246, 0.08);
-  color: #1d4ed8;
-}
-
-.state-banner--error {
-  background: rgba(244, 63, 94, 0.08);
-  color: #be123c;
-}
-
-.action-button {
-  min-height: 2.25rem;
-  padding: 0.55rem 0.9rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--color-accent-strong);
-  color: var(--color-ink-inverse);
-  cursor: pointer;
-}
-
-.action-button:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
-.action-button--secondary {
-  background: rgba(95, 124, 255, 0.12);
-  color: var(--color-accent-strong);
-}
-
-.action-button--danger {
-  background: rgba(225, 29, 72, 0.12);
-  color: #be123c;
-}
-
-@media (max-width: 1080px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
+/* 工作区保持可收缩；宽证据只在其自身容器内滚动。 */
+img, svg { max-width: 100%; }
+.page-grid :is(h2, h3, h4, p, dd, legend) { overflow-wrap: anywhere; }
+input, textarea, select { scroll-margin-block: 90px; }
+.state-banner[role='status'] { animation: status-arrive 180ms ease-out; }
+button[aria-busy='true'], .status-tag--running { animation: status-pulse 1.8s ease-in-out infinite; }
+details[open] > :not(summary) { animation: status-arrive 140ms ease-out; }
+@keyframes status-arrive { from { opacity: .5; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes status-pulse { 50% { opacity: .65; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

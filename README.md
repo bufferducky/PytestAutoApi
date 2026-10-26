@@ -1,3 +1,17 @@
+# PytestAutoApi 日常回归工作台
+
+当前入口为 `platform/frontend`（Vue）、`platform/backend`（FastAPI）和 `src/testflow_engine`。平台状态使用独立 MySQL，真实运行保留环境、构建、资产版本、步骤与清理证据；旧 Mock 仅供历史读取，新评估执行禁用。
+
+- 开发安装：`make install-dev`；浏览器驱动另用 `pip install -e ".[ui]"` 并安装 Chromium。
+- 默认离线检查：`.venv/bin/python -m pytest` 或 `make test-new`。不会调用公司业务；真实 MySQL/浏览器检查需显式配置，跳过项单列。
+- 前端：`make frontend-dev` / `make frontend-build`；后端：配置 MySQL 后 `make backend-dev`。
+- 运行前在环境页配置目标、身份秘密引用和项目绑定；场景页保存→预检→发布→选择环境/构建→执行。结果页可按环境、目标和构建查回。
+- 部署与回退见 [部署说明](deploy/README.md)。秘密由服务端环境注入，界面只保存引用。
+
+以下是保留的旧 YAML 框架说明。`test_case/` 会访问业务接口，只有明确准备测试配置后才显式执行；它不是当前默认测试入口。
+
+---
+
 
 ## 框架介绍
 

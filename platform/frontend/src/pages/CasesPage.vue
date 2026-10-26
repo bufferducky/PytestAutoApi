@@ -1,17 +1,14 @@
 <template>
   <section class="page-grid">
-    <ScenarioAssetsPanel kind="scenarios" />
-    <CoverageLedgerPanel />
-    <ResourceFixturesPanel />
-    <JourneyCapabilitiesPanel />
-    <EvaluationQualityPanel />
-    <div class="content-grid">
+    <ScenarioAssetsPanel kind="scenarios" @saved="onSaved" @selected="appStore.rememberAsset" />
+    <details><summary>用例目录概览</summary>
+    <div>
       <PlaceholderPanel
         title="用例目录"
-        description="来自已保存的场景资产；编辑和发布请使用上方资产面板。"
+        description="查看已保存场景的模块、请求方法与状态。"
       >
-        <p v-if="errorMessage" class="state-banner state-banner--error">{{ errorMessage }}</p>
-        <div v-if="loading" class="empty-copy">正在加载用例列表...</div>
+        <p v-if="errorMessage" role="alert" class="state-banner state-banner--error">{{ errorMessage }}</p>
+        <div v-if="loading && !cases.length" class="empty-copy">正在加载用例列表...</div>
 
         <div v-else class="table-shell">
           <table>
@@ -19,12 +16,12 @@
               <tr>
                 <th>用例</th>
                 <th>模块</th>
-                <th>方法</th>
-                <th>优先级</th>
-                <th>状态</th>
+                <th aria-label="方法">方法<HelpHint topic="method" /></th>
+                <th aria-label="优先级">优先级<HelpHint topic="priority" /></th>
+                <th aria-label="状态">状态<HelpHint topic="assetStatus" /></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody><tr v-if="!cases.length"><td colspan="5" class="empty-copy">暂无用例，创建并保存场景后可在此查看。</td></tr>
               <tr v-for="item in cases" :key="item.id">
                 <td>{{ item.name }}</td>
                 <td>{{ item.module }}</td>
@@ -43,16 +40,15 @@
       </PlaceholderPanel>
 
 
-    </div>
+    </div></details>
+
   </section>
 </template>
 
 <script setup lang="ts">
-import EvaluationQualityPanel from '@/components/EvaluationQualityPanel.vue';
-import JourneyCapabilitiesPanel from '@/components/JourneyCapabilitiesPanel.vue';
-import ResourceFixturesPanel from '@/components/ResourceFixturesPanel.vue';
+import HelpHint from '@/components/common/HelpHint.vue';
+import { useAppStore } from '@/stores/app';
 import ScenarioAssetsPanel from '@/components/ScenarioAssetsPanel.vue';
-import CoverageLedgerPanel from '@/components/CoverageLedgerPanel.vue';
 import { onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';
@@ -62,6 +58,11 @@ import type { CaseSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
 
 // 目录与上方资产编辑器读取同一持久化真源。
+const appStore = useAppStore();
+const onSaved = (asset?: unknown) => {
+  if (asset && typeof asset === 'object' && 'id' in asset && typeof asset.id === 'string') appStore.rememberAsset(asset.id);
+  void loadCases();
+};
 const cases = ref<CaseSummary[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -71,16 +72,19 @@ const caseStatusLabelMap = {
   draft: '草稿',
 } as const;
 
+let requestSequence = 0;
 const loadCases = async () => {
+  const sequence = ++requestSequence;
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    cases.value = await managementApi.listCases();
+    const result = await managementApi.listCases();
+    if (sequence === requestSequence) cases.value = result;
   } catch (error) {
-    errorMessage.value = resolveApiErrorMessage(error, '用例列表加载失败，请稍后重试。');
+    if (sequence === requestSequence) errorMessage.value = resolveApiErrorMessage(error, '用例列表加载失败，请稍后重试。');
   } finally {
-    loading.value = false;
+    if (sequence === requestSequence) loading.value = false;
   }
 };
 

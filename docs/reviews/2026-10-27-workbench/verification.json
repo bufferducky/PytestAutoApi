@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-27",
+  "scope": "个人接口自动化工作台；本地代码与隔离HTTP验证，未部署",
+  "backend_and_engine": {
+    "command": ".venv/bin/python -m pytest tests/engine tests/compat tests/backend -q",
+    "passed": 284,
+    "skipped": 9,
+    "note": "真实MySQL和显式浏览器测试需另行启用；工作台浏览器已单独执行"
+  },
+  "browser": {
+    "command": "PYTA_RUN_BROWSER_TESTS=1 .venv/bin/python -m pytest tests/backend/test_platform_frontend_browser.py -xq",
+    "status": "passed",
+    "layout_checks": 108,
+    "viewports": [
+      320,
+      390,
+      768,
+      960,
+      980,
+      1080,
+      1081,
+      1280,
+      1440
+    ],
+    "flows": [
+      "未保存草稿真实调试不落库",
+      "切页取消保留编辑",
+      "正式运行取消保留草稿",
+      "正式发布执行",
+      "变量类型保存",
+      "环境新建取消保护",
+      "选择套件版本环境创建暂停计划",
+      "五次触发时间预览",
+      "新计划完整重置",
+      "首页独立失败入口与真实断言差异",
+      "help悬停键盘触屏",
+      "断网显式错误"
+    ],
+    "final_duration_seconds": 19.05
+  },
+  "checks": [
+    "vue-tsc + Vite production build passed",
+    "node tests/frontend/reliability.cjs passed",
+    "ruff passed",
+    "git diff --check passed",
+    "node tests/frontend/environment-variables.cjs passed",
+    "node tests/frontend/environment-unsaved.cjs passed"
+  ],
+  "limits": [
+    "未执行本轮真实MySQL集成验证；数据存储复用现有JSON字段，无schema迁移",
+    "未调用公司业务接口，不宣称真实业务联调通过",
+    "生产未部署",
+    "保留原有70项未提交改动，未混合提交"
+  ],
+  "planning": "工作区 .trellis/tasks/10-26-pyta-api-workbench-ux"
+}

@@ -39,6 +39,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+web = ["playwright>=1.40,<2"]
 ui = ["playwright>=1.40,<2", "Appium-Python-Client>=3,<6"]
 dev = [
   # pytest 负责新引擎与新平台骨架的结构性测试。

@@ -45,7 +45,7 @@ MySQL 8.4 使用独立 `mysql-data` 卷且不发布宿主机端口。
 复杂引号按 Compose dotenv 规则转义，权限设为 600。只运行 `config --quiet`，避免输出凭证。
 新评估执行已禁用，历史评估报告仍可读取；历史模拟结果不代表真实业务验证。
 
-默认安装接口测试能力；浏览器/Appium 扩展及其运行环境未包含在此镜像中。
+Compose 默认构建 Chromium 能力（INSTALL_WEB_RUNNER=1）；独立 Docker 构建默认仅 API。Android/Appium 不包含在当前部署镜像中。
 业务环境和密钥通过平台/运行时另行配置，不打包本地历史配置或状态库。
 
 ## 154 主机历史部署记录（本次未部署）
@@ -92,7 +92,7 @@ docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --no-build we
 ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 ```
 
-## 2026-10-25 MySQL 与真实执行改造（当前发布）
+## 2026-10-25 MySQL 与真实执行改造（历史发布）
 
 - 当前目录：`/home/ubuntu/pytestautoapi/releases/20261025-mysql-live-v1`；`current` 已切换。
 - 后端镜像：`pytestautoapi-backend:20261025-mysql-live-v1`。
@@ -104,3 +104,26 @@ ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 - 后端重启后数据、历史标识与暂停状态保持；MySQL/backend健康，公开HTTPS仍要求原认证。
 - 本地全量验证267通过、2可选测试跳过；前端类型检查、构建及可靠性检查通过。尚未进行公司业务接口联调。
 - 详见 `docs/mysql-migration.md`。MySQL 接收新写入后，不能直接切回旧SQLite并宣称无损。
+
+
+## API/Web 查询接续发布
+
+当前工作树增加了言迹测试 API/Web 查询接入，操作与限制见 `docs/yanji-query-workbench.md`。Compose 的 `INSTALL_WEB_RUNNER` 默认 1，可选构建 Chromium；置 0 仅提供 API 能力，Web 预检会报告缺驱动/浏览器。配置的 Chromium 基线必须使用该镜像 `/api/v1/runner-capabilities` 返回的版本，不能沿用另一台机器的浏览器版本。
+
+秘密按 Compose 中的四个 PYTA_SECRET_YANJI_* 引用注入，值只保存在服务器受限环境配置，仓库不包含值。运行时研究清单已随 Python 包交付；旧 YAML 通过内容导入，不要求容器存在本机 data 目录。2026-10-26 已部署此能力，当前版本及验证记录见下节。
+
+
+## 2026-10-26 API/Web 查询版本（当前发布）
+
+- 入口：`https://test.ysspace2099.com`；平台登录保护沿用原配置。
+- 当前目录：`/home/ubuntu/pytestautoapi/releases/20261026-apiweb-181749`；镜像 `pytestautoapi-backend:20261026-apiweb-181749`。
+- 备份：`/home/ubuntu/pytestautoapi/backups/20261026-apiweb-181749`，包含停写后的 MySQL dump、原状态/附件卷、旧配置与 SHA-256 核对文件。
+- 沿用原 MySQL/附件卷，切换后核对保留环境3、场景5、套件1、目标3、运行4的原ID；没有重放旧任务。
+- 新增测试环境与 API/Web 两组身份/项目引用，发布4个真实查询场景、查询套件和 Web 查询旅程；秘密仅保存在服务器600权限环境配置。
+- 部署后 API run `62b5314b57684d9098e35fe938dc5b61`：4场景/12断言通过；Web run `7aea5886f7d84654868540261968cbeb`：8步/6断言通过，Chromium156.0.8078.4，清理成功。仅使用言迹测试环境。
+- HTTPS未认证401、原认证后200；公网JS与本地生产构建SHA-256一致，worker健康，16项契约和Chromium能力可读取。
+- 本次修复发布解包权限：源码/静态产物使用正常可读权限，Dockerfile在USER app前规范化/app/src及/app/platform/backend；秘密配置始终600，不能对deploy目录递归放宽权限。
+
+回滚应用时使用保留的上一发布目录及镜像，复用当前MySQL/附件卷。新查询记录/配置已经入库，不能直接覆盖数据库备份而丢失新数据。先停新触发、核实运行结束，再在上一目录执行 `docker compose ... up -d --no-build --no-deps backend web` 并切回current链接；不得down -v。
+
+完整四组业务写入/恢复、隔离及W01—W04仍未全部验收，本次部署不改变这些范围事实。

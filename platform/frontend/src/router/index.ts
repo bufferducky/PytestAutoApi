@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 
+import ExtensionsPage from '@/pages/ExtensionsPage.vue';
 import DashboardPage from '@/pages/DashboardPage.vue';
 import CasesPage from '@/pages/CasesPage.vue';
 import SuitesPage from '@/pages/SuitesPage.vue';
@@ -10,6 +11,7 @@ import SchedulesPage from '@/pages/SchedulesPage.vue';
 import { useAppStore } from '@/stores/app';
 
 const routes: RouteRecordRaw[] = [
+  { path: '/extensions', name: 'extensions', component: ExtensionsPage, meta: { title: '扩展工具', description: '覆盖账本、测试资源、旅程能力与历史评估。', navLabel: '扩展工具', shortLabel: 'EX', section: 'cases' } },
   {
     path: '/',
     redirect: { name: 'dashboard' },
@@ -19,8 +21,8 @@ const routes: RouteRecordRaw[] = [
     name: 'dashboard',
     component: DashboardPage,
     meta: {
-      title: '仪表盘',
-      description: '先看全局健康度、重点迁移项和最近运行，适合作为日常进入平台的首页。',
+      title: '工作台',
+      description: '继续编辑资产，执行回归，处理失败。',
       navLabel: '仪表盘',
       shortLabel: 'DB',
       section: 'dashboard',
@@ -32,7 +34,7 @@ const routes: RouteRecordRaw[] = [
     component: CasesPage,
     meta: {
       title: '用例管理',
-      description: '承载 HTTP 用例、断言、变量提取与标签等结构化资产。',
+      description: '组织业务场景，编排请求步骤，管理断言与发布版本。',
       navLabel: '用例管理',
       shortLabel: 'CA',
       section: 'cases',
@@ -44,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     component: SuitesPage,
     meta: {
       title: '套件管理',
-      description: '用于组合用例、整理执行顺序，并给调度中心提供稳定入口。',
+      description: '组合已发布场景，固定版本与执行顺序。',
       navLabel: '套件管理',
       shortLabel: 'SU',
       section: 'suites',
@@ -56,7 +58,7 @@ const routes: RouteRecordRaw[] = [
     component: EnvironmentsPage,
     meta: {
       title: '环境管理',
-      description: '统一管理 base_url、鉴权策略和环境变量，避免散落在 YAML 中。',
+      description: '管理执行环境、目标系统与测试身份。',
       navLabel: '环境管理',
       shortLabel: 'EN',
       section: 'environments',
@@ -68,7 +70,7 @@ const routes: RouteRecordRaw[] = [
     component: RunsPage,
     meta: {
       title: '执行结果',
-      description: '集中查看运行记录、失败上下文和后续问题分析入口。',
+      description: '追踪每次运行的状态、失败原因与执行证据。',
       navLabel: '执行结果',
       shortLabel: 'RU',
       section: 'runs',
@@ -80,7 +82,7 @@ const routes: RouteRecordRaw[] = [
     component: SchedulesPage,
     meta: {
       title: '调度任务',
-      description: '配置轻量任务计划，让平台负责记录与触发，worker 负责执行。',
+      description: '配置定时回归，预览触发时间，查看执行记录。',
       navLabel: '调度任务',
       shortLabel: 'SC',
       section: 'schedules',
@@ -99,6 +101,7 @@ router.afterEach((to) => {
   // 标题、描述、导航高亮都优先从这里取，避免每个组件自己维护一套副本。
   const appStore = useAppStore();
   appStore.setCurrentSection(to.meta.section);
+  if ((to.name === 'cases' || to.name === 'suites') && typeof to.query.assetId === 'string') appStore.rememberAsset(to.query.assetId);
   document.title = `测试平台 · ${to.meta.title}`;
 });
 

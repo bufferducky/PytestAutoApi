@@ -317,6 +317,7 @@ class InMemoryRunRepository:
         eligible = (
             record.status == RunStatus.SUCCEEDED
             and not e.get("migration")
+            and p.get("run_purpose") != "debug"
             and not e.get("evidence_pruned_at")
             and p.get("execution_mode") == "standard_run"
             and not p.get("rerun_selection", {}).get("partial")
@@ -342,6 +343,8 @@ class InMemoryRunRepository:
             transport_mode=mode,
             validation_scope="historical_demo"
             if e.get("migration")
+            else "debug"
+            if p.get("run_purpose") == "debug"
             else "simulated_partial"
             if mode == "mock" and p.get("rerun_selection", {}).get("partial")
             else "live_partial"
@@ -359,6 +362,9 @@ class InMemoryRunRepository:
             counts=counts,
             cleanup_status=e.get("cleanup_status", "not_recorded"),
             eligible_for_release=eligible,
+            business_scope="historical_demo"
+            if e.get("migration")
+            else p.get("business_scope", "unclassified"),
         )
 
     @classmethod
@@ -464,7 +470,7 @@ class SqlRunRepository(InMemoryRunRepository):
 
     def live_stats(self):
         # JSON predicates are compiled per dialect; imported demo history never counts as live.
-        from sqlalchemy import and_, case, func, select
+        from sqlalchemy import and_, case, func, or_, select
 
         from pyta_platform_backend.db.schema import runs
 
@@ -472,6 +478,10 @@ class SqlRunRepository(InMemoryRunRepository):
         live = and_(
             runs.c.payload_json["transport_mode"].as_string() == "live",
             runs.c.execution_json["migration"]["source"].as_string().is_(None),
+            or_(
+                runs.c.payload_json["run_purpose"].as_string().is_(None),
+                runs.c.payload_json["run_purpose"].as_string() != "debug",
+            ),
         )
         statement = select(
             func.count().label("total"),

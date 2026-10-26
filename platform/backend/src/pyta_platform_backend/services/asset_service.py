@@ -4,18 +4,27 @@ import hashlib
 import json
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
+from importlib.resources import files
 from pathlib import Path
 
+import yaml
 from fastapi import HTTPException
 
 from pyta_platform_backend.repositories.asset_repository import asset_hash
 from pyta_platform_backend.repositories.run_repository import RunConflict
-from pyta_platform_backend.schemas.assets import ScenarioDraft, SuiteDraft
+from pyta_platform_backend.schemas.assets import AssetRunRequest, ScenarioDraft, SuiteDraft
 from pyta_platform_backend.schemas.run import CreateRunRequest
 from pyta_platform_backend.services.redaction import Redactor
-from pyta_platform_backend.services.scenario_compiler import compile_scenario, dump, preflight
+from pyta_platform_backend.services.scenario_compiler import (
+    TEMPLATE,
+    compile_scenario,
+    dump,
+    preflight,
+)
 from pyta_platform_backend.workers.context_transport import ContextError
 from testflow_engine import LegacyYamlCompatLoader, TestRunDefinition
+from testflow_engine._field_path import has_field_path
+from testflow_engine.assertions.business import CUSTOM_RULES
 
 
 class AssetService:
@@ -132,6 +141,10 @@ class AssetService:
 
     def plan(self, kind, identifier, version, request):
         published = self.version(kind, identifier, version)
+        return self._plan(kind, identifier, version, request, published)
+
+    def _plan(self, kind, identifier, version, request, published):
+        """正式版本与调试共用上下文、fixture 和副作用编译边界。"""
         scenarios = (
             [published]
             if kind == "scenarios"
@@ -195,8 +208,24 @@ class AssetService:
                 {"id": scenario["id"], "version": scenario["version"], "hash": scenario["hash"]}
             )
         # ContextAuthPlugin 的 bootstrap 默认上下文仅作兼容，不允许调用方覆盖。
+        environments = {snapshot["target"]["environment_id"] for snapshot in snapshots.values()}
+        if len(environments) != 1:
+            raise HTTPException(400, "mixed_environment: 套件目标必须属于同一环境")
+        environment_id = environments.pop()
+        environment = self.runs._resolve_environment(environment_id)
         snapshots["default"] = snapshots["s0"]
         return {
+            "business_scope": "yanji_query"
+            if all(s["data"].get("source", {}).get("kind") == "yanji-query-pack" for s in scenarios)
+            else "unclassified",
+            "environment_id": environment_id,
+            "environment": {
+                "id": environment.id,
+                "name": environment.name,
+                "base_url": environment.base_url,
+                "auth_mode": environment.auth_mode,
+                "variables": deepcopy(environment.variables),
+            },
             "build": request.build,
             "execution_mode": "standard_run",
             "transport_mode": request.transport_mode,
@@ -229,12 +258,124 @@ class AssetService:
         return self.runs._create_prepared(
             CreateRunRequest(
                 suite_id=identifier,
-                environment_id=request.environment_id,
+                environment_id=plan["environment_id"],
                 trigger_source="platform-asset",
                 requested_by=request.requested_by,
                 payload=plan,
             ),
-            None,
+            plan["environment"]["name"],
+        )
+
+    def debug(self, request):
+        data = self.validate_draft("scenarios", request.draft)
+        public_inputs = {"inputs": request.inputs, "parameters": request.parameters}
+        if Redactor(public_inputs).clean(public_inputs) != public_inputs:
+            raise HTTPException(400, "调试输入不能包含秘密值，请使用身份配置与秘密引用")
+        if len(json.dumps(public_inputs)) > 1024 * 1024:
+            raise HTTPException(400, "调试输入超过1MiB限制")
+        if request.asset_id:
+            # 来源仅用于追溯；绝不更新草稿，也不冒用已有发布版本号。
+            self.get("scenarios", request.asset_id)
+        selected = None
+        if request.step_id:
+            selected = next((s for s in data["steps"] if s["step_id"] == request.step_id), None)
+            if selected is None or not selected["enabled"]:
+                raise HTTPException(400, "请选择一个已启用的调试步骤")
+            if (
+                data["fixtures"]
+                or selected["phase"] == "cleanup"
+                or (
+                    selected["operation_kind"] == "write"
+                    and any(s["enabled"] and s["phase"] == "cleanup" for s in data["steps"])
+                )
+            ):
+                raise HTTPException(400, "此步骤涉及资源准备或清理约束，请使用整场景调试")
+            reads = set(TEMPLATE.findall(json.dumps(selected["request"], ensure_ascii=False)))
+            reads.update(selected.get("reads", []))
+            rules = selected["assertions"] + (
+                (selected.get("wait_policy") or {}).get("success_assertions", [])
+                + (selected.get("wait_policy") or {}).get("failure_assertions", [])
+            )
+            for rule in rules:
+                if rule.get("rule_ref") in CUSTOM_RULES:
+                    reads.update(CUSTOM_RULES[rule["rule_ref"]][1])
+                reads.update(
+                    r
+                    for r in (
+                        rule.get("expected_ref"),
+                        rule.get("baseline_ref"),
+                        rule.get("select_by", {}).get("value_ref"),
+                    )
+                    if r
+                )
+            missing = sorted(
+                r
+                for r in reads
+                if r.startswith("outputs.") and not has_field_path({"outputs": request.inputs}, r)
+            )
+            if missing:
+                raise HTTPException(
+                    400,
+                    {
+                        "message": "请补充本次调试的前置输出，不会自动执行前置步骤",
+                        "missing_inputs": missing,
+                    },
+                )
+        elif request.inputs:
+            raise HTTPException(400, "临时前置输出仅适用于单步骤调试")
+        identifier = request.asset_id or "unsaved-draft"
+        published = {"id": identifier, "version": 0, "hash": asset_hash(data), "data": data}
+        run_request = AssetRunRequest(
+            transport_mode="live",
+            environment_id=request.environment_id,
+            parameters=request.parameters,
+            build=request.build,
+            requested_by=request.requested_by,
+        )
+        try:
+            plan = self._plan("scenarios", identifier, 0, run_request, published)
+        except (ValueError, ContextError) as exc:
+            raise HTTPException(400, Redactor(public_inputs).clean(str(exc))) from exc
+        definition = plan["run_definition"]
+        if selected:
+            cases = [
+                case
+                for case in definition["cases"]
+                if case["metadata"]["step_id"] == request.step_id
+            ]
+            for case in cases:
+                case["depends_on"] = []
+            definition["cases"], definition["cleanup_cases"] = cases, []
+            definition["metadata"]["scopes"]["s0"]["outputs"] = deepcopy(request.inputs)
+            plan["side_effects"] = [
+                s for s in plan["side_effects"] if s["step_id"] == request.step_id
+            ]
+        # 编译借用 version=0，但持久证据不得携带正式资产引用。
+        for case in definition["cases"] + definition["cleanup_cases"]:
+            case["metadata"].pop("scenario_ref", None)
+        for field in ("asset_ref", "scenario_refs", "scenario_version_ref"):
+            plan.pop(field, None)
+        plan.update(
+            run_purpose="debug",
+            business_scope="draft_debug",
+            debug_snapshot={
+                "draft": deepcopy(data),
+                "hash": published["hash"],
+                "asset_id": request.asset_id,
+                "revision": request.revision,
+                "step_id": request.step_id,
+                "inputs": deepcopy(request.inputs),
+            },
+        )
+        return self.runs._create_prepared(
+            CreateRunRequest(
+                suite_id=identifier,
+                environment_id=plan["environment_id"],
+                trigger_source="draft-debug",
+                requested_by=request.requested_by,
+                payload=plan,
+            ),
+            plan["environment"]["name"],
         )
 
     def export(self, kind, identifier, version):
@@ -248,18 +389,29 @@ class AssetService:
     def import_demo(self, suite_id, target_ref):
         raise HTTPException(410, "demo_import_disabled: 演示资产导入已移除")
 
-    def import_legacy(self, relative_path, target_ref):
-        root = Path(__file__).resolve().parents[5]
-        path = (root / relative_path).resolve()
-        if (
-            not path.is_relative_to(root / "data")
-            or not path.is_file()
-            or path.stat().st_size > 1024 * 1024
-        ):
-            raise HTTPException(400, "仅可导入 data 内<=1MiB的 YAML")
+    def import_legacy(self, relative_path, target_ref, yaml_text=None):
+        if yaml_text is None:
+            root = Path(__file__).resolve().parents[5]
+            path = (root / relative_path).resolve()
+            if (
+                not path.is_relative_to(root / "data")
+                or not path.is_file()
+                or path.stat().st_size > 1024 * 1024
+            ):
+                raise HTTPException(400, "仅可导入 data 内<=1MiB的 YAML；部署环境可直接上传内容")
+            yaml_text = path.read_text(encoding="utf-8")
+        if not isinstance(yaml_text, str) or len(yaml_text.encode()) > 1024 * 1024:
+            raise HTTPException(400, "YAML 内容须为<=1MiB的文本")
         loader = LegacyYamlCompatLoader()
-        document = loader.load_from_path(str(path))
-        definition = loader.to_run_definition(document)
+        try:
+            content = yaml.safe_load(yaml_text)
+            if not isinstance(content, dict):
+                raise ValueError("根节点须为对象")
+            document = loader.load_from_dict(content)
+            definition = loader.to_run_definition(document)
+        except (yaml.YAMLError, ValueError, TypeError, AttributeError) as exc:
+            # 解析异常可能带上传内容（含旧凭证），公开错误不回显该内容。
+            raise HTTPException(400, "legacy_yaml_invalid: YAML 结构或字段无效") from exc
         blockers = []
         for case in definition.cases:
             raw = case.source.raw
@@ -294,7 +446,7 @@ class AssetService:
             {
                 "kind": "legacy_yaml",
                 "path": relative_path,
-                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "sha256": hashlib.sha256(yaml_text.encode()).hexdigest(),
             },
             blockers,
         )
@@ -345,26 +497,25 @@ class AssetService:
         }
 
     def import_research(self):
-        root = Path(__file__).resolve().parents[5]
-        sources = [
-            (
-                "center",
-                "docs/reverse-engineering/yanji/web-2026-10-25/center/static-api.json",
-                "request_configurations",
-            ),
-            (
-                "saas",
-                "docs/reverse-engineering/yanji/web-2026-10-25/saas/static-api.json",
-                "request_configurations",
-            ),
-            ("app", "docs/reverse-engineering/yanji/1.0.22-109/js-static-facts.json", "endpoints"),
-        ]
+        # 仅交付审查后的路径/字段元数据，不依赖源码树或复制原始脚本/响应。
+        try:
+            bundle = json.loads(
+                files("testflow_engine.business_data")
+                .joinpath("yanji-research.json")
+                .read_text(encoding="utf-8")
+            )
+            if bundle["schema_version"] != 1:
+                raise ValueError("bundle schema")
+        except (OSError, ValueError, KeyError) as exc:
+            raise HTTPException(
+                503, "research_bundle_unavailable: 研究资料未随发布产物交付"
+            ) from exc
         counts = {}
-        for system, relative, field in sources:
-            path = root / relative
-            data = json.loads(path.read_text())
+        for source in bundle["sources"]:
+            system, relative = source["system"], source["source"]
+            entries = source["entries"]
             imported = 0
-            for entry in data[field]:
+            for entry in entries:
                 expression = entry.get("url_expression", entry.get("path"))
                 location = {
                     "line": entry.get("line"),
@@ -394,7 +545,7 @@ class AssetService:
                         "evidence_time": "2026-10-24" if system == "app" else "2026-10-25",
                         "evidence_level": "static_observation",
                         "source": relative,
-                        "source_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                        "source_sha256": source["source_sha256"],
                         "location": location,
                         "request_fields": entry.get("data_keys"),
                         "contract_status": "unconfirmed",
@@ -403,7 +554,7 @@ class AssetService:
                     }
                 )
                 imported += bool(saved)
-            counts[system] = {"observations": len(data[field]), "new": imported}
+            counts[system] = {"observations": len(entries), "new": imported}
         return {
             "sources": counts,
             "network_executed": False,

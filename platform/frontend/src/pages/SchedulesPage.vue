@@ -1,13 +1,13 @@
 <template>
   <section class="page-grid">
-    <SchedulePlansPanel />
-    <div class="content-grid">
+    <SchedulePlansPanel @saved="loadSchedules" />
+    <details><summary>调度任务概览</summary><div>
       <PlaceholderPanel
-        title="调度任务占位"
-        description="第一阶段调度只需轻量能力：谁在什么时间触发哪个套件或用例。"
+        title="调度任务"
+        description="查看计划目标、运行环境与最近触发结果。"
       >
         <p v-if="errorMessage" class="state-banner state-banner--error">{{ errorMessage }}</p>
-        <div v-if="loading" class="empty-copy">正在加载调度任务...</div>
+        <div v-if="loading && !schedules.length" class="empty-copy">正在加载调度任务...</div>
 
         <div v-else class="table-shell">
           <table>
@@ -21,7 +21,7 @@
                 <th>状态</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody><tr v-if="!schedules.length"><td colspan="6" class="empty-copy">暂无调度任务，请先创建回归计划。</td></tr>
               <tr v-for="item in schedules" :key="item.id">
                 <td>{{ item.name }}</td>
                 <td>{{ item.cron }}</td>
@@ -40,17 +40,7 @@
         </div>
       </PlaceholderPanel>
 
-      <PlaceholderPanel
-        title="实现边界"
-        description="平台前端先展示清晰结构，不在第一阶段过度追求可视化编排。"
-      >
-        <ul class="hint-list">
-          <li>先支持 cron 文本、启停状态、目标选择和失败通知策略。</li>
-          <li>长耗时任务执行仍交给 worker，调度页只负责配置与查看记录。</li>
-          <li>若后续接入更复杂的编排器，应作为独立模块扩展，而不是挤进当前表格页。</li>
-        </ul>
-      </PlaceholderPanel>
-    </div>
+    </div></details>
   </section>
 </template>
 
@@ -74,16 +64,19 @@ const scheduleStatusLabelMap = {
   paused: '已暂停',
 } as const;
 
+let readSequence = 0;
 const loadSchedules = async () => {
+  const sequence = ++readSequence;
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    schedules.value = await managementApi.listSchedules();
+    const items = await managementApi.listSchedules();
+    if (sequence === readSequence) schedules.value = items;
   } catch (error) {
-    errorMessage.value = resolveApiErrorMessage(error, '调度任务加载失败，请稍后重试。');
+    if (sequence === readSequence) errorMessage.value = resolveApiErrorMessage(error, '调度概览更新失败，保留原有内容。');
   } finally {
-    loading.value = false;
+    if (sequence === readSequence) loading.value = false;
   }
 };
 

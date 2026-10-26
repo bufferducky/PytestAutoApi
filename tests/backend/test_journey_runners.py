@@ -319,3 +319,129 @@ def test_native_capture_refuses_configured_credential_identity(app):
     with pytest.raises(Exception) as exc:
         app.state.journey_service.define(journey(capture_trace=True, identity_ref=identity["id"]))
     assert exc.value.status_code == 400
+
+
+def test_secret_input_failure_never_captures_pixels(app, monkeypatch):
+    module = importlib.import_module("pyta_platform_backend.runners.ui")
+    model = importlib.import_module("pyta_platform_backend.schemas.journeys").JourneyDefinition
+    monkeypatch.setenv("PYTA_SECRET_UI_TEST_PASSWORD", "ui-password-sentinel")
+    data = model(
+        **journey(
+            actions=[
+                {
+                    "step_id": "secret",
+                    "name": "fill secret",
+                    "action": "fill",
+                    "selector": {"strategy": "placeholder", "value": "请输入密码"},
+                    "value_ref": "identity.password",
+                },
+                {
+                    "step_id": "check",
+                    "name": "failure after login",
+                    "action": "assert_visible",
+                    "selector": {"strategy": "role", "value": "button", "name": "查询"},
+                },
+            ]
+        )
+    ).model_dump()
+    data["_base_url"] = "https://example.test"
+    images = []
+    session = ControlledSession(fail=True)
+    state, cleanup, results = module.execute_journey(
+        data,
+        session,
+        {"identity": {"password": {"secret_ref": "env:PYTA_SECRET_UI_TEST_PASSWORD"}}},
+        artifact=lambda step, content: images.append(content),
+    )
+    assert state == "failed" and session.closed and not images
+    assert "ui-password-sentinel" not in str([row.model_dump() for row in results])
+
+
+def test_yanji_web_import_retains_partial_scope_and_rejects_production(app):
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    payload = {
+        "target_ref": "default-env-demo-mock",
+        "identity_ref": "missing",
+        "binding_ref": "missing",
+        "chromium_version": "controlled",
+        "expected_user_id": "tester",
+    }
+    assert client.post("/api/v1/journeys/import-yanji-query", json=payload).status_code == 404
+    context = app.state.context_service
+    target = context.save(
+        "targets",
+        {
+            "name": "production-must-be-rejected",
+            "environment_id": "env-demo-mock",
+            "base_url": "https://web.yanjiai.com",
+            "requires_context": True,
+            "auth": {"mode": "password", "contract_confirmed": True, "password_transform": "md5"},
+        },
+        creating=True,
+    )
+    identity = context.save(
+        "identity-profiles",
+        {
+            "name": "test",
+            "target_ids": [target["id"]],
+            "username_secret_ref": "env:PYTA_SECRET_TEST_U",
+            "password_secret_ref": "env:PYTA_SECRET_TEST_P",
+        },
+        creating=True,
+    )
+    binding = context.save(
+        "context-bindings",
+        {
+            "name": "test",
+            "target_id": target["id"],
+            "identity_id": identity["id"],
+            "tenant_id": "t",
+            "project_id": "p",
+        },
+        creating=True,
+    )
+    rejected = client.post(
+        "/api/v1/journeys/import-yanji-query",
+        json={
+            **payload,
+            "target_ref": target["id"],
+            "identity_ref": identity["id"],
+            "binding_ref": binding["id"],
+        },
+    )
+    assert rejected.status_code == 400 and "yanji_test_only" in rejected.text
+    context.save(
+        "targets",
+        {
+            **context.get("targets", target["id"]),
+            "base_url": "https://web-test.yanjiai.com",
+            "request_headers": {
+                "User-Agent": "Mozilla/5.0 (Linux; Android 13) Mobile Safari/537.36"
+            },
+        },
+    )
+    imported = client.post(
+        "/api/v1/journeys/import-yanji-query",
+        json={
+            **payload,
+            "target_ref": target["id"],
+            "identity_ref": identity["id"],
+            "binding_ref": binding["id"],
+        },
+    )
+    assert imported.status_code == 201, imported.text
+    data = imported.json()["data"]
+    assert data["risk_id"] is None and not data["synthetic_test_data"]
+    assert len(data["actions"]) == 8
+    assert any(
+        action["path"] == "/visitor-register?roleId=&routerId=0" for action in data["actions"]
+    )
+    assert all(action["step_id"] != "all" for action in data["actions"])
+    contracts = client.get("/api/v1/regression-packs/yanji").json()
+    assert len(contracts["contracts"]) == 16
+    assert {row["regression_id"] for row in contracts["contracts"]} == {
+        f"S{i:02}" for i in range(1, 17)
+    }
+    assert all(row["live_validation"] == "not_verified" for row in contracts["contracts"])

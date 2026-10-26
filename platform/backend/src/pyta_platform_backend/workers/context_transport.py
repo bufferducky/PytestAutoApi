@@ -105,6 +105,7 @@ class ContextTransport(TransportAdapter):
         traces = []
         session = self._session(key)
         session.login(None, None, traces)
+        verified = set()
         for check in session.target.get("checks", []):
             if not check["query_contract_confirmed"]:
                 raise ContextError("query_contract_missing", "service")
@@ -133,10 +134,17 @@ class ContextTransport(TransportAdapter):
                     and str(resolve_field_path(response.body, check[field])) != binding[expected]
                 ):
                     raise ContextError("context_response_mismatch", "context")
+                if check.get(field) and binding:
+                    verified.add(expected)
+        # 可达/业务码通过不能证明归属；两个维度可以由不同的已确认查询提供证据。
+        needs_context = session.target.get("requires_context") or session.snapshot.get("binding")
+        context = "not_required"
+        if needs_context:
+            context = "passed" if verified == {"tenant_id", "project_id"} else "not_verified"
         return {
             "configuration": "passed",
             "authentication": "passed" if session.auth["mode"] != "none" else "not_required",
-            "context": "passed" if session.target.get("checks") else "not_verified",
+            "context": context,
             "service": "passed" if session.target.get("checks") else "not_verified",
         }
 
@@ -179,6 +187,7 @@ class _Session:
             url=endpoint(self.target["base_url"], self.auth["login_path"]),
             body_type=self.auth["request_mode"],
             body=body,
+            headers=dict(self.target.get("request_headers", {})),
             timeout_seconds=min(self.auth["timeout_seconds"], self.remaining()),
         )
         try:
@@ -219,7 +228,8 @@ class _Session:
         return remaining
 
     def inject(self, request):
-        headers = dict(request.headers)
+        # 终端等公开默认头同时用于登录/查询，身份和项目仍由固定快照注入。
+        headers = {**self.target.get("request_headers", {}), **request.headers}
         binding = self.snapshot.get("binding")
         inject = {}
         if self.auth["mode"] != "none":

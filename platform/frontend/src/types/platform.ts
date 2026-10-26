@@ -65,6 +65,7 @@ export interface RunSummary {
   transportMode?: string;
   executionMode?: string;
   validationScope?: string;
+  businessScope?: string;
   cleanupStatus?: string;
   eligibleForRelease?: boolean;
   rawStatus?: string;

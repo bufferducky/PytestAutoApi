@@ -25,6 +25,29 @@ class CapabilityMissing(ContextError):
         super().__init__(code, "device")
 
 
+def web_runtime():
+    """报告实际安装基线，不把只有 Python 包当作浏览器就绪。"""
+    if importlib.util.find_spec("playwright") is None:
+        return {"playwright_installed": False, "available": False, "reason": "driver_missing"}
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as runtime:
+            executable = runtime.chromium.executable_path
+        if not Path(executable).is_file():
+            return {"playwright_installed": True, "available": False, "reason": "chromium_missing"}
+        probe = subprocess.run([executable, "--version"], capture_output=True, text=True, timeout=5)
+        if probe.returncode:
+            raise RuntimeError("chromium_probe_failed")
+        return {
+            "playwright_installed": True,
+            "available": True,
+            "chromium_version": probe.stdout.strip().split()[-1],
+        }
+    except Exception as exc:
+        return {"playwright_installed": True, "available": False, "reason": type(exc).__name__}
+
+
 class WebSession:
     def __init__(self, version, *, capture_trace=False, capture_video=False):
         from playwright.sync_api import sync_playwright
@@ -64,7 +87,9 @@ class WebSession:
             return self.page.get_by_label(value, exact=True)
         if strategy == "testid":
             return self.page.get_by_test_id(value)
-        raise ValueError("Web只接受role/label/testid定位")
+        if strategy == "placeholder":
+            return self.page.get_by_placeholder(value, exact=True)
+        raise ValueError("Web只接受role/label/testid/placeholder定位")
 
     def act(self, action, value, base_url):
         timeout = action["timeout_seconds"] * 1000
@@ -428,7 +453,10 @@ def execute_journey(
             if on_result:
                 on_result(case)
             if error:
-                if artifact and journey["synthetic_test_data"]:
+                # 凭证填写后的页面不能直接采图；即使后续动作失败也可能残留秘密。
+                # 目前没有可核验遮罩，带秘密引用的旅程只保留脱敏步骤诊断。
+                has_secret_inputs = any(a.get("value_ref") for a in journey["actions"])
+                if artifact and journey["synthetic_test_data"] and not has_secret_inputs:
                     try:
                         artifact(action["step_id"], session.screenshot())
                     except Exception:

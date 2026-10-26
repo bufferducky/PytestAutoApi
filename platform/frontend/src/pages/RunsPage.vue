@@ -1,29 +1,10 @@
 <template>
-  <section class="page-grid">
-    <EvidenceRetentionPanel />
-    <section class="hero-banner">
-      <div>
-        <p class="hero-banner__eyebrow">执行结果</p>
-        <h2 class="hero-banner__title">先把“最近跑了什么、现在处于什么状态”看清楚。</h2>
-        <p class="hero-banner__copy">
-          查看真实运行、执行模式与步骤证据。连接失败会明确提示，模拟结果不代表真实业务通过。
-        </p>
-      </div>
-
-      <div class="hero-banner__meta">
-        <span class="hero-banner__pill">数据源：{{ sourceLabel }}</span>
-        <span class="hero-banner__pill" v-if="lastLoadedAt">更新于 {{ lastLoadedAt }}</span>
-      </div>
-    </section>
-
-    <div class="metrics-grid">
-      <MetricCard v-for="metric in summaryMetrics" :key="metric.key" :metric="metric" />
-    </div>
-
+  <section class="page-grid runs-page">
+    <div class="run-pagination"><span>{{ sourceLabel }} · {{ lastLoadedAt || '等待更新' }}</span><span v-if="loading">正在更新…</span></div>
     <div class="content-grid">
       <PlaceholderPanel
         title="最近运行列表"
-        description="左侧先看全量运行摘要，点击任意一行后，右侧详情区会切换到对应的排障视角。"
+        description="筛选运行记录，选择一条查看详情与失败诊断。"
       >
         <template #actions>
           <button class="action-button" type="button" :disabled="loading" @click="reloadRuns">
@@ -31,32 +12,34 @@
           </button>
         </template>
 
+        <details class="run-filter-panel"><summary aria-label="筛选运行记录 环境 / 构建 / 状态 / 时间范围">筛选运行记录 <span>环境 / 构建 / 状态 / 时间范围</span><HelpHint topic="runStatus" /></summary>
         <form class="run-filters" @submit.prevent="applyFilters">
-          <label>环境 ID<input v-model="serverFilters.environment_id" /></label>
-          <label>目标 ID<input v-model="serverFilters.target_id" /></label>
-          <label>历史模式筛选<select v-model="serverFilters.transport_mode"><option value="">全部（统计分开）</option><option value="live">真实</option><option value="mock">模拟</option></select></label>
-          <label>场景 ID<input v-model="serverFilters.scenario_id" /></label>
-          <label>发布版本<input v-model="serverFilters.scenario_version" type="number" min="1" /></label>
-          <label>终态<select v-model="serverFilters.status"><option value="">全部</option><option v-for="state in ['queued','running','succeeded','failed','error','blocked','skipped','cancelled','timed_out','interrupted']" :key="state">{{ state }}</option></select></label>
-          <label>错误类型<select v-model="serverFilters.category"><option value="">全部</option><option v-for="kind in ['config','authentication','context','data','network','assertion','executor','external_service','device','unknown']" :key="kind">{{ kind }}</option></select></label>
-          <label>开始时间（带时区 ISO）<input v-model="serverFilters.since" placeholder="2026-10-25T00:00:00+08:00" /></label>
-          <label>结束时间（带时区 ISO）<input v-model="serverFilters.until" /></label>
+          <label><span class="field-caption"><span>环境</span><HelpHint topic="filterEnvironment" /></span><select v-model="serverFilters.environment_id" aria-label="环境"><option value="">全部环境</option><option v-for="item in environments" :key="item.id" :value="item.id">{{ item.name }}</option></select></label>
+          <label><span class="field-caption"><span>目标</span><HelpHint topic="filterTarget" /></span><select v-model="serverFilters.target_id" aria-label="目标"><option value="">全部目标</option><option v-for="item in targets" :key="item.id" :value="item.id">{{ item.name }}</option></select></label>
+          <label><span class="field-caption"><span>被测构建</span><HelpHint topic="filterBuild" /></span><input v-model="serverFilters.build" aria-label="被测构建" /></label>
+          <label><span class="field-caption"><span>历史模式筛选</span><HelpHint topic="transport" /></span><select v-model="serverFilters.transport_mode" aria-label="历史模式筛选"><option value="">全部（统计分开）</option><option value="live">真实</option><option value="mock">模拟</option></select></label>
+          <label><span class="field-caption"><span>场景</span><HelpHint topic="filterScenario" /></span><select v-model="serverFilters.scenario_id" aria-label="场景"><option value="">全部场景</option><option v-for="item in scenarios" :key="item.id" :value="item.id">{{ item.name }}</option></select></label>
+          <label><span class="field-caption"><span>发布版本</span><HelpHint topic="filterVersion" /></span><select v-model="serverFilters.scenario_version" :disabled="!serverFilters.scenario_id || versionsLoading" aria-label="发布版本"><option value="">{{ versionsLoading ? '正在加载版本…' : serverFilters.scenario_id ? '全部发布版本' : '请先选择场景' }}</option><option v-for="item in scenarioVersions" :key="item.version" :value="String(item.version)">v{{ item.version }}{{ item.change_note ? ' · ' + item.change_note : '' }}</option></select></label>
+          <label><span class="field-caption"><span>终态</span><HelpHint topic="runStatus" /></span><select v-model="serverFilters.status" aria-label="终态"><option value="">全部</option><option v-for="state in ['queued','running','succeeded','failed','error','blocked','skipped','cancelled','timed_out','interrupted']" :key="state" :value="state">{{ getRunStatusMeta(normalizeRunStatus(state)).label }}</option></select></label>
+          <label><span class="field-caption"><span>错误类型</span><HelpHint topic="errorCategory" /></span><select v-model="serverFilters.category" aria-label="错误类型"><option value="">全部</option><option v-for="(label,kind) in errorCategoryLabels" :key="kind" :value="kind">{{ label }}</option></select></label>
+          <label><span class="field-caption"><span>开始时间（本地时区）</span><HelpHint topic="isoTime" /></span><input v-model="serverFilters.since" type="datetime-local" aria-label="开始时间（本地时区）" /></label>
+          <label><span class="field-caption"><span>结束时间（本地时区）</span><HelpHint topic="isoTime" /></span><input v-model="serverFilters.until" type="datetime-local" aria-label="结束时间（本地时区）" /></label>
           <button :disabled="loading">按真实条件筛选</button>
-        </form>
-        <p>共 {{ totalRuns }} 条；当前第 {{ Math.floor(pageOffset / 20) + 1 }} 页</p>
+        </form></details>
+        <div class="run-pagination"><p>共 {{ totalRuns }} 条；当前第 {{ Math.floor(pageOffset / 20) + 1 }} 页</p>
         <button type="button" :disabled="loading || pageOffset === 0" @click="pageOffset -= 20; reloadRuns()">上一页</button>
         <button type="button" :disabled="loading || pageOffset + 20 >= totalRuns" @click="pageOffset += 20; reloadRuns()">下一页</button>
-        <button type="button" @click="loadTrends" :disabled="!serverFilters.environment_id || !serverFilters.transport_mode || !serverFilters.scenario_id || !serverFilters.scenario_version">查看固定维度趋势</button>
+        <span class="action-help"><button type="button" @click="loadTrends" :disabled="!serverFilters.environment_id || !serverFilters.transport_mode || !serverFilters.scenario_id || !serverFilters.scenario_version">查看固定维度趋势</button><HelpHint topic="trend" /></span></div>
         <pre v-if="trendResult">{{ trendResult }}</pre>
         <p v-if="actionMessage" class="state-banner state-banner--info">{{ actionMessage }}</p>
         <p v-if="note" class="state-banner state-banner--info">{{ note }}</p>
         <p v-if="errorMessage" class="state-banner state-banner--error">{{ errorMessage }}</p>
-        <p v-if="runs.length" class="panel-tip">点击某一行，可在右侧查看状态说明、原始状态和备注。</p>
+        <p v-if="runs.length" class="panel-tip">选择运行记录查看详情，支持键盘 Enter 或空格。</p>
 
         <div v-if="loading && !runs.length" class="empty-copy">正在加载运行记录...</div>
 
         <div v-else-if="!loading && !runs.length" class="empty-copy">
-          当前还没有可展示的运行记录。等后端补齐列表接口后，这里会优先展示真实数据。
+          没有匹配的运行记录，请调整筛选条件或提交一次测试。
         </div>
 
         <div v-else class="table-shell">
@@ -68,9 +51,10 @@
                 <th>环境</th>
                 <th>触发人</th>
                 <th>开始时间</th>
-                <th>耗时</th>
-                <th>模式</th>
-                <th>状态</th>
+                <th aria-label="耗时">耗时<HelpHint topic="elapsed" /></th>
+                <th aria-label="模式">模式<HelpHint topic="transport" /></th>
+                <th aria-label="业务范围">业务范围<HelpHint topic="evidence" /></th>
+                <th aria-label="状态">状态<HelpHint topic="runStatus" /></th>
               </tr>
             </thead>
             <tbody>
@@ -100,10 +84,11 @@
                 <td>{{ item.starter }}</td>
                 <td>{{ item.startedAt }}</td>
                 <td>{{ item.duration }}</td>
-                <td>{{ item.validationScope === 'historical_demo' ? '迁入演示历史' : item.transportMode === 'live' ? '真实测试' : item.transportMode === 'mock' ? 'Mock（模拟）' : '历史未记录' }}</td>
+                <td>{{ isDebugRun(item) ? '草稿调试' : item.validationScope === 'historical_demo' ? '迁入演示历史' : item.transportMode === 'live' ? '真实测试' : item.transportMode === 'mock' ? 'Mock（模拟）' : '历史未记录' }}</td>
+                <td>{{ isDebugRun(item) ? '草稿调试（不计正式回归）' : item.businessScope === 'yanji_query' ? '言迹查询 smoke' : item.businessScope === 'yanji_web' ? '言迹测试 Web（范围见步骤）' : item.businessScope === 'historical_demo' ? '演示历史' : '未分类（不表示言迹覆盖）' }}</td>
                 <td>
                   <StatusTag
-                    :label="item.transportMode === 'mock' && item.rawStatus === 'succeeded' ? '模拟断言通过' : getRunStatusMeta(item.status).label"
+                    :label="runStatusLabel(item)"
                     :tone="getRunStatusMeta(item.status).tone"
                   />
                 </td>
@@ -115,7 +100,7 @@
 
       <PlaceholderPanel
         title="运行详情"
-        description="详情区收口状态说明、基础上下文、错误/备注和统一状态映射，页面更适合作为排障入口。"
+        description="查看执行上下文、步骤结果与诊断证据。"
       >
         <template #actions>
           <div class="action-row">
@@ -127,151 +112,49 @@
             >
               {{ detailLoading ? '加载中...' : '刷新详情' }}
             </button>
-            <button
+            <span class="action-help"><button
               class="action-button"
               type="button"
               :disabled="rerunLoading || !canRerunSelected"
               @click="rerunSelectedRun"
             >
               {{ rerunLoading ? '复跑中...' : '快速复跑' }}
-            </button>
+            </button><HelpHint topic="rerun" /></span>
           </div>
         </template>
 
-        <div v-if="selectedRun && selectedRunMeta && selectedRunInsight" class="detail-stack">
-          <section class="detail-hero">
-            <div class="detail-hero__header">
-              <div>
-                <p class="detail-hero__eyebrow">当前选中</p>
-                <h3 class="detail-hero__title">{{ selectedRun.name }}</h3>
-              </div>
-              <StatusTag :label="selectedRunMeta.label" :tone="selectedRunMeta.tone" />
-            </div>
-
-            <p class="detail-hero__copy">{{ selectedRunInsight.summary }}</p>
-
-            <div class="detail-pill-row">
-              <span class="detail-pill">目标：{{ selectedRun.target }}</span>
-              <span class="detail-pill">环境：{{ selectedRun.environmentLabel || '未绑定' }}</span>
-              <span class="detail-pill">数据源：{{ sourceLabel }}</span>
-              <span class="detail-pill">原始状态：{{ selectedRun.rawStatus || '未回传' }}</span>
-            </div>
+        <p v-if="detailErrorMessage" role="alert" class="state-banner state-banner--error">{{ detailErrorMessage }}（已有结果保留，可能不是最新）</p>
+        <div v-if="selectedRun" class="detail-stack">
+          <header class="detail-hero__header"><h3>{{ selectedRun.name }}</h3><StatusTag :label="runStatusLabel(selectedRun)" :tone="getRunStatusMeta(selectedRun.status).tone" /></header>
+          <p v-if="isDebugRun(selectedRun)" class="state-banner state-banner--info">草稿调试 · 独立快照，不作为正式回归或发布证据。</p>
+          <nav class="action-row" aria-label="结果分组"><button v-for="tab in resultTabs" :key="tab.key" type="button" :aria-pressed="resultTab === tab.key" @click="resultTab = tab.key">{{ tab.label }}</button>
+            <button v-if="['queued','running'].includes(selectedRun.status)" type="button" @click="cancelSelected">请求取消</button>
+          </nav>
+          <section v-show="resultTab === 'overview'" class="detail-section">
+            <p>{{ selectedRun.environmentLabel || '未绑定环境' }} · {{ selectedRun.startedAt }} · {{ selectedRun.duration }}</p>
+            <p>{{ selectedRunDetail?.statusMessage || selectedRun.errorSummary || selectedRunInsight?.summary }}</p>
+            <p>验证范围：{{ selectedRunDetail?.validationScope || '历史未记录' }} · 清理：{{ selectedRunDetail?.cleanupStatus || '未记录' }}</p>
+            <p>{{ isDebugRun(selectedRun) ? '调试证据不计正式回归' : selectedRunDetail?.eligibleForRelease ? '当前断言/清理完整，发布仍以固定构建报告为准' : '证据不完整或尚未验证' }}</p>
+            <details><summary>运行快照与原始结果</summary><pre>{{ selectedPayloadJson }}</pre><pre>{{ JSON.stringify(selectedRunDetail?.results || [], null, 2) }}</pre></details>
           </section>
-
-          <section class="detail-section">
-            <div class="detail-section__header">
-              <h3 class="detail-section__title">基础上下文</h3>
-              <p class="detail-section__copy">
-                页面只保存“当前选中了哪一条”，真正的数据仍然来自左侧列表，避免详情区和列表出现双份状态。
-              </p>
-            </div>
-
-            <dl class="detail-grid">
-              <div v-for="field in selectedContextFields" :key="field.key" class="detail-grid__item">
-                <dt>{{ field.label }}</dt>
-                <dd>{{ field.value }}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section class="detail-section">
-            <h3 class="detail-section__title">状态说明</h3>
-            <p class="detail-section__copy">{{ selectedRunInsight.description }}</p>
-          </section>
-
-          <section class="detail-section">
-            <h3 class="detail-section__title">错误 / 备注</h3>
-            <div class="remark-list">
-              <article
-                v-for="item in selectedRemarkBlocks"
-                :key="item.key"
-                class="remark-card"
-                :class="`remark-card--${item.tone}`"
-              >
-                <h4>{{ item.title }}</h4>
-                <p>{{ item.body }}</p>
-              </article>
-            </div>
-          </section>
-
-          <section class="detail-section">
-            <div class="detail-section__header">
-              <h3 class="detail-section__title">运行快照</h3>
-              <p class="detail-section__copy">
-                这里优先展示真实 `run detail` 返回的状态说明、环境快照和 payload，避免只靠列表摘要猜上下文。
-              </p>
-            </div>
-
-            <p v-if="detailErrorMessage" class="state-banner state-banner--error">
-              {{ detailErrorMessage }}
-            </p>
-            <div v-else-if="detailLoading" class="empty-copy">正在加载真实运行详情...</div>
-            <div v-else-if="selectedRunDetail" class="detail-snapshot">
-              <article v-if="selectedRunDetail.statusMessage" class="snapshot-card">
-                <h4>状态说明</h4>
-                <p>{{ selectedRunDetail.statusMessage }}</p>
-              </article>
-
-              <article v-if="selectedEnvironmentSnapshotJson" class="snapshot-card">
-                <h4>环境快照</h4>
-                <pre>{{ selectedEnvironmentSnapshotJson }}</pre>
-              </article>
-
-              <article class="snapshot-card">
-                <h4>运行 Payload</h4>
-                <pre>{{ selectedPayloadJson }}</pre>
-              </article>
-            </div>
-            <p v-else class="empty-copy">
-              当前为 {{ sourceLabel }} 数据，暂不加载真实运行详情。
-            </p>
-          </section>
-
-          <section class="detail-section">
-            <h3 class="detail-section__title">建议下一步</h3>
-            <ul class="hint-list">
-              <li v-for="step in selectedRunInsight.nextSteps" :key="step">{{ step }}</li>
-            </ul>
-          </section>
-
-          <section class="detail-section">
-            <h3 class="detail-section__title">测试资源与清理</h3>
-            <button type="button" @click="resourcePreflight" :disabled="source !== 'api' || selectedRun.transportMode !== 'live'">资源/清理预检</button>
-            <button type="button" v-if="cleanupToken" @click="retryResourceCleanup">执行本次预检清理</button>
-            <pre>{{ resourceInfo }}</pre>
-            <RunDiagnosticsPanel v-if="selectedRunId && source === 'api'" :run-id="selectedRunId" />
-            <h3 class="detail-section__title">执行证据</h3>
-            <p>验证范围：{{ selectedRunDetail?.validationScope || '历史未记录' }}；清理：{{ selectedRunDetail?.cleanupStatus || '未记录' }}；发布条件：{{ selectedRunDetail?.eligibleForRelease ? '当前断言满足' : '不满足或未验证' }}</p>
-            <button v-if="selectedRun.transportMode === 'live' && (selectedRun.status === 'running' || selectedRun.status === 'queued')"
-              class="action-button" type="button" @click="cancelSelected">请求取消</button>
-            <pre>{{ JSON.stringify(selectedRunDetail?.counts || {}, null, 2) }}</pre>
-            <pre>{{ JSON.stringify(selectedRunDetail?.results || [], null, 2) }}</pre>
-            <h3 class="detail-section__title">状态映射说明</h3>
-            <div class="side-stack">
-              <div class="status-legend">
-                <div v-for="item in legendItems" :key="item.key" class="status-legend__row">
-                  <StatusTag :label="item.label" :tone="item.tone" />
-                  <p>{{ item.description }}</p>
-                </div>
-              </div>
-
-              <ul class="hint-list">
-                <li>`queued / pending` 会统一展示为“排队中”。</li>
-                <li>`succeeded / passed` 会统一展示为“成功”。</li>
-                <li>`warning / partial_success` 会统一展示为“告警”。</li>
-                <li>列表接口不可用时会显示错误，请检查后端连接。</li>
-              </ul>
-            </div>
+          <RunDiagnosticsPanel v-if="selectedRunId && source === 'api'" v-show="resultTab === 'steps'" :key="selectedRunId" :run-id="selectedRunId" />
+          <section v-show="resultTab === 'resources'" class="detail-section">
+            <h3>测试资源与清理</h3>
+            <span class="action-help"><button type="button" @click="resourcePreflight" :disabled="source !== 'api' || selectedRun.transportMode !== 'live'">资源/清理预检</button><HelpHint topic="cleanupPreflight" /></span>
+            <span class="action-help" v-if="cleanupToken"><button type="button" @click="retryResourceCleanup">执行本次预检清理</button><HelpHint topic="cleanup" /></span>
+            <pre v-if="resourceInfo">{{ resourceInfo }}</pre><p v-else>预检后查看资源与清理计划。</p>
           </section>
         </div>
 
         <div v-else class="empty-copy">请选择一条运行记录后查看详情。</div>
       </PlaceholderPanel>
     </div>
+    <details><summary aria-label="证据保留与回收（高级）">证据保留与回收（高级）<HelpHint topic="retention" /></summary><EvidenceRetentionPanel /></details>
   </section>
 </template>
 
 <script setup lang="ts">
+import HelpHint from '@/components/common/HelpHint.vue';
 import RunDiagnosticsPanel from '@/components/RunDiagnosticsPanel.vue';
 import EvidenceRetentionPanel from '@/components/EvidenceRetentionPanel.vue';
 import { apiClient } from '@/api/client';
@@ -284,7 +167,7 @@ import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import type { ApiDataSource, DashboardMetric, RunDetail, RunSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
-import { getRunStatusInsight, getRunStatusMeta } from '@/utils/runStatus';
+import { getRunStatusInsight, getRunStatusMeta, normalizeRunStatus } from '@/utils/runStatus';
 
 interface RunDetailField {
   key: string;
@@ -308,8 +191,39 @@ const route = useRoute();
 const router = useRouter();
 
 const runs = ref<RunSummary[]>([]);
+const resultTab = ref('steps');
+const resultTabs = [{key:'overview',label:'概览'},{key:'steps',label:'步骤证据'},{key:'resources',label:'资源'}];
+const isDebugRun = (run: RunSummary) => run.validationScope === 'debug' || run.businessScope === 'draft_debug' || ('payload' in run && isRecord(run.payload) && run.payload.run_purpose === 'debug');
+const runStatusLabel = (run:RunSummary) => isDebugRun(run) ? (run.status === 'success' ? '调试断言通过' : `调试 · ${getRunStatusMeta(run.status).label}`) : run.transportMode === 'mock' && run.status === 'success' ? '模拟断言通过' : getRunStatusMeta(run.status).label;
+const errorCategoryLabels:Record<string,string> = {config:'配置错误',authentication:'身份认证',context:'执行上下文',data:'测试数据',network:'网络连接',assertion:'断言失败',executor:'执行器',external_service:'外部服务',device:'设备',unknown:'未知错误'};
+const targets = ref<{id:string;name:string}[]>([]);
+const scenarioVersions = ref<{version:number;change_note?:string}[]>([]);
+const versionsLoading = ref(false);
+let versionRequestToken = 0;
+const environments = ref<{id:string;name:string}[]>([]), scenarios = ref<{id:string;name:string}[]>([]);
+async function loadFilterOptions() {
+  const results = await Promise.allSettled([managementApi.listEnvironments(), apiClient.get<{id:string;name:string}[]>('/scenarios', {limit:200}), apiClient.get<{id:string;name:string}[]>('/targets')]);
+  if (results[0].status === 'fulfilled') environments.value = results[0].value;
+  if (results[1].status === 'fulfilled') scenarios.value = results[1].value;
+  if (results[2].status === 'fulfilled') targets.value = results[2].value;
+  if (results.some(item => item.status === 'rejected')) errorMessage.value = '筛选选项更新失败，请刷新重试。';
+}
+let listRequestToken = 0;
 const totalRuns=ref(0),pageOffset=ref(0),trendResult=ref('');
-const serverFilters=ref({environment_id:'',target_id:'',transport_mode:'',scenario_id:'',scenario_version:'',status:'',category:'',since:'',until:''});
+const serverFilters=ref({environment_id:'',target_id:'',build:'',transport_mode:'',scenario_id:'',scenario_version:'',status:'',category:'',since:'',until:''});
+watch(() => serverFilters.value.scenario_id, async (scenarioId) => {
+  const token = ++versionRequestToken;
+  serverFilters.value.scenario_version = '';
+  scenarioVersions.value = [];
+  versionsLoading.value = !!scenarioId;
+  if (!scenarioId) return;
+  try {
+    const versions = await apiClient.get<{version:number;change_note?:string}[]>(`/scenarios/${encodeURIComponent(scenarioId)}/versions`);
+    if (token === versionRequestToken) scenarioVersions.value = versions;
+  } catch (cause) {
+    if (token === versionRequestToken) errorMessage.value = resolveApiErrorMessage(cause, '发布版本读取失败，请重新选择场景');
+  } finally { if (token === versionRequestToken) versionsLoading.value = false; }
+});
 const applyFilters=async()=>{pageOffset.value=0;await loadRuns();};
 const loadTrends=async()=>{try{trendResult.value=JSON.stringify(await apiClient.get('/run-trends',{
   environment_id:serverFilters.value.environment_id,transport_mode:serverFilters.value.transport_mode,
@@ -339,7 +253,7 @@ const routeRunId = computed(() => (typeof route.query.runId === 'string' ? route
 let detailRequestToken = 0;
 
 const summaryMetrics = computed<DashboardMetric[]>(() => {
-  const successCount = runs.value.filter((item) => item.status === 'success' && item.transportMode === 'live').length;
+  const successCount = runs.value.filter((item) => item.status === 'success' && item.transportMode === 'live' && !isDebugRun(item)).length;
   const failedCount = runs.value.filter(
     (item) => ['failed','error','timed_out','interrupted'].includes(item.status),
   ).length;
@@ -428,19 +342,8 @@ const selectRun = (runId: string) => {
  * 这样列表重新加载后，只需要决定选中谁，不必再维护一份可能过期的详情对象。
  */
 const syncSelectedRun = (nextRuns: RunSummary[], preferredRunId = routeRunId.value) => {
-  if (!nextRuns.length) {
-    selectedRunId.value = '';
-    selectedRunDetail.value = null;
-    if (routeRunId.value) {
-      updateRouteRunId('');
-    }
-    return;
-  }
-
-  if (preferredRunId && nextRuns.some((item) => item.id === preferredRunId)) {
-    applySelectedRunId(preferredRunId);
-    return;
-  }
+  if (preferredRunId) { applySelectedRunId(preferredRunId); return; }
+  if (!nextRuns.length) return;
 
   if (selectedRunId.value && nextRuns.some((item) => item.id === selectedRunId.value)) {
     if (routeRunId.value !== selectedRunId.value) {
@@ -452,7 +355,7 @@ const syncSelectedRun = (nextRuns: RunSummary[], preferredRunId = routeRunId.val
   applySelectedRunId(nextRuns[0].id);
 };
 
-const selectedRun = computed(() => runs.value.find((item) => item.id === selectedRunId.value) ?? null);
+const selectedRun = computed(() => selectedRunDetail.value?.id === selectedRunId.value ? selectedRunDetail.value : runs.value.find((item) => item.id === selectedRunId.value) ?? null);
 const selectedRunMeta = computed(() => {
   const run = selectedRun.value;
   return run ? getRunStatusMeta(run.status) : null;
@@ -630,7 +533,7 @@ const selectedRemarkBlocks = computed<RunRemarkBlock[]>(() => {
     blocks.push({
       key: 'status-mapping-note',
       title: '状态映射',
-      body: `后端原始状态 ${run.rawStatus} 会统一映射为 ${getRunStatusMeta(run.status).label}，这样不同接口枚举也能共用同一套页面判断。`,
+      body: `原始状态：${run.rawStatus}；当前展示为“${getRunStatusMeta(run.status).label}”。`,
       tone: 'neutral',
     });
   }
@@ -658,6 +561,7 @@ const selectedPayloadJson = computed(() => {
 
 const loadSelectedRunDetail = async () => {
   if (!selectedRunId.value || source.value !== 'api') {
+    ++detailRequestToken;
     detailLoading.value = false;
     detailErrorMessage.value = '';
     selectedRunDetail.value = null;
@@ -667,7 +571,7 @@ const loadSelectedRunDetail = async () => {
   const requestToken = ++detailRequestToken;
   detailLoading.value = true;
   detailErrorMessage.value = '';
-  selectedRunDetail.value = null;
+  if (selectedRunDetail.value?.id !== selectedRunId.value) selectedRunDetail.value = null;
 
   try {
     const detail = await executionApi.getRunDetail(selectedRunId.value);
@@ -681,7 +585,6 @@ const loadSelectedRunDetail = async () => {
       return;
     }
 
-    selectedRunDetail.value = null;
     detailErrorMessage.value = resolveApiErrorMessage(error, '运行详情加载失败，请稍后重试。');
   } finally {
     if (requestToken === detailRequestToken) {
@@ -695,8 +598,7 @@ const reloadSelectedRunDetail = async () => {
 };
 
 const rerunSelectedRun = async () => {
-  const suiteId = rerunnableSuiteId.value;
-  if (!suiteId || !canRerunSelected.value) {
+  if (!canRerunSelected.value) {
     return;
   }
 
@@ -724,13 +626,15 @@ const reloadRuns = async () => {
  * 都在加载函数里一次性收口，避免模板里再分散处理。
  */
 const loadRuns = async (options?: { preferredRunId?: string }) => {
+  const token = ++listRequestToken;
   loading.value = true;
   errorMessage.value = '';
 
   try {
     const query:Record<string,string | number>={limit:20,offset:pageOffset.value};
-    for(const [key,value] of Object.entries(serverFilters.value))if(value)query[key]=key === 'scenario_version' ? Number(value) : value;
+    for(const [key,value] of Object.entries(serverFilters.value))if(value)query[key]=key === 'scenario_version' ? Number(value) : ['since','until'].includes(key) ? new Date(value).toISOString() : value;
     const result = await managementApi.listRuns({query});
+    if (token !== listRequestToken) return;
     totalRuns.value=result.total ?? result.data.length;
     runs.value = result.data;
     source.value = result.source;
@@ -740,14 +644,10 @@ const loadRuns = async (options?: { preferredRunId?: string }) => {
     if (before === selectedRunId.value) await loadSelectedRunDetail();
     lastLoadedAt.value = new Date().toLocaleString('zh-CN', { hour12: false });
   } catch (error) {
-    runs.value = [];
-    note.value = '';
-    selectedRunId.value = '';
-    selectedRunDetail.value = null;
-    lastLoadedAt.value = '';
+    if (token !== listRequestToken) return;
     errorMessage.value = resolveApiErrorMessage(error, '运行记录加载失败，请稍后重试。');
   } finally {
-    loading.value = false;
+    if (token === listRequestToken) loading.value = false;
   }
 };
 
@@ -756,7 +656,7 @@ watch(routeRunId, (runId) => {
     return;
   }
 
-  if (runId !== selectedRunId.value && runs.value.some((item) => item.id === runId)) {
+  if (runId !== selectedRunId.value) {
     selectedRunId.value = runId;
   }
 });
@@ -771,18 +671,24 @@ watch(
 const resourceInfo = ref(''), cleanupToken = ref('');
 watch(selectedRunId, () => { resourceInfo.value = ''; cleanupToken.value = ''; });
 const resourcePreflight = async () => {
+  const runId = selectedRunId.value;
+  cleanupToken.value = '';
   try {
-    const resources = await apiClient.get(`/runs/${selectedRunId.value}/resources`);
-    const plan = await apiClient.post<{preflight_token: string; ready: string[]}>(`/runs/${selectedRunId.value}/cleanup-preflight`);
+    const resources = await apiClient.get(`/runs/${runId}/resources`);
+    const plan = await apiClient.post<{preflight_token: string; ready: string[]}>(`/runs/${runId}/cleanup-preflight`);
+    if (runId !== selectedRunId.value) return;
     resourceInfo.value = JSON.stringify({resources, plan}, null, 2);
     cleanupToken.value = plan.ready.length ? plan.preflight_token : '';
-  } catch(cause) { detailErrorMessage.value = resolveApiErrorMessage(cause, '资源预检失败'); }
+  } catch(cause) { if (runId === selectedRunId.value) detailErrorMessage.value = resolveApiErrorMessage(cause, '资源预检失败'); }
 };
 const retryResourceCleanup = async () => {
+  const runId = selectedRunId.value, token = cleanupToken.value;
+  if (!token) return;
+  cleanupToken.value = '';
   try {
-    resourceInfo.value = JSON.stringify(await apiClient.post(`/runs/${selectedRunId.value}/cleanup`, {preflight_token:cleanupToken.value}), null, 2);
-    cleanupToken.value = '';
-  } catch(cause) { detailErrorMessage.value = resolveApiErrorMessage(cause, '清理失败'); }
+    const result = await apiClient.post(`/runs/${runId}/cleanup`, {preflight_token:token});
+    if (runId === selectedRunId.value) resourceInfo.value = JSON.stringify(result, null, 2);
+  } catch(cause) { if (runId === selectedRunId.value) detailErrorMessage.value = resolveApiErrorMessage(cause, '清理失败，请重新预检后重试'); }
 };
 const cancelSelected = async () => {
   try {
@@ -793,18 +699,25 @@ const cancelSelected = async () => {
   }
 };
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
-onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer); });
+const resumeRefresh = () => { if (!document.hidden) { void loadRuns(); } };
+onUnmounted(() => { listRequestToken++; detailRequestToken++; versionRequestToken++; if (refreshTimer) clearInterval(refreshTimer); document.removeEventListener('visibilitychange', resumeRefresh); });
 onMounted(() => {
+  void loadFilterOptions();
+  document.addEventListener('visibilitychange', resumeRefresh);
   void loadRuns();
   refreshTimer = setInterval(() => {
-    if (!loading.value && runs.value.some(run => ['queued', 'running'].includes(run.status))) {
+    if (!document.hidden && !loading.value && (runs.value.some(run => ['queued', 'running'].includes(run.status)) || (selectedRun.value && ['queued','running'].includes(selectedRun.value.status)))) {
       void loadRuns();
     }
-  }, 1000);
+  }, 2500);
 });
 </script>
 
 <style scoped>
+.content-grid { grid-template-columns:minmax(0,1fr); }
+pre { max-width:100%; max-height:28rem; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+.detail-stack { min-width:0; }
+
 .run-filters {display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.5rem;}
 .run-filters label {display:grid;gap:.25rem;}
 .hero-banner {
@@ -982,9 +895,15 @@ onMounted(() => {
 .detail-hero__header,
 .detail-section__header {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.85rem;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+.detail-hero__header > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .detail-hero__eyebrow {
@@ -1158,4 +1077,22 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+.hero-banner { padding: 20px; background: #fff; border-radius: var(--radius-large); box-shadow: var(--shadow-soft); }
+.hero-banner__title { font-size: 22px; letter-spacing: -.5px; }
+.hero-banner__eyebrow { font-size: 11px; letter-spacing: .6px; }
+.hero-banner__copy { margin-top: 8px; font-size: 12px; }
+.hero-banner__pill { border-radius: 5px; padding: 5px 9px; min-height: 28px; font-size: 11px; box-shadow: none; background: #f6f7f9; border: 0; }
+.run-filter-panel { border: 1px solid var(--color-border); border-radius: 7px; }
+.run-filter-panel summary span { margin-left: 10px; color: var(--color-ink-subtle); font-size: 11px; font-weight: 400; }
+.run-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px; padding: 0 14px 14px; }
+.run-filters label { display: grid; gap: 6px; }
+.run-filters button { align-self: end; }
+.run-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.run-pagination p { margin-right: auto; font-size: 12px; color: var(--color-ink-subtle); }
+.detail-snapshot { border: 1px solid var(--color-border); border-radius: 7px; }
+.snapshot-card { margin: 12px; }
+.metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width:1600px) { .content-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width:760px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width:420px) { .metrics-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

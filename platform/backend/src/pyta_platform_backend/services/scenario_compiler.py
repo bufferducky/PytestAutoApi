@@ -10,7 +10,6 @@ from testflow_engine import TestCaseDefinition, TestRunDefinition
 from testflow_engine.assertions.business import BUILTIN_RULES, CUSTOM_RULES
 
 TEMPLATE = re.compile(r"{{\s*([^{}]+?)\s*}}")
-PLUGIN_VERSIONS = {"legacy-cache@1", "bootstrap-auth@1"}
 
 
 def dump(model):
@@ -115,8 +114,9 @@ def preflight(data):
             if assertion.value_type not in {"native", "decimal", "datetime"}:
                 issue(f"assertions.{assertion_index}.value_type", "未知比较类型")
         for ref in step.plugin_refs:
-            if ref not in PLUGIN_VERSIONS:
-                issue("plugin_refs", "未注册或不支持的插件版本: " + ref)
+            # 当前插件由 worker 按运行类型装配，没有逐步骤选择消费者。
+            # 在实现选择语义前明确拒绝，避免合法字符串被编译静默丢弃。
+            issue("plugin_refs", "当前不支持逐步骤插件选择: " + ref)
         if phases[step.phase] < previous_phase:
             issue("phase", "步骤须按准备、动作、验证、清理排序")
         previous_phase = phases[step.phase]

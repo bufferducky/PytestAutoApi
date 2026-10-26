@@ -10,7 +10,7 @@ from testflow_engine import AssertionSpec, RequestSpec
 
 
 class Selector(PublicModel):
-    strategy: Literal["role", "label", "testid", "accessibility_id", "resource_id"]
+    strategy: Literal["role", "label", "testid", "placeholder", "accessibility_id", "resource_id"]
     value: str
     name: Optional[str] = None
 

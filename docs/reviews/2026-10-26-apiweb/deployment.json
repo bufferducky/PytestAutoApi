@@ -1,0 +1,122 @@
+{
+  "date": "2026-10-26",
+  "release_tag": "20261026-apiweb-181749",
+  "release_dir": "/home/ubuntu/pytestautoapi/releases/20261026-apiweb-181749",
+  "previous_release": "/home/ubuntu/pytestautoapi/releases/20261025-mysql-live-v1",
+  "backup_dir": "/home/ubuntu/pytestautoapi/backups/20261026-apiweb-181749",
+  "image_id": "sha256:fe29c79fc0a046d63b217ab4996aad4c3967723190db858fed1a2e02a7e7c2cc",
+  "archive_sha256": "2dfec653b635333b8c1c79389e05ef37a8e1fa4237603a619de9db75e06d14eb",
+  "preserved_catalog_counts": {
+    "environments": 3,
+    "scenarios": 5,
+    "suite-assets": 1,
+    "targets": 3,
+    "identity-profiles": 0,
+    "context-bindings": 0,
+    "runs": 4
+  },
+  "backup_sha256": [
+    "f3bb21a74f41b34ea6ae24e0bdd36f540e7cc14c7196828409e8fdbfb1f0616f  /home/ubuntu/pytestautoapi/backups/20261026-apiweb-181749/platform-mysql.sql",
+    "3f8f3cc0c236321ffcdc873477718bb0d58547e5a527acc7acdb68323e31b938  /home/ubuntu/pytestautoapi/backups/20261026-apiweb-181749/platform-data.tar.gz"
+  ],
+  "services": [
+    "pytestautoapi-web-1 nginx:stable-alpine Up 5 minutes",
+    "pytestautoapi-backend-1 pytestautoapi-backend:20261026-apiweb-181749 Up 6 minutes (healthy)",
+    "pytestautoapi-mysql-1 mysql:8.4 Up 24 hours (healthy)"
+  ],
+  "query_verification": {
+    "environment_id": "5412d60afd294d7c9c5d0e02271cf263",
+    "suite_id": "fd512d63096b46dbb7c3af1631281a78",
+    "suite_version": 1,
+    "journey_id": "6fa4dc9e92484f0ca83d3fd82f8cdeac",
+    "journey_version": 1,
+    "preflight": {
+      "configuration": "passed",
+      "authentication": "passed",
+      "context": "passed",
+      "service": "passed"
+    },
+    "api": {
+      "run_id": "62b5314b57684d9098e35fe938dc5b61",
+      "status": "succeeded",
+      "counts": {
+        "total": 4,
+        "errors": 0,
+        "failed": 0,
+        "passed": 4,
+        "blocked": 0,
+        "planned": 4,
+        "skipped": 0,
+        "executed": 4,
+        "requests": 4,
+        "assertions": 12,
+        "authentication_requests": 1
+      },
+      "cleanup_status": "succeeded",
+      "business_scope": "yanji_query",
+      "environment_id": "5412d60afd294d7c9c5d0e02271cf263"
+    },
+    "web": {
+      "run_id": "7aea5886f7d84654868540261968cbeb",
+      "status": "succeeded",
+      "counts": {
+        "total": 8,
+        "errors": 0,
+        "failed": 0,
+        "passed": 8,
+        "blocked": 0,
+        "planned": 8,
+        "skipped": 0,
+        "executed": 8,
+        "requests": 1,
+        "assertions": 6
+      },
+      "cleanup_status": "succeeded",
+      "business_scope": "yanji_web",
+      "environment_id": "5412d60afd294d7c9c5d0e02271cf263"
+    },
+    "chromium": "156.0.8078.4",
+    "scope": "test_query_smoke_only",
+    "full_business_acceptance": false,
+    "business_production_accessed": false,
+    "secrets_printed": false
+  },
+  "public_check": {
+    "url": "https://test.ysspace2099.com",
+    "anonymous_health_status": 401,
+    "authenticated_page_status": 200,
+    "frontend_script": "/assets/index-Cz61aKz-.js",
+    "frontend_matches_local": true,
+    "/api/v1/health/live": {
+      "http": 200,
+      "status": "ok"
+    },
+    "/api/v1/runner-capabilities": {
+      "http": 200,
+      "web": {
+        "playwright_installed": true,
+        "available": true,
+        "chromium_version": "156.0.8078.4"
+      }
+    },
+    "/api/v1/regression-packs/yanji": {
+      "http": 200,
+      "contracts": 16
+    }
+  },
+  "business_production_accessed": false,
+  "full_business_acceptance": false,
+  "password_values_in_receipt": false,
+  "source_permission_fix_verified": true,
+  "public_browser_check": {
+    "url": "https://test.ysspace2099.com/cases",
+    "http_status": 200,
+    "business_assets_visible": true,
+    "published_version_selected": 1,
+    "test_context_selected": true,
+    "page_errors": [],
+    "screenshot": ".trellis/tasks/10-25-yanji-single-qa-roadmap/research/deployed-workbench.png"
+  },
+  "server_deployed": true,
+  "deployment_authorization": "2026-10-26 用户：部署一下服务器，我看看呢"
+}

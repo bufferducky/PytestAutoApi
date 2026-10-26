@@ -85,7 +85,7 @@ class JourneyService:
                     if action.selector is None:
                         raise ValueError("动作缺语义selector")
                     allowed = (
-                        {"role", "label", "testid"}
+                        {"role", "label", "testid", "placeholder"}
                         if model.runner_type == "web"
                         else {"accessibility_id", "resource_id"}
                     )
@@ -161,6 +161,10 @@ class JourneyService:
         if not isinstance(build, str) or not build.strip():
             raise HTTPException(400, "build必须为非空标识")
         payload = {
+            "business_scope": "yanji_web"
+            if data["target_ref"]
+            and snapshot["target"]["base_url"] == "https://web-test.yanjiai.com"
+            else "unclassified",
             "build": build,
             "execution_mode": "ui_journey",
             "transport_mode": "live",

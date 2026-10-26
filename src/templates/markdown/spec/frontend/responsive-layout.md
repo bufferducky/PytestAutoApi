@@ -35,3 +35,8 @@
 与用户手机截图一致。修复后相同视口标题宽度约 482px、高度约 58px，
 品牌区与导航项均为 48px；54 组本地页面/宽度检查通过。
 完整复盘见 `docs/bug-analysis-mobile-layout.md`。
+
+
+## 非空数据边界（2026-10-26）
+
+真实创建运行后再检查首页/运行页；空库通过不能证明长 UUID、非空 JSON 和诊断表格可收缩。首页运行卡片的 Flex 子项须 min-width:0/可换行，长 ID 和运行详情有明确换行或局部滚动。tests/backend/test_platform_frontend_browser.py 已将默认表单创建的真实运行带入六路由/九宽度检查，不能先清空数据来规避。

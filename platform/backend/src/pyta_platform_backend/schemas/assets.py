@@ -78,3 +78,18 @@ class AssetRunRequest(PublicModel):
     environment_id: Optional[str] = None
     parameters: dict = Field(default_factory=dict)
     requested_by: str = "platform-user"
+
+
+class DraftDebugRequest(PublicModel):
+    """未保存编辑的独立执行快照，不创建草稿或发布版本。"""
+
+    draft: dict
+    asset_id: Optional[str] = None
+    revision: Optional[int] = Field(None, ge=1)
+    step_id: Optional[str] = None
+    inputs: dict = Field(default_factory=dict)
+    environment_id: Optional[str] = None
+    parameters: dict = Field(default_factory=dict)
+    build: str = "unspecified"
+    live_confirmed: Literal[True]
+    requested_by: str = "platform-user"

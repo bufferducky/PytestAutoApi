@@ -83,6 +83,9 @@ class ContextService:
                     ):
                         raise ValueError("allowed_upload_origins只能是明确无凭证的HTTP(S)源")
                 data["base_url"] = data["base_url"].rstrip("/")
+                reserved = {data["auth"]["header_name"].lower(), "dept-id", "tenant-id", "host"}
+                if any(key.lower() in reserved for key in data["request_headers"]):
+                    raise ValueError("目标默认请求头不能覆盖认证、租户/项目或 Host")
                 if self.management.get_environment_by_id(data["environment_id"]) is None:
                     raise KeyError("environment 不存在")
                 endpoint(data["base_url"], data["auth"]["login_path"])

@@ -1,0 +1,4485 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "system": "center",
+      "source": "docs/reverse-engineering/yanji/web-2026-10-25/center/static-api.json",
+      "source_sha256": "0ffb1cc037a7263aad29c80357986f8c3dc75700cb5f3e4f59ad20298772dfb7",
+      "entries": [
+        {
+          "url_expression": "/api/v1/app_version/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 243,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/app_version/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 322,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/event_log_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1129,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 813,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/repush/${w}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1215,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/request_log_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1041,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 889,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/client/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 964,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/add_template_scene",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1842,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/batch_update_chapter_sort",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1730,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/chapter_details_by_template_id/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2348,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/chapter_list_by_template_id/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1024,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/chapter_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1499,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/copy_template",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 229,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/delete_chapter/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1370,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/delete_template_scene/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2099,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/delete_template/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 894,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/edit_chapter/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1144,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/issue_consult_summary_template",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1591,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/save_chapter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1249,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/save_template",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 772,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/template_list_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 563,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/template_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 671,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/template_scene_list/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2236,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary_template/update_template_scene",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1969,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/edit_condition/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 351,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/save_condition",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 449,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/add_evaluate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2569,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/chapter_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2927,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/copy_evaluate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3470,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/delete_chapter/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3231,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/delete_evaluate/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2808,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/evaluate_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2471,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/evaluate_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3023,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/issue_evaluate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3350,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/save_chapter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3113,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/update_evaluate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2687,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/query_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/channels/matrix",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 368,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/channels/matrix",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 282,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/decayWindow/deleteItem/${t}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 674,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/decayWindow/detail/${t}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 564,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/decayWindow/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 467,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/decayWindow/save/${t}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 813,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/lifecycleThresholds/deleteItem/${l}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 690,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/lifecycleThresholds/detail/${l}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 572,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/lifecycleThresholds/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 467,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/lifecycleThresholds/save/${l}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 837,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/personaContent/deleteItem/${m}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 752,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/personaContent/detail/${m}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 638,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/personaContent/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 537,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/personaContent/save/${m}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 894,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/referral/deleteItem/${a}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 574,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/referral/detail/${a}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 478,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/referral/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 395,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/referral/save/${a}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 699,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/scoreMappings/deleteItem/${a}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1177,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/scoreMappings/detail/${a}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 965,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/scoreMappings/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 876,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/scoreMappings/save/${a}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1069,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customerProfile/template/template_copy",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3615,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 151,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/${e}",
+          "method": "DELETE",
+          "line": 1,
+          "column_utf16": 361,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/${e}",
+          "method": "PUT",
+          "line": 1,
+          "column_utf16": 256,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/${e}/enabled",
+          "method": "PUT",
+          "line": 1,
+          "column_utf16": 464,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/${e}/sub-tables",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1295,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/template",
+          "method": "PUT",
+          "line": 1,
+          "column_utf16": 1174,
+          "data_keys": [
+            "content"
+          ]
+        },
+        {
+          "url_expression": "/api/v1/daily-report/config/template",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1092,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/enums",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 591,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/push-now",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 665,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/records",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 914,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/records/stats",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 997,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/retry",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 792,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/sub-table",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1385,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/sub-table/${e}",
+          "method": "DELETE",
+          "line": 1,
+          "column_utf16": 1601,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/daily-report/sub-table/${e}",
+          "method": "PUT",
+          "line": 1,
+          "column_utf16": 1493,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/add_log",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 879,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/confirm_posting",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 477,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/log_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 983,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 799,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/posting_log_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 384,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/revoke_posting?id=${p.id}&reason=${p.reason}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 722,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/void_posting?id=${p.id}&reason=${p.reason}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 590,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/content_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1233,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/detail/${p}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 920,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 829,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/template_copy",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1120,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/template_delete/${p}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1345,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/discussionType/template_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1007,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/file/generate_file_upload_url",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1067,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotword/delete_package/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2921,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotword/edit_package/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2718,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotword/issue_hot_word_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3043,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotword/package_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2633,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotword/save_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2816,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/delete/${t}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 479,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 63,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/role_class_options",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 210,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/role_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 130,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 382,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/industry/template_defaults/${t}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 291,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/issue_log/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 657,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/add_judgment",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2096,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/copy_judgment",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2526,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/delete_judgment/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2311,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/issue_judgment",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2418,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/judgment_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2010,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/judgment/update_judgment",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2202,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/order/cancel?id=${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 624,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/order/log/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 722,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/order/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 457,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/order/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 530,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/addSolution",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 160,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/analysisSolutionLogPage",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 666,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/editRate",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 362,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/getAnalysisServers",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 268,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/getAnalysisSolutions",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/getSolutionSelectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 933,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/saveRate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 446,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/saveTenantSolutionConfig",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1030,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/setDefaultSolution",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 551,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/tenantSolutionConfigLogPage",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1152,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/price_manage/tenantSolutionConfigPage",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 832,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/product/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/product/menuIds/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 316,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/product/menuTree",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 387,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/product/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 220,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/product/selectList",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 139,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/add_dimension",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3672,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/add_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4499,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/add_point",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3992,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/confirm_reference",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4390,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/copy_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5081,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/delete_dimension/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3885,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/delete_package/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4708,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/delete_point/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4093,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/history/dimension/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 5294,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/history/point/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 5387,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/issue_quality_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4968,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package_detail/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4812,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3589,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4893,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/full_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5185,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/reference_config_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4299,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/update_dimension",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3777,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/update_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4602,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/update_point",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4195,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_analyze_task_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 373,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 464,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/delete/${e}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 296,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 131,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 203,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/select_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 394,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/selectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 63,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/setup/reception_form_setup",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 135,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/setup/save_reception_form_setup",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 237,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/param_catalog",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1320,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/prompt_content_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1401,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/prompt_delete/${s}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1718,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/task_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1039,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/template_copy",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1607,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/template_detail/${s}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1227,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/template_list_v2",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1134,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/systemPrompt/template_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1496,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/add_Tag",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 764,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/add_tag_type",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1143,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/copy_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1909,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/delete_package/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1625,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/delete_tag_type/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1244,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/delete_tag/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1346,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/edit_tag_type",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1041,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/issue_tag_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1803,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/package_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1443,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/save_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1524,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/tag_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1726,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/tag_type_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 959,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/update_Tag",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 860,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/content_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1305,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/detail/${f}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1224,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 829,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/template_copy",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1004,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/template_delete/${f}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1111,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/taxonomy/template_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 897,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/selectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 230,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/add_device",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 224,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/delete_device/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 325,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/delete_wx_data_push_config/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 800,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/department_tree",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 318,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/dept_product_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 501,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/device_list/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 146,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/edit_department/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 403,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/edit_tenant/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 240,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/generate_saas_manage_url/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 916,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/industry_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 427,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/project_list",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 148,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/project_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/save_department",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 485,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/save_tenant",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 138,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/save_wx_data_push_config",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 685,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/tenant_dashboard_users",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1026,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tenant/wx_data_push_config_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 591,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/asr_selector",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 589,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/captcha",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 63,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/send_sms_verify_code",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 129,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 668,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/delete${e}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 563,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/menus",
+          "method": "GET",
+          "line": 43,
+          "column_utf16": 29975,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 398,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/password_login",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 216,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 470,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/select_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 319,
+          "data_keys": null
+        }
+      ]
+    },
+    {
+      "system": "saas",
+      "source": "docs/reverse-engineering/yanji/web-2026-10-25/saas/static-api.json",
+      "source_sha256": "db3d5803486aa1e091e59207a1f013dabc271107309b349d6092f425bc48e704",
+      "entries": [
+        {
+          "url_expression": "/api/v1/${e}/bind_rule_group",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 533,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/${e}/get_bind_rule_group/${r}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 448,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/analysis/consult_quality",
+          "method": "POST",
+          "line": 2,
+          "column_utf16": 13508,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/analysis/consultation_evaluation",
+          "method": "POST",
+          "line": 2,
+          "column_utf16": 13683,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/analysis/demand_tag",
+          "method": "POST",
+          "line": 2,
+          "column_utf16": 13598,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/analysis/weekly_report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1800,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/analysis/weekly_report/filter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1685,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/competitor_analysis/filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 28264,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/competitor_analysis/report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 28175,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/add_template_scene",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1368,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/batch_update_chapter_sort",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1815,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/change_consult_summary_template_status",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1131,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/chapter_list_by_template_id/${l.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 934,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/chapter_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1731,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/copy_template?copyId=${l.id}&name=${l.templateName}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 791,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/delete_chapter/${l.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2054,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/delete_template_scene/${l.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1609,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/delete_template/${l.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 674,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/edit_analyze/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2800,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/edit_chapter/${l.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1040,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/edit_template/${l.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 437,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/query_analyze_history/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3269,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/save_analyze",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2890,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/save_chapter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1941,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/save_template",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2170,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/save_template",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 560,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/template_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 344,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/template_scene_list/${l.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1270,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consult_summary/update_template_scene",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1487,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/chapter_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 377,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/copy?copyId=${e.id}&name=${e.name}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 563,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/delete_chapter/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 820,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/delete?id=${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 264,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/evaluate_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 473,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/save_chapter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 702,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/consultation_evaluate/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 152,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer_judgment/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2427,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer_judgment/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2512,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/excelDownLoad",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 823,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/excelUpload",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 920,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/merge",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 706,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/merge/logs",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 441,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/merge/search",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 357,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 648,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/profile/detail_new",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 494,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/profile/export",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 586,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/profile/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 409,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/query_filter",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 29284,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/selector_page_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1320,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 724,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/visit-import/history",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 230,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/visit-import/template",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 500,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/customer/visit-import/upload",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 322,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/data_scope/team/page",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 28731,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/data_scope/team/save",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 28816,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/data_scope/user/page",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 28646,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/data_scope/user/save",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 28923,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/add_posting",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 874,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/consumption_overview",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 983,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/consumption_stat",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 672,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/export_log",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 766,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_account/log_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 586,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/brands",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 728,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/categories/${i.productTypeName}/delete",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1089,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/import",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 904,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/import-template",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 801,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/items",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 986,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/items/${i.id}/delete",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1354,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/items/${i.id}/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1465,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 462,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/product-types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 542,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/stats",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 389,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/sub-categories/${i.subProductTypeName}/delete",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1218,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dept_catalog/sub-types?productType=${i.productType}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 623,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/document/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1223,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/document/rows",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1311,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/document/template",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1005,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/document/upload",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1126,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/script/export",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1996,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/script/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2113,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/script/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1900,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/activate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1802,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2303,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/estimate",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1408,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/estimate-activate",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1696,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 912,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/progress?taskId=${encodeURIComponent(r)}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2622
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/reason",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2398,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/result",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2208,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/retry",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1603,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/save-draft",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1505,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/dormant-activation/task/start",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2493,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/exit_exam",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2334,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/get_transcript",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4398,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/start",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2082,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/start_review",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3086,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/submit_answer",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2154,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/submit_exam",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2234,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/submit_wrong_answer",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3165,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/exam/wrong_book",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3008,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/file/generate_file_upload_url",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 626,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/add_speech_to_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 992,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/change_speech_sort_num",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1578,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/create_speech_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1458,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/delete_package?packageId=${l.packageId}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1909,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/delete_speech_from_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1112,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/export_speech_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2038,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 722,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/issue_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2156,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/package_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1699,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/package_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 633,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/package_speech_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 797,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/recovery_speech_to_package",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1237,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/search_golden_speech",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 894,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/speech_detail_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1362,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/golden_speech/update_package_name",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1791,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/add_contents",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 787,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/add_packages",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 421,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/add_packages_project",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 696,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/del_contents",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 892,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/del_packages",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 504,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/export_contents/${c}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 997,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 345,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/update_packages",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 610,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/hotWord/update_weight",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1080,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/iot_device/device_list",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28380,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/iot_device/link_user",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27351,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/iot_device/no_link_selectors",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 27257,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/iot_device/unlink_user",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27561,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/add",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 149,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/available_elements",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 875,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/check_lesson",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 689,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/del",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 316,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 232,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/issue",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 492,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/learn_progress",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5597,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/learn_progress_lesson",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5692,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/pull_List",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 599,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_collection/remove_lesson",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 399,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_material/edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3753,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_task/del",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5207,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson_task/edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5106,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/add",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 845,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/add_issue",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1334,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/async_exam_report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3354,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/bindVideoToLesson",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 6229,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/check_balance",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2008,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/collection_task_elements",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 781,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/del_batch",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1138,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/del_relation_file",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4051,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/del/${e.id}",
+          "method": "DELETE",
+          "line": 1,
+          "column_utf16": 1034,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1523,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 939,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/exit_exam_report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4313,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/init_exam",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1701,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/init_report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1599,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/init_video",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1801,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/issue",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1238,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/learn_progress",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4933,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/learn_progress_task",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5017,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/learn_task_report_new",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3857,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/list",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4159,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/my_learn_new",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3273,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/my_persona_task",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4668,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/my_practice",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4588,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 771,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/relation_file",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3947,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/set_active_video",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1902,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/upload_operate",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3544,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lesson/video_guide?lessonId=${e.lessonId}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 6445,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/logs/business/add",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 20919,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/logs/business/add",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1129,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/logs/business/customer_record_bind/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4596,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/logs/business/page",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 20835,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lost_deal/export_lost_deal_reception_form",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 10346,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lost_deal/lost_deal_analysis",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 10049,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lost_deal/lost_deal_analysis_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 10246,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/lost_deal/lost_deal_reception_form_page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 10142,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/del_batch",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 664,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/del/${e.id}",
+          "method": "DELETE",
+          "line": 1,
+          "column_utf16": 553,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/file_types",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 211,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 131,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/saveFile",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 6338,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/updateFileName",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 6539,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/upload",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 289,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/upload_progress",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 440,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/material_file/video/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 6141,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/customer_detail?customerId=${e.customerId}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 243,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/employee_performance/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1007,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/employee_performance/summary",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 804,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/export",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 523,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/export_record",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 611,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/page_filter",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 150,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/re_analyze",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3155,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/traffic_customer_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1212,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/traffic_overview",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1114,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/online_consultation/work_review",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 914,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/permission/dept_application_menu",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 40878,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/permission/dept_servers",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1503,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/permission/manager_permission_function_button/${e}/${t}",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 41065,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/permission/manager_permission_menu/${e}",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 40967,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/lesson_asset",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2604,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/lesson_asset/issue",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1412,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/lesson_asset/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2515,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/person/del_batch",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2812,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/person/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2432,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/persona/consultation_evaluate_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5794,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/persona/consultation_evaluate_select",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5900,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/persona/init_real",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 6030,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/progress_persona",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4752,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/progress_persona_task",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4840,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/del",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5410,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/detail_form/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2921,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5307,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/issue",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2709,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/playback",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5512,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/report",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3462,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/practice/task/start",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4232,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/delete_point",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 465,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/delete?id=${b.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 761,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/detail?id=${b.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 869,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/dimension/delete?id=${b.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 955,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/full_save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1271,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/history/dimension/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1073,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/history/point/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1174,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 571,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/quality/package/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 654,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/question_bank/enable",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3649,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/question_bank/insert_edit",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4479,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/analyze_task_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3697,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/batch_delete_record",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3557,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/batch_import",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4424,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/change_lost_deal_status",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4199,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/delete",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1294,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/detail/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1589,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/download_record_text",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 496,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/export",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1399,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/export_record",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 353,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/export_record_text",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 205,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/export_template",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4320,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1190,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_analyze_task",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3461,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_analyze_task_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 3367,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_filter",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 29120,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_record",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1759,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_record_filter",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1671,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_record_text",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 110,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/query_record_transcribe_status/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4698,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/re_transcribe/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 4805,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/record_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2511,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/record_detail?recordId=${e.recordId}&receptionFormId=${e.receptionFormId}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2602,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 396,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/save_analyze_downvote",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4079,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/save_user_audio",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 739,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/selector_list",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1077,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/selector_list_by_record_id",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 853,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/selector_list_by_record_id?recordId=${e.recordId}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 957,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/start_record/${e}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 179,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/stop_record/${e}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 288,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/unbind_reception_form_records",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 2361,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 648,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/reception_form/update_reception_customer_id",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 521,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/recording-bind/forms/${e}/recordings",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2137,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/recording-bind/forms/${e}/recordings",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1995,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/recording-bind/re-analyze",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3024,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/recording-bind/recordings/${e}/forms",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 2249,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/recording-bind/recordings/${e}/forms",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1851,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/application_menu_by_role_ids/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 192,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/delete/${e}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 495,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/edit/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 356,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 284,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/role_template_selectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 587,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 424,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/role/selectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 70,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/conditions/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 294,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/delete/${e}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 218,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/field_options",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 637,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/list_all",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 373,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 64,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/rule_group/save",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 141,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/seat/dept_product_detail",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 205,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/seat/save_boss_order_seat_user",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 283,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/setup/reception_form_setup?category=${e!=null&&e.category?e==null?void 0:e.category:\"工牌\"}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 775,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/setup/save_reception_form_setup",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 940,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/add_field",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 337,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/delete_field",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 713,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/edit_analyze",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1050,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/package_page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 258,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/query_analyze_history",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1231,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/query_type",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 536,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/save_analyze",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 1130,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/update_field",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 435,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tag/update_type",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 613,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/analysisLikeOrDislike",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 475,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/export",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1002,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/finishTask",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 593,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/getQueryParams?type=${a.type}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 811,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/getTaskCenterDetail?id=${a.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 381,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/getTaskCenterTypeCount",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 905,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/page",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 301,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task_center/saveQueryParam",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 700,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/task/token_asr_stats",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 501,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/add",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 314,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/delete?id=${t}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 501,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/list_online_user",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 1314,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/list_user",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 63,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/page",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 243,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/selectors",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 175,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/team/update",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 406,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/bi_info",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 26096,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/captcha",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 25938,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/send_sms_verify_code",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26165,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/tool/send_sms_verify_code",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26007,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user_reception/query_record",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3834,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user_reception/update_record",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 3945,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/batch_import",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27807,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/change_status",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26844,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/delete${e}",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27004,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/download_import_template",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 27669,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/download_visit_statistics_list",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28050,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/edit${e}",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 26927,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/export",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28283,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/heart_beat",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 29212,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/info",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 26557,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/link_device",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27458,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/list_filter",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 26622,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/logout",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27105,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/page",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 26695,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/password_login",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26383,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/reset_password",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26277,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/role_info",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28203,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/save",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26770,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/selector_list",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28562,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/selector_list_no_device",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 28468,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/sms_verify_code_login",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 26467,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/team_user_selectors",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 29030,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/unlink_device",
+          "method": "POST",
+          "line": 103,
+          "column_utf16": 27174,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/user/visit_statistics_list",
+          "method": "GET",
+          "line": 103,
+          "column_utf16": 27958,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/visit_qa/session",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 4917,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/visit_qa/session/${e.id}",
+          "method": "POST",
+          "line": 1,
+          "column_utf16": 5200,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/visit_qa/session/chat/${r}",
+          "method": "POST",
+          "line": 2,
+          "column_utf16": 30099
+        },
+        {
+          "url_expression": "/api/v1/visit_qa/session/list/${e.receptionFormId}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 5017,
+          "data_keys": null
+        },
+        {
+          "url_expression": "/api/v1/visit_qa/session/messages/${e.id}",
+          "method": "GET",
+          "line": 1,
+          "column_utf16": 5113,
+          "data_keys": null
+        }
+      ]
+    },
+    {
+      "system": "app",
+      "source": "docs/reverse-engineering/yanji/1.0.22-109/js-static-facts.json",
+      "source_sha256": "6d02e7f5a3fb0c5c41025fc99cc7b6b5201cd15b93b18ecd193afc2a30e023f1",
+      "entries": [
+        {
+          "path": "/v1/user/info",
+          "method": "GET",
+          "start": 8434,
+          "end": 8449
+        },
+        {
+          "path": "/v1/user/change_user_info",
+          "method": "POST",
+          "start": 8475,
+          "end": 8502
+        },
+        {
+          "path": "/v1/permission/dept_app_menu",
+          "method": "GET",
+          "start": 8539,
+          "end": 8569
+        },
+        {
+          "path": "/v1/user/role_info",
+          "method": "GET",
+          "start": 8588,
+          "end": 8608
+        },
+        {
+          "path": "/v1/user/user_voiceprint",
+          "method": "GET",
+          "start": 8635,
+          "end": 8661
+        },
+        {
+          "path": "/v1/user/save_user_voiceprint",
+          "method": "POST",
+          "start": 8689,
+          "end": 8720
+        },
+        {
+          "path": "/v1/file/generate_file_upload_url",
+          "method": "POST",
+          "start": 8751,
+          "end": 8786
+        },
+        {
+          "path": "/v1/tool/send_sms_verify_code",
+          "method": "POST",
+          "start": 12110,
+          "end": 12141
+        },
+        {
+          "path": "/v1/user/sms_verify_code_login",
+          "method": "POST",
+          "start": 12179,
+          "end": 12211
+        },
+        {
+          "path": "/v1/user/password_login",
+          "method": "POST",
+          "start": 12264,
+          "end": 12289
+        },
+        {
+          "path": "/v1/user/reset_password",
+          "method": "POST",
+          "start": 12343,
+          "end": 12368
+        },
+        {
+          "path": "/v1/reception_form/query_filter",
+          "method": "GET",
+          "start": 27753,
+          "end": 27786
+        },
+        {
+          "path": "/v1/user/heart_beat",
+          "method": "GET",
+          "start": 27815,
+          "end": 27836
+        },
+        {
+          "path": "`/v1/setup/reception_form_setup?category=${(null==e?void 0:e.category)?null==e?void 0:e.category:\"工牌\"}`",
+          "method": "GET",
+          "start": 27864,
+          "end": 27967
+        },
+        {
+          "path": "/v1/reception_form/start_record",
+          "method": "POST",
+          "start": 28015,
+          "end": 28048
+        },
+        {
+          "path": "/v1/reception_form/start_record",
+          "method": "POST",
+          "start": 28060,
+          "end": 28093
+        },
+        {
+          "path": "e?`/v1/reception_form/stop_record/${e}`:\"/v1/reception_form/stop_record\"",
+          "method": "POST",
+          "start": 28131,
+          "end": 28203
+        },
+        {
+          "path": "`/v1/reception_form/query_customer_reception_form_history?customerId=${e}`",
+          "method": "GET",
+          "start": 28239,
+          "end": 28313
+        },
+        {
+          "path": "`/v1/tag/query_analyze_history?id=${e}`",
+          "method": "GET",
+          "start": 28348,
+          "end": 28387
+        },
+        {
+          "path": "`/v1/tag/edit_analyze?id=${e}`",
+          "method": "GET",
+          "start": 28412,
+          "end": 28442
+        },
+        {
+          "path": "`/v1/consult_summary/query_analyze_history/${e}`",
+          "method": "GET",
+          "start": 28475,
+          "end": 28523
+        },
+        {
+          "path": "`/v1/consult_summary/edit_analyze/${e}`",
+          "method": "GET",
+          "start": 28555,
+          "end": 28594
+        },
+        {
+          "path": "/v1/reception_form/page",
+          "method": "GET",
+          "start": 28621,
+          "end": 28646
+        },
+        {
+          "path": "/v1/reception_form/record_bind_reception_form",
+          "method": "POST",
+          "start": 28678,
+          "end": 28725
+        },
+        {
+          "path": "`/v1/recording-bind/forms/${e}/recordings`",
+          "method": "DELETE",
+          "start": 28819,
+          "end": 28861
+        },
+        {
+          "path": "`/v1/reception_form/read_share/${e}`",
+          "method": "POST",
+          "start": 28889,
+          "end": 28925
+        },
+        {
+          "path": "/v1/tag/save_analyze",
+          "method": "POST",
+          "start": 28951,
+          "end": 28973
+        },
+        {
+          "path": "/v1/reception_form/reception_form_bind_records",
+          "method": "POST",
+          "start": 29006,
+          "end": 29054
+        },
+        {
+          "path": "/v1/reception_form/save",
+          "method": "POST",
+          "start": 29081,
+          "end": 29106
+        },
+        {
+          "path": "/v1/reception_form/reception_form_batch_bind_customer",
+          "method": "POST",
+          "start": 29152,
+          "end": 29207
+        },
+        {
+          "path": "/v1/customer/update",
+          "method": "POST",
+          "start": 29240,
+          "end": 29261
+        },
+        {
+          "path": "/v1/consult_summary/save_analyze",
+          "method": "POST",
+          "start": 29299,
+          "end": 29333
+        },
+        {
+          "path": "/v1/reception_form/selector_list",
+          "method": "GET",
+          "start": 29367,
+          "end": 29401
+        },
+        {
+          "path": "/v1/reception_form/query_record",
+          "method": "GET",
+          "start": 29429,
+          "end": 29462
+        },
+        {
+          "path": "`/v1/reception_form/detail/${e}?isSharePage=${t}`",
+          "method": "GET",
+          "start": 29497,
+          "end": 29546
+        },
+        {
+          "path": "/v1/reception_form/record_detail",
+          "method": "GET",
+          "start": 29572,
+          "end": 29606
+        },
+        {
+          "path": "/v1/permission/dept_servers",
+          "method": "GET",
+          "start": 29647,
+          "end": 29676
+        },
+        {
+          "path": "/v1/user/selector_list",
+          "method": "GET",
+          "start": 29707,
+          "end": 29731
+        },
+        {
+          "path": "/v1/user/team_user_tree",
+          "method": "GET",
+          "start": 29754,
+          "end": 29779
+        },
+        {
+          "path": "/v1/reception_form/reception_form_share",
+          "method": "POST",
+          "start": 29808,
+          "end": 29849
+        },
+        {
+          "path": "/v1/reception_form/check_customer_today_reception_form",
+          "method": "GET",
+          "start": 29890,
+          "end": 29946
+        },
+        {
+          "path": "/v1/reception_form/merge_reception_form",
+          "method": "POST",
+          "start": 29974,
+          "end": 30015
+        },
+        {
+          "path": "/v1/reception_form/batch_delete_record",
+          "method": "POST",
+          "start": 30053,
+          "end": 30093
+        },
+        {
+          "path": "/v1/reception_form/delete",
+          "method": "POST",
+          "start": 30129,
+          "end": 30156
+        },
+        {
+          "path": "/v1/reception_form/query_match_record",
+          "method": "GET",
+          "start": 30188,
+          "end": 30227
+        },
+        {
+          "path": "/v1/reception_form/selector_match_list",
+          "method": "GET",
+          "start": 30260,
+          "end": 30300
+        },
+        {
+          "path": "/v1/reception_form/query_no_match_record_count",
+          "method": "GET",
+          "start": 30333,
+          "end": 30381
+        },
+        {
+          "path": "/v1/reception_form/change_lost_deal_status",
+          "method": "POST",
+          "start": 30407,
+          "end": 30451
+        },
+        {
+          "path": "\"/v1/customer/audio_asr_record_selectors?receptionFormId=\"+e.receptionFormId",
+          "method": "GET",
+          "start": 30491,
+          "end": 30567
+        },
+        {
+          "path": "/v1/customer/save_customer_voiceprint",
+          "method": "POST",
+          "start": 30598,
+          "end": 30637
+        },
+        {
+          "path": "/v1/recording-bind/re-analyze",
+          "method": "POST",
+          "start": 30662,
+          "end": 30693
+        },
+        {
+          "path": "\"/v1/reception_form/getAudioCutAndReceptionForm?recordId=\"+e.recordId",
+          "method": "GET",
+          "start": 30735,
+          "end": 30804
+        },
+        {
+          "path": "/v1/reception_form/check_copy_permission",
+          "method": "POST",
+          "start": 30833,
+          "end": 30875
+        },
+        {
+          "path": "/v1/reception_form/copy",
+          "method": "POST",
+          "start": 30902,
+          "end": 30927
+        },
+        {
+          "path": "`/v1/permission/manager_permission_function_button/${e}/${t}`",
+          "method": "GET",
+          "start": 62695,
+          "end": 62756
+        },
+        {
+          "path": "/v1/customer/query_filter",
+          "method": "GET",
+          "start": 80551,
+          "end": 80578
+        },
+        {
+          "path": "/v1/customer/page",
+          "method": "POST",
+          "start": 80604,
+          "end": 80623
+        },
+        {
+          "path": "`/v1/customer/getCustomerById?id=${e}`",
+          "method": "GET",
+          "start": 80650,
+          "end": 80688
+        },
+        {
+          "path": "/v1/customer/selector_page_list",
+          "method": "GET",
+          "start": 80718,
+          "end": 80751
+        },
+        {
+          "path": "/v1/customer/update",
+          "method": "POST",
+          "start": 80775,
+          "end": 80796
+        },
+        {
+          "path": "/v1/reception_form/update_reception_customer_id",
+          "method": "POST",
+          "start": 80835,
+          "end": 80884
+        },
+        {
+          "path": "`/v1/customer/profile/detail?id=${e.id}&isRecord=${e.isRecord}&channel=${e.channel}&roleName=${e.roleName}&receptionUser=${e.receptionUser}`",
+          "method": "GET",
+          "start": 80918,
+          "end": 81058
+        },
+        {
+          "path": "`/v1/customer/profile/detail_new?id=${e.id}&isRecord=${e.isRecord}&channel=${e.channel}&roleName=${e.roleName}&receptionUser=${e.receptionUser}${t}`",
+          "method": "GET",
+          "start": 81142,
+          "end": 81290
+        },
+        {
+          "path": "/v1/customer/profile/page",
+          "method": "POST",
+          "start": 81324,
+          "end": 81351
+        },
+        {
+          "path": "/v1/reception_form/query_reception_form_share",
+          "method": "GET",
+          "start": 106630,
+          "end": 106677
+        },
+        {
+          "path": "/v1/exam/start",
+          "method": "POST",
+          "start": 179960,
+          "end": 179976
+        },
+        {
+          "path": "/v1/exam/submit_answer",
+          "method": "POST",
+          "start": 179991,
+          "end": 180015
+        },
+        {
+          "path": "/v1/exam/submit_exam",
+          "method": "POST",
+          "start": 180030,
+          "end": 180052
+        },
+        {
+          "path": "/v1/exam/get_transcript",
+          "method": "POST",
+          "start": 180070,
+          "end": 180095
+        },
+        {
+          "path": "/v1/exam/start_review",
+          "method": "POST",
+          "start": 180111,
+          "end": 180134
+        },
+        {
+          "path": "/v1/exam/submit_wrong_answer",
+          "method": "POST",
+          "start": 180144,
+          "end": 180174
+        },
+        {
+          "path": "/v1/app_lesson/my_learn",
+          "method": "POST",
+          "start": 196149,
+          "end": 196174
+        },
+        {
+          "path": "/v1/app_lesson/practice/start",
+          "method": "POST",
+          "start": 199155,
+          "end": 199186
+        },
+        {
+          "path": "/v1/app_lesson/my_practice_task",
+          "method": "POST",
+          "start": 209227,
+          "end": 209260
+        },
+        {
+          "path": "/v1/exam/wrong_book",
+          "method": "GET",
+          "start": 337055,
+          "end": 337076
+        },
+        {
+          "path": "/v1/golden_speech/toggle_favorite",
+          "method": "POST",
+          "start": 342931,
+          "end": 342966
+        },
+        {
+          "path": "/v1/golden_speech/package_list",
+          "method": "GET",
+          "start": 356622,
+          "end": 356654
+        },
+        {
+          "path": "/v1/golden_speech/speech_detail_page",
+          "method": "GET",
+          "start": 356710,
+          "end": 356748
+        },
+        {
+          "path": "/v1/golden_speech/my_favorites",
+          "method": "GET",
+          "start": 356786,
+          "end": 356818
+        },
+        {
+          "path": "/v1/golden_speech/filter",
+          "method": "GET",
+          "start": 357054,
+          "end": 357080
+        },
+        {
+          "path": "/v1/lesson/collection_task_elements",
+          "method": "GET",
+          "start": 365885,
+          "end": 365922
+        },
+        {
+          "path": "/v1/analysis/my_weekly_report",
+          "method": "POST",
+          "start": 370116,
+          "end": 370147
+        },
+        {
+          "path": "/v1/reception_form/page",
+          "method": "GET",
+          "start": 1002949,
+          "end": 1002974
+        },
+        {
+          "path": "/v1/customer/page",
+          "method": "POST",
+          "start": 1002999,
+          "end": 1003018
+        },
+        {
+          "path": "/v1/lesson/detail",
+          "method": "GET",
+          "start": 1145477,
+          "end": 1145496
+        },
+        {
+          "path": "/v1/exam/exit_exam",
+          "method": "POST",
+          "start": 1159335,
+          "end": 1159355
+        },
+        {
+          "path": "/v1/app_lesson/sts_token",
+          "method": "GET",
+          "start": 1193276,
+          "end": 1193302
+        },
+        {
+          "path": "/v1/app_lesson/practice/end",
+          "method": "POST",
+          "start": 1195221,
+          "end": 1195250
+        },
+        {
+          "path": "/v1/practice/task/report",
+          "method": "POST",
+          "start": 1212303,
+          "end": 1212329
+        },
+        {
+          "path": "/v1/practice/task/playback",
+          "method": "POST",
+          "start": 1216260,
+          "end": 1216288
+        },
+        {
+          "path": "/v1/golden_speech/package_speech_list",
+          "method": "GET",
+          "start": 1220745,
+          "end": 1220784
+        }
+      ]
+    }
+  ]
+}

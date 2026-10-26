@@ -69,6 +69,7 @@ class RunSummaryResponse(BaseModel):
     execution_mode: str = "historical_unknown"
     transport_mode: str = "historical_unknown"
     validation_scope: str = "historical_unknown"
+    business_scope: str = "unclassified"
     legacy_sensitive: bool = False
     definition_hash: Optional[str] = None
     scenario_version_ref: Optional[str] = None

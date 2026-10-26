@@ -16,13 +16,16 @@ defineProps<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 4.6rem;
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
+
+.status-tag::before { content: ''; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
 
 .status-tag--success {
   background: rgba(22, 163, 74, 0.12);

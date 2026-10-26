@@ -3,7 +3,7 @@
     <header class="panel__header">
       <div>
         <h2 class="panel__title">{{ title }}</h2>
-        <p class="panel__description">{{ description }}</p>
+        <p v-if="description" class="panel__description">{{ description }}</p>
       </div>
       <slot name="actions" />
     </header>
@@ -17,14 +17,14 @@
 <script setup lang="ts">
 defineProps<{
   title: string;
-  description: string;
+  description?: string;
 }>();
 </script>
 
 <style scoped>
 .panel {
-  padding: 1.25rem;
-  border-radius: 1.35rem;
+  padding: 22px;
+  border-radius: var(--radius-large);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-soft);
@@ -41,13 +41,14 @@ defineProps<{
 
 .panel__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 15px;
 }
 
 .panel__description {
   margin: 0.45rem 0 0;
   color: var(--color-ink-muted);
   line-height: 1.7;
+  font-size: 12px;
 }
 
 .panel__body {
@@ -55,5 +56,6 @@ defineProps<{
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
+@media (max-width:540px) { .panel { padding: 16px; } }
 </style>
 

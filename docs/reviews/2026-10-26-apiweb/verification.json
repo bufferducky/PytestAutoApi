@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-26",
+  "scope": "apiweb_partial_delivery",
+  "full_goal_complete": false,
+  "default_tests": {
+    "passed": 275,
+    "skipped": 9,
+    "seconds": 133.49,
+    "command": ".venv/bin/python -m pytest -q",
+    "skip_scope": "7 explicit MySQL storage checks + 2 explicit browser checks"
+  },
+  "explicit_mysql_storage": {
+    "passed": 7,
+    "database": "isolated pyta_validation database"
+  },
+  "migration_safety": {
+    "passed": 10,
+    "scope": "offline SQLite source/target importer safety, separate from live MySQL claims"
+  },
+  "explicit_browsers": {
+    "passed": 2,
+    "seconds": 9.94,
+    "layout_combinations": 54,
+    "nonempty_runs": true
+  },
+  "static_checks": {
+    "ruff": "passed",
+    "frontend_reliability": "passed",
+    "vue_tsc_vite": "passed",
+    "git_diff_check": "passed",
+    "compose_config": "passed"
+  },
+  "image": {
+    "tag": "pyta-apiweb-review:final",
+    "id": "sha256:44e816f199d9a2bd4a1ffbb260ee144708c647dfe8d52d0b81df9128af24d957",
+    "uid": 10001,
+    "installed_wheel_resources": true,
+    "chromium": "156.0.8078.4",
+    "source_docs_required": false
+  },
+  "business_query": {
+    "scope": "final_linux_image_mysql_yanji_test_only",
+    "uid": 10001,
+    "runtime": {
+      "playwright_installed": true,
+      "available": true,
+      "chromium_version": "156.0.8078.4"
+    },
+    "api": {
+      "run_id": "4b79d44adb954e8eb15569e5c3191b3a",
+      "status": "succeeded",
+      "counts": {
+        "planned": 4,
+        "total": 4,
+        "executed": 4,
+        "requests": 4,
+        "assertions": 12,
+        "passed": 4,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "blocked": 0,
+        "authentication_requests": 1
+      },
+      "business_scope": "yanji_query",
+      "cleanup": "succeeded"
+    },
+    "web": {
+      "run_id": "a294192b6abd4b419a9003f2e0c85e2a",
+      "status": "succeeded",
+      "counts": {
+        "planned": 8,
+        "total": 8,
+        "executed": 8,
+        "requests": 1,
+        "assertions": 6,
+        "passed": 8,
+        "failed": 0,
+        "errors": 0,
+        "blocked": 0,
+        "skipped": 0
+      },
+      "business_scope": "yanji_web",
+      "cleanup": "succeeded"
+    },
+    "production_accessed": false,
+    "full_business_acceptance": false,
+    "credential_scan_passed": true
+  },
+  "first_ui_failures_retained": true,
+  "application_database_schema_changed": false,
+  "production_business_accessed": false,
+  "server_deployed": false,
+  "committed": false,
+  "remaining": [
+    "R07 full S01-S16 assets/write/restore validation",
+    "R09 full W01-W04 validation",
+    "complete business schedule/CI/release integration",
+    "center identity + second test project + restricted identity + dedicated write/restore resources"
+  ],
+  "deferred": [
+    "Android device acceptance",
+    "AI quality/provider execution"
+  ],
+  "validation_database_state": "stopped container retained: pyta-apiweb-validation"
+}

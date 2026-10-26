@@ -55,6 +55,7 @@ class TargetProfile(Profile):
     kind: Literal["center", "saas", "app", "practice", "default"] = "default"
     base_url: str
     requires_context: bool = False
+    request_headers: dict[str, str] = Field(default_factory=dict)
     allowed_upload_origins: list[str] = Field(default_factory=list)
     auth: LoginStrategy = Field(default_factory=LoginStrategy)
     checks: list[ContextCheck] = Field(default_factory=list)

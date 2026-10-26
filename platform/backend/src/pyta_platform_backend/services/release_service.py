@@ -8,6 +8,8 @@ from pyta_platform_backend.services.redaction import Redactor
 
 
 def exit_code(detail):
+    if detail.payload.get("run_purpose") == "debug":
+        return 3
     status = detail.status.value if hasattr(detail.status, "value") else detail.status
     if status == "failed":
         return 1
