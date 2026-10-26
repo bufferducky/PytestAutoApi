@@ -1,6 +1,6 @@
 {
   "date": "2026-10-27",
-  "scope": "个人接口自动化工作台；本地代码与隔离HTTP验证，未部署",
+  "scope": "个人接口自动化工作台；本地隔离HTTP验证与154服务器部署/公网验收",
   "backend_and_engine": {
     "command": ".venv/bin/python -m pytest tests/engine tests/compat tests/backend -q",
     "passed": 284,
@@ -47,10 +47,9 @@
     "node tests/frontend/environment-unsaved.cjs passed"
   ],
   "limits": [
-    "未执行本轮真实MySQL集成验证；数据存储复用现有JSON字段，无schema迁移",
-    "未调用公司业务接口，不宣称真实业务联调通过",
-    "生产未部署",
-    "保留原有70项未提交改动，未混合提交"
+    "未执行本轮独立MySQL自动化集成；已核实现网MySQL健康和原有ID完整保留",
+    "未调用公司业务接口，不宣称新增业务联调通过"
   ],
-  "planning": "工作区 .trellis/tasks/10-26-pyta-api-workbench-ux"
+  "planning": "工作区 .trellis/tasks/10-26-pyta-api-workbench-ux",
+  "deployment": "deployment.json"
 }

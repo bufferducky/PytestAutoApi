@@ -1,0 +1,40 @@
+{
+  "environments": {
+    "before": 4,
+    "after": 4,
+    "all_original_ids_preserved": true,
+    "added_default_targets": []
+  },
+  "scenarios": {
+    "before": 9,
+    "after": 9,
+    "all_original_ids_preserved": true,
+    "added_default_targets": []
+  },
+  "suites": {
+    "before": 2,
+    "after": 2,
+    "all_original_ids_preserved": true,
+    "added_default_targets": []
+  },
+  "targets": {
+    "before": 6,
+    "after": 7,
+    "all_original_ids_preserved": true,
+    "added_default_targets": [
+      "default-5412d60afd294d7c9c5d0e02271cf263"
+    ]
+  },
+  "runs": {
+    "before": 6,
+    "after": 6,
+    "all_original_ids_preserved": true,
+    "added_default_targets": []
+  },
+  "schedules": {
+    "before": 3,
+    "after": 3,
+    "all_original_ids_preserved": true,
+    "added_default_targets": []
+  }
+}

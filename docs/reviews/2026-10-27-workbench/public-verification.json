@@ -1,0 +1,46 @@
+{
+  "url": "https://test.ysspace2099.com",
+  "commit": "b694ce5",
+  "business_requests_executed": false,
+  "unauthenticated_status": 401,
+  "assets": [
+    {
+      "path": "/assets/index-clpvfZtW.js",
+      "sha256": "3f3cb6a63963fe11cd726db5d4eb2fb7844f65ba3f5fbd47110a6267d8f92722",
+      "matches_build": true
+    },
+    {
+      "path": "/assets/index-BZJmILpE.css",
+      "sha256": "fe2707809a1e36233c3ca0dd50d61c6ff03347475408d1ac96d58c72918af627",
+      "matches_build": true
+    }
+  ],
+  "debug_contract_status": 422,
+  "/api/v1/health/live": {
+    "status": "ok",
+    "service": "PytestAutoApi Platform Backend",
+    "environment": "production"
+  },
+  "/api/v1/worker/status": {
+    "available": true,
+    "last_error": null,
+    "queued": 0
+  },
+  "/api/v1/runner-capabilities": {
+    "web": {
+      "playwright_installed": true,
+      "available": true,
+      "chromium_version": "156.0.8078.4"
+    },
+    "android": {
+      "appium_installed": false,
+      "adb_available": false
+    }
+  },
+  "browser": {
+    "routes": 7,
+    "page_errors": [],
+    "desktop_no_overflow": true,
+    "mobile_no_overflow": true
+  }
+}

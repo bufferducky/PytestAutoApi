@@ -1,6 +1,6 @@
 # 个人接口自动化工作台优化分析
 
-状态：用户于2026-10-27批准实施，代码与本地验收已完成，尚未部署。原分析日期2026-10-26。
+状态：用户于2026-10-27批准实施，代码、本地验收及154服务器部署已完成。原分析日期2026-10-26。
 
 ## 已确认的产品方向
 
@@ -39,4 +39,4 @@
 - 草稿调试需要后端配合，不能仅增加前端按钮或以自动发布版本代替。
 - 调试应复用真实执行器和现有上下文、写入范围、契约检查，不能把未发布等同于绕过执行约束。
 - 单步骤依赖、调试证据存储和统计隔离需要在设计阶段继续核实；尚未承诺具体接口。
-- 完整建议见工作区 `.trellis/tasks/10-26-pyta-api-workbench-ux/` 的 prd.md、design.md 和 implement.md；实施已完成；验收见 docs/reviews/2026-10-27-workbench/verification.json，未部署。
+- 完整建议见工作区 `.trellis/tasks/10-26-pyta-api-workbench-ux/` 的 prd.md、design.md 和 implement.md；实施已完成；验收见 docs/reviews/2026-10-27-workbench/verification.json，部署回执见同目录deployment.json。

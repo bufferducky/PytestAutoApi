@@ -113,7 +113,7 @@ ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 秘密按 Compose 中的四个 PYTA_SECRET_YANJI_* 引用注入，值只保存在服务器受限环境配置，仓库不包含值。运行时研究清单已随 Python 包交付；旧 YAML 通过内容导入，不要求容器存在本机 data 目录。2026-10-26 已部署此能力，当前版本及验证记录见下节。
 
 
-## 2026-10-26 API/Web 查询版本（当前发布）
+## 2026-10-26 API/Web 查询版本（历史发布）
 
 - 入口：`https://test.ysspace2099.com`；平台登录保护沿用原配置。
 - 当前目录：`/home/ubuntu/pytestautoapi/releases/20261026-apiweb-181749`；镜像 `pytestautoapi-backend:20261026-apiweb-181749`。
@@ -127,3 +127,14 @@ ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 回滚应用时使用保留的上一发布目录及镜像，复用当前MySQL/附件卷。新查询记录/配置已经入库，不能直接覆盖数据库备份而丢失新数据。先停新触发、核实运行结束，再在上一目录执行 `docker compose ... up -d --no-build --no-deps backend web` 并切回current链接；不得down -v。
 
 完整四组业务写入/恢复、隔离及W01—W04仍未全部验收，本次部署不改变这些范围事实。
+
+## 2026-10-27 个人接口工作台（当前发布）
+
+- 代码提交：`b694ce5`，已推送 `master`。
+- 当前目录：`/home/ubuntu/pytestautoapi/releases/20261027-workbench-010909`；后端镜像同名tag。
+- 备份：`/home/ubuntu/pytestautoapi/backups/20261027-workbench-010909`，MySQL停写停库后冷备份及附件卷归档；不覆盖已有数据。
+- 前后端一起更新，新增未保存草稿调试；调试记录不作正式回归证据。仍使用现有MySQL JSON字段，Alembic保持0001_mysql。
+- 环境4、场景9、套件2、运行6、调度3原ID全部保留；启动兼容逻辑为已有环境补建1个默认target，没有新增业务运行。
+- 公网原认证保持，七页面及手机/桌面布局正常，资源SHA-256与本地构建一致，worker健康、Chromium156.0.8078.4可用。
+- 旧发布目录和镜像保留。应用回滚复用当前MySQL/附件卷，不执行down -v、不覆盖数据库备份。
+- 详细发布与验收回执：`docs/reviews/2026-10-27-workbench/`。

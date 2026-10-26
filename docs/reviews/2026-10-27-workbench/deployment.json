@@ -1,0 +1,37 @@
+{
+  "deployed_at": "2026-10-27T01:22:45.531837+08:00",
+  "server": "154.40.58.145",
+  "url": "https://test.ysspace2099.com",
+  "code_commit": "b694ce57275b9518cc9f7e0b3f045281fb81db68",
+  "branch": "master",
+  "release": "/home/ubuntu/pytestautoapi/releases/20261027-workbench-010909",
+  "previous_release": "/home/ubuntu/pytestautoapi/releases/20261026-apiweb-181749",
+  "backup": "/home/ubuntu/pytestautoapi/backups/20261027-workbench-010909",
+  "image": "pytestautoapi-backend:20261027-workbench-010909",
+  "source_archive_sha256": "ccf13d225e515ade59d0828515150ec19553848abe9bf6a760ba05dc4cd98b3f",
+  "frontend_archive_sha256": "7951613cc5e3a41a81228ac03f8b2cc81038c0c686415e13a0078e9535ac3cfb",
+  "backup_method": "MySQL停止后的冷卷归档和平台/附件卷归档；既有卷复用，无数据恢复覆盖",
+  "backup_protection": "directory 700; archives 600; deploy/.env 600",
+  "schema_revision": "0001_mysql",
+  "runtime_uid": 10001,
+  "chromium_version": "156.0.8078.4",
+  "services_healthy": true,
+  "all_original_ids_preserved": true,
+  "default_target_created": 1,
+  "active_schedules": 0,
+  "queued": 0,
+  "business_requests_executed": false,
+  "automatic_rollbacks": [
+    {
+      "reason": "首次核对要求目录完全相等，发现现有启动逻辑为已有环境补建一个default目标；全部原ID保留。",
+      "resolution": "仅允许default-环境ID这一可核验补建，其余类型要求无新增/缺失。"
+    },
+    {
+      "reason": "非root校验容器无法读取受限备份目录。",
+      "resolution": "单独验证管理员只读校验进程；应用继续UID10001，未放宽备份权限。"
+    }
+  ],
+  "public_verification": "public-verification.json",
+  "data_verification": "data-preservation.json",
+  "rollback": "上一发布目录执行docker compose up -d --no-build backend web并恢复current链接；保留现有MySQL/附件卷，禁止down -v或覆盖新数据。"
+}
