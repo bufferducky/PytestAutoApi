@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "tag": "20261027-frontend-ux-1a3e797",
+  "commit": "1a3e797ec06380d1debd9c9e8c746290bcbf01e8",
+  "created_at": "2026-10-27T15:01:45.813019+00:00",
+  "checks": {
+    "passed": true,
+    "commands": 8,
+    "browser": true,
+    "mysql_integration": "not_run"
+  },
+  "archives": {
+    "source.tar.gz": "fde766185db69d5656103f68f58a60c8ae81f571fafde41e0ae44296cd859c75",
+    "frontend.tar.gz": "9f3e686908e750e4b95383f65c20bff5e841fd87819160a3ff9ebb40daf501f3"
+  },
+  "tools": {
+    "image_check.py": "3a43311aee5ec32801cc5c94cfcdabbe3b24665fed25c55047070c1418233eec",
+    "inventory.py": "d8dc2ae3606fc8426059e8705a27c1682ca65fb6a7f6bc42827a4ba762d7bda5",
+    "release.py": "4b8d0d605ec44966ae6a741e79869f5ab624ff247c68f38471c6ec9e19abc256",
+    "server_release.sh": "8c7cc546ce2eeb2f10c6a26eceb8e84115ebf366d317b40840c642c4e691af93",
+    "state.py": "51dc35a2b8def59608e8fa31914237fc6dc21998a392f8ef93a5c0c13456ad02",
+    "verify_public.py": "77f619091395942f3b512fe2ad25b44d900ac118d84f0e27089a7223363e2c68",
+    "worker_smoke.py": "af19a6b198e5be377483ab869eaf3f137b00a37789873c24a609002d7da45cd9"
+  },
+  "assets": {
+    "/assets/index-BzSJ6Nfo.js": "ed3b8c05f8e235c8438d809e6033d29f5bbce71a5633036d06be63198a820435",
+    "/assets/_plugin-vue_export-helper-CfQ333c8.js": "5a78f3a4b34b8610ef51112b5f1f19aac3dafeb9361bdf08d33ca257cbd11d85",
+    "/assets/chunk-DHx0Hwia.js": "9554dd5f512524c6681928c98f62ed40bd7394f182fa545448457063a13c39d9",
+    "/assets/preload-helper-uTix4PVD.js": "0c88c6aaef07b19239a2eac9faef82584f9e733114f85dc190e98dcea60b1753",
+    "/assets/apiErrors-QImqcIBj.js": "0c4a50ab8a2be2a704b63dc460991313b558cdb6dd9f0acbb55e665d9d44304f",
+    "/assets/hasIn-BCwrKJI0.js": "db50c9b05f91d5311ea51d8ab4000aef5e23b605851e7968424797c97ada5cdd",
+    "/assets/pick-Ct90SCn1.js": "7050ed8b5d9aba3ba1fea073cbb34dadca5c194eb5874fee6890bfcdfc71c392",
+    "/assets/button-CWCdPFaK.js": "7c079b4c4e0abea0e0df762a4eabe759f6d13f58cc34634326ffd12d7af16b28",
+    "/assets/isUndefined-CByX1sXR.js": "24e4a0e4a7c2f97d5226d5492dd72d0a2fe7c657f053e9f73913aedab41e365b",
+    "/assets/merge-CsOg2iVW.js": "3ad129e33e7241bebd49596a48ad14912a108079fd62589274dc73ad1edc778b",
+    "/assets/app-C7wpKWDO.js": "b227abdc1ad85808a0323d5b122491ce977876eb128551d371284923d497af30",
+    "/assets/runStatus-BW7QH_ER.js": "fa1f0c3d1c21f5eb16a9eb39e8ccdb55a39b9bacd6bbda8108cdbb0eef1b10c6",
+    "/assets/dashboard-CpqNv-7R.js": "0dca1045d4e53849c462cbc30354697242459e0b0b9af8a261cf2d221e504ec8",
+    "/assets/StatusTag-CqbISww3.js": "62c078d203909c00f38402c40958a0b4dcd76b29566e76203b88c553bcbd48b9",
+    "/assets/apiErrors-FIHoYa7N.css": "3603fde85e2a252f24002ccf4deb892736dd850c2a64e41720f3ef897c2b933d",
+    "/assets/StatusTag-8qUpUPwZ.css": "5284a328858c82adc6fb121ac8237deffc582fc21260bcb6f9f1ef8f3d79e2cf",
+    "/assets/index-3V5Qlyc9.css": "2d180bdd47888dfa6a858aa03e6c4d55913c2312ce02744d1712adba064952f8"
+  }
+}

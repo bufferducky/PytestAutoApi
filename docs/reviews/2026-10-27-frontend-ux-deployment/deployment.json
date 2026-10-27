@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-27",
+  "authorization": "用户：先提交再部署服务器，我看看效果",
+  "commit": "1a3e797ec06380d1debd9c9e8c746290bcbf01e8",
+  "tag": "20261027-frontend-ux-1a3e797",
+  "site": "https://test.ysspace2099.com",
+  "previous_release": "20261027-reception-f8ce7cb",
+  "local_checks": {
+    "python": "354 passed, 14 skipped",
+    "frontend_browser": "1 passed in 52.30s",
+    "ruff": "passed",
+    "frontend_scripts": "3 passed"
+  },
+  "before_counts": {
+    "bindings": 3,
+    "devices": 0,
+    "environment_details": 4,
+    "environments": 4,
+    "evaluation_datasets": 0,
+    "fixtures": 0,
+    "identities": 3,
+    "journeys": 1,
+    "media": 0,
+    "rubrics": 0,
+    "run_details": 10,
+    "runs": 10,
+    "scenarios": 20,
+    "scenarios_versions": 20,
+    "schedules": 3,
+    "suites": 3,
+    "suites_versions": 3,
+    "targets": 8
+  },
+  "before_worker": {
+    "available": true,
+    "last_error": null,
+    "queued": 0
+  },
+  "phase": "accepted",
+  "deployed": true,
+  "data_fingerprints_equal": true,
+  "after_counts": {
+    "bindings": 3,
+    "devices": 0,
+    "environment_details": 4,
+    "environments": 4,
+    "evaluation_datasets": 0,
+    "fixtures": 0,
+    "identities": 3,
+    "journeys": 1,
+    "media": 0,
+    "rubrics": 0,
+    "run_details": 10,
+    "runs": 10,
+    "scenarios": 20,
+    "scenarios_versions": 20,
+    "schedules": 3,
+    "suites": 3,
+    "suites_versions": 3,
+    "targets": 8
+  },
+  "after_worker": {
+    "available": true,
+    "last_error": null,
+    "queued": 0
+  },
+  "backup": "/home/ubuntu/pytestautoapi/backups/20261027-frontend-ux-1a3e797",
+  "release": "/home/ubuntu/pytestautoapi/releases/20261027-frontend-ux-1a3e797",
+  "public_passed": true,
+  "browser_passed": true,
+  "browser_checks": 24,
+  "public_warnings": [],
+  "static_assets": 17,
+  "bundle_sha256": "c916345ed498469a856e7c67a781fb034da0c10e4be36604d2fc26ff9b78f39c",
+  "backup_sha256": {
+    "mysql-data.tar.gz": "eef82bf59d7f7b553d410f73db4e813089538e765931dada17a3066da2124a54",
+    "platform-data.tar.gz": "3f8f3cc0c236321ffcdc873477718bb0d58547e5a527acc7acdb68323e31b938"
+  },
+  "company_business_requests_executed": false
+}
