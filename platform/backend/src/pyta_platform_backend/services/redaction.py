@@ -11,7 +11,7 @@ REDACTED = "[REDACTED]"
 SENSITIVE = re.compile(
     r"password|passwd|pwd|token|authorization|cookie|secret|signature|credential|"
     r"api[_-]?key|access[_-]?key|session[_-]?id|upload[_-]?url|phone|mobile|email|"
-    r"customer[_-]?name|patient[_-]?name|transcript|id[_-]?card",
+    r"customer[_-]?name|patient[_-]?name|transcript|id[_-]?card|^keyword$",
     re.I,
 )
 

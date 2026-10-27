@@ -34,6 +34,7 @@
 | [Draft Debug](./draft-debug-contracts.md) | 未保存草稿、单步骤前置输入、独立快照与正式证据隔离 | Active |
 | [Resource Contracts](./resource-contracts.md) | R04 fixtures, ownership, leases, cleanup and media | Active |
 | [Assertion/Wait Contracts](./assertion-wait-contracts.md) | R05 typed business assertions, state polling, bounded retries and traces | Active |
+| [Business Database Contracts](./business-database-contracts.md) | 独立业务只读来源、言迹接诊筛选期望与分页核验 | Active |
 | [Diagnostic Contracts](./diagnostic-contracts.md) | R06 diagnostics, artifacts, filtered trends, rerun and evidence retention | Active |
 | [Scheduling Contracts](./scheduling-contracts.md) | R08 persistent schedules/outbox, CI exits, release evidence and quiet notifications | Active |
 | [UI/Evaluation Contracts](./ui-evaluation-contracts.md) | Partial R09/R10 capability boundaries, datasets, budgets and unverified real-world gates | Active |
@@ -66,6 +67,10 @@ Changes to run/worker/storage/status/Mock boundaries must also read [Run Executi
 3. `/Users/ys/PyCharmProject/PytestAutoApi/platform/backend/README.md`
 
 ---
+
+## 部署工具
+
+修改发布流程或部署到154时读取 [标准发布SOP](../../../deploy/SOP.md)。发布工具测试在 tests/deploy，普通脚本仅支持同schema升级；数据库迁移按专项流程执行。
 
 ## Current Backend Baseline
 

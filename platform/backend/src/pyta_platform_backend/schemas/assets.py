@@ -10,6 +10,14 @@ from testflow_engine import AssertionSpec, ExtractionSpec, RequestSpec
 from testflow_engine.models.core import WaitPolicy
 
 
+class DatabaseCheck(PublicModel):
+    datasource_ref: str = Field(..., min_length=1)
+    contract_ref: Literal["yanji-reception@1"]
+    expected_user_id: str = Field(..., min_length=1)
+    filter_preset: str = "default"
+    sweep: bool = False
+
+
 class ScenarioStep(PublicModel):
     step_id: str = Field(..., min_length=1)
     name: str
@@ -27,6 +35,7 @@ class ScenarioStep(PublicModel):
     extractors: list[ExtractionSpec] = Field(default_factory=list)
     reads: list[str] = Field(default_factory=list)
     plugin_refs: list[str] = Field(default_factory=list)
+    database_check: Optional[DatabaseCheck] = None
     metadata: dict = Field(default_factory=dict)
 
 

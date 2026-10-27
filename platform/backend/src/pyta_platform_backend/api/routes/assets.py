@@ -92,6 +92,40 @@ def create_assets_router(service, prefix):
 
         return import_query_pack(service, payload)
 
+    @router.get("/business-datasources")
+    def business_datasources():
+        from pyta_platform_backend.services.business_datasources import public_sources
+
+        try:
+            return public_sources()
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @router.post("/business-datasources/{identifier}/preflight")
+    def business_datasource_preflight(identifier: str, payload: dict):
+        from pyta_platform_backend.services.business_datasources import preflight_source
+
+        if not isinstance(payload.get("execute_query", False), bool):
+            raise HTTPException(400, "execute_query必须是布尔值")
+        try:
+            snapshot = service.context.snapshot(
+                payload.get("target_ref"), payload.get("identity_ref"), payload.get("binding_ref")
+            )
+            return preflight_source(
+                identifier,
+                snapshot,
+                payload.get("expected_user_id"),
+                payload.get("execute_query", False),
+            )
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @router.post("/imports/yanji-reception", status_code=201)
+    def import_yanji_reception(payload: dict):
+        from pyta_platform_backend.integrations.yanji.reception_pack import import_reception_pack
+
+        return import_reception_pack(service, payload)
+
     @router.get("/regression-packs/yanji")
     def yanji_contracts():
         import json

@@ -515,12 +515,13 @@ class SqlRunRepository(InMemoryRunRepository):
             return self._row_to_record(row) if row else None
 
     def _all(self):
-        return [
+        # MySQL filesort会携带大JSON行，少量完整套件也可能耗尽sort_buffer。
+        # 此入口本来就读取全部记录，按与内存仓储相同的时间键在应用侧排序。
+        records = [
             self._row_to_record(row)
-            for row in self._connection.execute(
-                "SELECT * FROM runs ORDER BY created_at DESC"
-            ).fetchall()
+            for row in self._connection.execute("SELECT * FROM runs").fetchall()
         ]
+        return sorted(records, key=lambda record: record.created_at, reverse=True)
 
     @staticmethod
     def _row_to_record(row):

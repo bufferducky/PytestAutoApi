@@ -203,6 +203,31 @@ class RunWorker:
                     max(0.001, (claimed.deadline_at - datetime.now(timezone.utc)).total_seconds()),
                     redactor,
                 )
+                if definition.metadata.get("business_database_plan"):
+                    import time
+
+                    from pyta_platform_backend.workers.business_database_plugin import (
+                        BusinessDatabasePlugin,
+                    )
+
+                    plugin = BusinessDatabasePlugin(
+                        definition.metadata["business_database_plan"],
+                        task.payload.get("context_snapshots", {}),
+                        deadline=time.monotonic()
+                        + max(
+                            0, (claimed.deadline_at - datetime.now(timezone.utc)).total_seconds()
+                        ),
+                        should_stop=stop,
+                        redactor=redactor,
+                    )
+                    plugin.prepare(definition)
+                    counts["planned"] = len(definition.cases)
+                    engine.plugins.append(plugin)
+                elif any(
+                    case.enabled and case.metadata.get("database_check")
+                    for case in definition.cases
+                ):
+                    raise ValueError("business_database_plan_missing")
                 if definition.metadata.get("fixture_plan"):
                     from pyta_platform_backend.workers.resource_plugin import ResourcePlugin
 
@@ -250,10 +275,13 @@ class RunWorker:
                 cleanup_status=cleanup_status,
             )
         except Exception as exc:
+            failure_status = getattr(exc, "execution_status", None)
             return repo.finish(
                 task.run_id,
                 attempt_id,
-                RunStatus.ERROR,
+                RunStatus(failure_status)
+                if failure_status in {"cancelled", "timed_out"}
+                else RunStatus.ERROR,
                 redactor.clean(str(exc)),
                 counts=counts,
                 cleanup_status=cleanup_status,

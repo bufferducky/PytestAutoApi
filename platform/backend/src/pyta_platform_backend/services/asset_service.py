@@ -179,6 +179,22 @@ class AssetService:
             )
             key = scope
             snapshots[key] = snapshot
+            checks = [
+                step["database_check"]
+                for step in data["steps"]
+                if step.get("database_check") and step["enabled"]
+            ]
+            if checks:
+                from pyta_platform_backend.services.business_datasources import resolve_source
+
+                sources = {check["datasource_ref"] for check in checks}
+                if len(sources) != 1:
+                    raise HTTPException(400, "每个场景仅允许一个固定业务数据源")
+                try:
+                    source = resolve_source(sources.pop(), snapshot)
+                except ValueError as exc:
+                    raise HTTPException(400, str(exc)) from exc
+                definition.metadata.setdefault("business_database_plan", {})[scope] = source
             for case in compiled.cases + compiled.cleanup_cases:
                 case.metadata["context_binding_id"] = key
             compiled.metadata["scopes"][scope]["host"] = snapshot["target"]["base_url"]
@@ -215,7 +231,23 @@ class AssetService:
         environment = self.runs._resolve_environment(environment_id)
         snapshots["default"] = snapshots["s0"]
         return {
-            "business_scope": "yanji_query"
+            "dynamic_page_expansion": [
+                {
+                    "scope_id": scope,
+                    "step_id": case.metadata["step_id"],
+                    "page_size": case.request.query.get("pageSize", 12),
+                    "max_rows": source["max_rows"],
+                    "max_pages": 100,
+                    "page_count": "determined_from_readonly_database_at_execution",
+                }
+                for scope, source in definition.metadata.get("business_database_plan", {}).items()
+                for case in definition.cases
+                if case.metadata.get("scope_id") == scope
+                and case.metadata.get("database_check", {}).get("sweep")
+            ],
+            "business_scope": "yanji_reception_query"
+            if definition.metadata.get("business_database_plan")
+            else "yanji_query"
             if all(s["data"].get("source", {}).get("kind") == "yanji-query-pack" for s in scenarios)
             else "unclassified",
             "environment_id": environment_id,
@@ -281,6 +313,8 @@ class AssetService:
             selected = next((s for s in data["steps"] if s["step_id"] == request.step_id), None)
             if selected is None or not selected["enabled"]:
                 raise HTTPException(400, "请选择一个已启用的调试步骤")
+            if selected.get("database_check"):
+                raise HTTPException(400, "数据库核验依赖身份与项目回读，请使用整场景调试")
             if (
                 data["fixtures"]
                 or selected["phase"] == "cleanup"

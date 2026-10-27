@@ -1,5 +1,9 @@
 # Docker Compose 部署
 
+日常发布到154服务器，按 [标准发布SOP](SOP.md) 执行。配套工具在 [scripts/](scripts/)，默认计划模式；本文下方保留部署背景和历史回执。
+
+2026-10-27当前版本：`20261027-reception-f8ce7cb`，已部署接诊筛选只读数据库回归，11条场景及套件就绪，服务器默认查询2步7断言通过。来源为隔离工作区快照，主仓库尚未提交。详情见 [接诊回归发布回执](../docs/reviews/2026-10-27-yanji-reception-deployment/README.md)。
+
 先在 `platform/frontend/` 执行 `npm ci`，再执行
 `VITE_API_BASE_URL=/api/v1 npm run build -- --mode production`。
 将项目的 `src/`、`platform/backend/src/`、`platform/frontend/dist/`、

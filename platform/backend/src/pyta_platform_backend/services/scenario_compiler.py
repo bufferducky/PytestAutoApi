@@ -113,6 +113,89 @@ def preflight(data):
                 )
             if assertion.value_type not in {"native", "decimal", "datetime"}:
                 issue(f"assertions.{assertion_index}.value_type", "未知比较类型")
+        if step.database_check:
+            from pyta_platform_backend.integrations.yanji.reception_oracle import (
+                PRESETS,
+                validate_query,
+            )
+
+            check = step.database_check
+            if (
+                step.type != "http"
+                or step.phase == "cleanup"
+                or step.request.method.value != "GET"
+                or step.request.url != "{{host}}/api/v1/reception_form/page"
+                or not step.contract_confirmed
+                or step.operation_kind != "query"
+                or not step.safe_to_replay
+                or step.extractors
+            ):
+                issue("database_check", "数据库核验仅允许固定言迹接诊安全HTTP查询")
+            if check.filter_preset not in PRESETS or check.sweep != (
+                check.filter_preset == "sweep"
+            ):
+                issue("database_check", "未知筛选预设或分页声明不匹配")
+            if not check.expected_user_id.isdigit():
+                issue("database_check", "预期用户ID必须明确")
+            identity_steps = [
+                previous
+                for previous in draft.steps[:index]
+                if previous.step_id in step.depends_on
+                and previous.request.method.value == "GET"
+                and previous.request.url == "{{host}}/api/v1/user/role_info"
+                and previous.enabled
+                and previous.required
+                and any(
+                    a.selector == "data.userId"
+                    and a.expected == check.expected_user_id
+                    and a.operator.value == "equals"
+                    and a.source.value == "response_body"
+                    and not a.expected_ref
+                    and not a.rule_ref
+                    and a.value_type == "native"
+                    and a.tolerance == 0
+                    and not a.select_by
+                    for a in previous.assertions
+                )
+            ]
+            identity_steps = [
+                previous
+                for previous in identity_steps
+                if all(
+                    any(
+                        a.selector == selector
+                        and a.expected_ref == reference
+                        and a.operator.value == "equals"
+                        and a.source.value == "response_body"
+                        and not a.rule_ref
+                        and a.value_type == "native"
+                        and a.tolerance == 0
+                        and not a.select_by
+                        for a in previous.assertions
+                    )
+                    for selector, reference in (
+                        ("data.tenantId", "identity.tenant_id"),
+                        ("data.deptId", "identity.project_id"),
+                    )
+                )
+            ]
+            if not identity_steps:
+                issue("database_check", "须依赖精确用户/租户/项目的身份回读步骤")
+            try:
+                validate_query(step.request.query)
+            except ValueError as exc:
+                issue("database_check", str(exc))
+            if not any(
+                a.source.value == "context"
+                and a.selector == "runtime.database_diff"
+                and a.expected
+                == {"missing_ids": [], "extra_ids": [], "duplicate_ids": [], "problems": []}
+                and a.operator.value == "equals"
+                and not a.expected_ref
+                and not a.rule_ref
+                for a in step.assertions
+            ):
+                issue("database_check", "数据库核验须包含有效差异断言")
         for ref in step.plugin_refs:
             # 当前插件由 worker 按运行类型装配，没有逐步骤选择消费者。
             # 在实现选择语义前明确拒绝，避免合法字符串被编译静默丢弃。
@@ -219,6 +302,9 @@ def compile_scenario(published, *, scope_id="scenario", overrides=None):
             depends_on=[scope_id + "__" + s for s in step["depends_on"]],
             metadata={
                 **step["metadata"],
+                **(
+                    {"database_check": step["database_check"]} if step.get("database_check") else {}
+                ),
                 "scope_id": scope_id,
                 "operation_kind": step["operation_kind"],
                 "safe_to_replay": step["safe_to_replay"],

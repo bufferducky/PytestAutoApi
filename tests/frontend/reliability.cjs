@@ -283,6 +283,32 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   await failed.report();
   assert.match(failed.error.value, /offline/);
 
+  const receptionRuntime = runtime(call => {
+    if (call.path === '/api/v1/business-datasources') return [{ id: 'yanji-test', schema: 'yanji', configuration: 'passed' }];
+    if (call.path.endsWith('/preflight')) return { configuration: 'passed', connection: 'not_verified', permission: 'not_verified', errors: [] };
+    if (call.path === '/api/v1/imports/yanji-reception') return { assets: [{ id: 'reception' }], note: 'draft only' };
+    return [];
+  });
+  const receptionEditor = receptionRuntime.component('ScenarioAssetsPanel', { kind: 'scenarios' });
+  receptionEditor.targetRef.value = 'target'; receptionEditor.identityRef.value = 'identity';
+  receptionEditor.bindingRef.value = 'binding'; receptionEditor.expectedUserId.value = 'user';
+  await receptionEditor.loadDatasources();
+  receptionEditor.datasourceRef.value = 'yanji-test';
+  await vue.nextTick();
+  await receptionEditor.preflightDatasource(false);
+  assert.equal(receptionEditor.datasourcePreflight.value.connection, 'not_verified', 'configuration checks cannot claim a live DB connection');
+  assert.equal(receptionRuntime.calls.find(call => call.path.endsWith('/preflight')).body.execute_query, false);
+  receptionEditor.bindingRef.value = 'another-binding';
+  await vue.nextTick();
+  assert.equal(receptionEditor.datasourcePreflight.value, null, 'changing the binding invalidates old preflight evidence');
+  receptionEditor.name.value = 'unsaved editor content';
+  await receptionEditor.importReceptions();
+  assert.equal(receptionEditor.name.value, 'unsaved editor content', 'import must preserve the current edit buffer');
+  const receptionImport = receptionRuntime.calls.find(call => call.path === '/api/v1/imports/yanji-reception');
+  assert.equal(receptionImport.body.datasource_ref, 'yanji-test');
+  assert.equal(receptionImport.body.binding_ref, 'another-binding');
+  assert.equal(receptionRuntime.calls.some(call => /\/publish$|\/runs$/.test(call.path)), false, 'import never publishes or runs');
+
   // Guard against reintroducing a product feature flag, fixture catalog or simulation input.
   function audit(directory) {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

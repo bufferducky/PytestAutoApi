@@ -74,6 +74,12 @@ class RunService:
             raise HTTPException(400, "fixture计划只能由已发布资产编译")
         if set(payload.payload) & {"asset_ref", "scenario_refs", "scenario_version_ref"}:
             raise HTTPException(400, "版本资产证据引用只能由平台编译生成")
+        definition = payload.payload.get("run_definition", {})
+        if definition.get("metadata", {}).get("business_database_plan") or any(
+            case.get("metadata", {}).get("database_check")
+            for case in definition.get("cases", []) + definition.get("cleanup_cases", [])
+        ):
+            raise HTTPException(400, "业务数据库核验只能由版本化资产编译")
         if "context_snapshots" in payload.payload:
             raise HTTPException(400, "上下文快照只能由平台配置生成")
         if self.context_service:

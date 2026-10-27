@@ -48,6 +48,26 @@ def request():
     )
 
 
+def test_mysql_large_run_payload_list_does_not_filesort_json(mysql_store):
+    from pyta_platform_backend.repositories.run_repository import SqlRunRepository
+
+    url, _ = mysql_store
+    repo = SqlRunRepository(url)
+    created = []
+    for _ in range(4):
+        payload = request()
+        payload.payload["public_note"] = "large-regression-plan-" * 16000
+        created.append(repo.create_pending_run(payload).run_id)
+    with repo._transaction():
+        original = repo._connection.execute("SELECT @@SESSION.sort_buffer_size").fetchone()[0]
+        try:
+            repo._connection.execute("SET SESSION sort_buffer_size=32768")
+            listed = repo.list_runs(limit=4, offset=0)
+            assert [item.run_id for item in listed.items] == list(reversed(created))
+        finally:
+            repo._connection.execute("SET SESSION sort_buffer_size=?", (original,))
+
+
 def test_mysql_atomic_outbox_claim_and_recovery(mysql_store):
     from pyta_platform_backend.repositories.run_repository import RunConflict, SqlRunRepository
     from pyta_platform_backend.workers.dispatcher import PersistentRunDispatcher

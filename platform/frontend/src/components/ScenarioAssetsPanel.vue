@@ -66,8 +66,14 @@
           <ScenarioDebugPanel v-if="kind === 'scenarios' && debugOpen" :key="(selected?.id || 'new') + ':' + debugStep" :get-draft="validatedDraft" :asset-id="selected?.id" :revision="selected?.revision" :step-id="debugStep" :environments="environments" />
           <fieldset class="step-card" v-for="(step, index) in steps" :id="'scenario-step-' + index" :key="stepKey(step)" :aria-label="'步骤 ' + (index + 1)">
             <legend>步骤 {{ index + 1 }} · {{ step.name }}</legend>
-            <div class="toolbar"><button type="button" @click="toggleStep(step.step_id)" :aria-expanded="!collapsed.includes(step.step_id)">{{ collapsed.includes(step.step_id) ? '展开' : '折叠' }}</button><button type="button" @click="copyStep(index)">复制步骤</button><button type="button" :disabled="index === 0" @click="moveStep(index, -1)">上移</button><button type="button" :disabled="index === steps.length - 1" @click="moveStep(index, 1)">下移</button><button type="button" @click="openDebug(step.step_id)">仅调试此步骤</button></div>
+            <div class="toolbar"><button type="button" @click="toggleStep(step.step_id)" :aria-expanded="!collapsed.includes(step.step_id)">{{ collapsed.includes(step.step_id) ? '展开' : '折叠' }}</button><button type="button" @click="copyStep(index)">复制步骤</button><button type="button" :disabled="index === 0" @click="moveStep(index, -1)">上移</button><button type="button" :disabled="index === steps.length - 1" @click="moveStep(index, 1)">下移</button><button type="button" :disabled="Boolean(step.database_check)" @click="openDebug(step.step_id)">仅调试此步骤</button></div>
             <div v-show="!collapsed.includes(step.step_id)" class="step-content">
+            <div v-if="step.database_check" class="state-banner state-banner--info">
+              <span class="field-caption">只读数据库核验<HelpHint topic="receptionPack" /></span>
+              <p>数据源：{{ step.database_check.datasource_ref }} · 规则：{{ step.database_check.contract_ref }}</p>
+              <p>本步骤同时核对数据库期望；缺数据、权限变化或连接失败会明确报错。调试时请使用“调试当前整场景”，以便先核对身份和项目。</p>
+              <p>回归包按测试项目内的现有数据选取筛选样本，实际条件会记录在运行请求中。</p>
+            </div>
             <div class="editor-fields">
             <label><span class="field-caption"><span>稳定 ID</span><HelpHint topic="stepId" /></span><input v-model="step.step_id" required aria-label="稳定 ID" /></label>
             <label>步骤名称 <input v-model="step.name" required /></label>
@@ -153,6 +159,30 @@
       <span class="action-help"><button type="button" :disabled="busy" @click="showYanjiContracts">查看四组契约与所缺资源</button><HelpHint topic="yanjiPack" /></span>
       <label><span class="field-caption"><span>预期测试用户 ID</span><HelpHint topic="expectedUser" /></span><input v-model="expectedUserId" aria-label="预期测试用户 ID" /></label>
       <span class="action-help"><button type="button" :disabled="busy || !targetRef || !identityRef || !bindingRef || !expectedUserId" @click="importYanji">创建查询草稿</button><HelpHint topic="yanjiPack" /></span>
+      <details class="reception-import" @toggle="onReceptionToggle">
+        <summary aria-label="接诊记录筛选回归">接诊记录筛选回归<HelpHint topic="receptionPack" /></summary>
+        <p>核对筛选后的接诊单、总数和分页。沿用上方目标、身份、项目绑定及预期用户 ID，只读取业务数据。</p>
+        <label><span class="field-caption"><span>言迹业务数据源</span><HelpHint topic="businessDatasource" /></span>
+          <select v-model="datasourceRef" aria-label="言迹业务数据源" :disabled="busy || datasourceLoading">
+            <option value="">选择已配置的数据源</option>
+            <option v-for="source in datasources" :key="source.id" :value="source.id">{{ source.id }} · {{ source.schema }} · {{ source.configuration === 'passed' ? '配置就绪' : '配置待修复' }}</option>
+          </select>
+        </label>
+        <p v-if="datasourceLoading" role="status">正在读取业务数据源配置…</p>
+        <p v-if="datasourceError" class="state-banner state-banner--error" role="alert">{{ datasourceError }}</p>
+        <p v-else-if="datasourcesLoaded && !datasources.length">尚未配置业务数据源。请在服务端配置言迹测试库及秘密引用，再刷新列表。</p>
+        <div class="toolbar">
+          <button type="button" :disabled="busy || datasourceLoading" @click="loadDatasources">刷新数据源</button>
+          <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(false)">检查数据源配置</button><HelpHint topic="businessDatasource" /></span>
+          <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(true)">验证数据库连接与权限</button><HelpHint topic="businessDatasourceProbe" /></span>
+        </div>
+        <div v-if="datasourcePreflight" class="datasource-result" role="status">
+          <p>配置：{{ datasourceStatus(datasourcePreflight.configuration) }} · 连接：{{ datasourceStatus(datasourcePreflight.connection) }} · 权限：{{ datasourceStatus(datasourcePreflight.permission) }}</p>
+          <p v-if="datasourcePreflight.errors?.length">{{ datasourcePreflight.errors.join('；') }}</p>
+        </div>
+        <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="importReceptions">创建接诊筛选回归草稿</button><HelpHint topic="receptionPack" /></span>
+        <p>创建后选择场景进行预检、发布，再编排固定版本套件。创建草稿不执行接口，也不会启用定时任务。</p>
+      </details>
     </details><details><summary aria-label="迁移已有资产（只创建草稿，不发送请求）">迁移已有资产（只创建草稿，不发送请求）<HelpHint topic="import" /></summary>
       <label v-if="importKind === 'legacy'"><span class="field-caption"><span>旧 YAML 内容</span><HelpHint topic="import" /></span><textarea v-model="importSource" rows="8" placeholder="粘贴 YAML；导入时会移除旧秘密值" aria-label="旧 YAML 内容" /></label>
       <label><span class="field-caption"><span>导入类型</span><HelpHint topic="import" /></span><select v-model="importKind" aria-label="导入类型"><option value="legacy">旧 YAML</option><option value="standard">标准发布 JSON</option></select></label>
@@ -187,6 +217,7 @@ interface EditorStep extends Omit<Step, 'request'> {
   headerRows: Pair[]; queryRows: Pair[]; bodyType: string; bodyText: string; assertionsText: string; extractorsText: string;
   waitConfirmed: boolean; stateSelector: string; stateMapText: string; pollInterval: number;
   pollDeadline: number; pollAttempts: number; networkRetries: number; waitPolicyText: string;
+  database_check?: { datasource_ref: string; contract_ref: string } | null;
 }
 interface Data {
   name: string; priority: string; tags?: string[]; target_ref?: string;
@@ -197,6 +228,8 @@ interface Data {
 }
 interface Asset { id: string; revision: number; draft: Data }
 interface Version { version: number; change_note: string }
+interface BusinessDatasource { id: string; schema: string; configuration: string }
+interface DatasourcePreflight { configuration: string; connection: string; permission: string; errors: string[] }
 const props = defineProps<{ kind: 'scenarios' | 'suites' }>();
 const emit = defineEmits<{ (event: 'saved', asset: { id: string }): void; (event: 'selected', assetId: string): void }>();
 const router = useRouter();
@@ -311,6 +344,38 @@ function fields(pairs: Pair[]) {
 }
 const importSource = ref(''), importKind = ref('legacy'), importText = ref('{}');
 const expectedUserId = ref('');
+const datasources = ref<BusinessDatasource[]>([]), datasourceRef = ref('');
+const datasourceLoading = ref(false), datasourcesLoaded = ref(false), datasourceError = ref('');
+const datasourcePreflight = ref<DatasourcePreflight | null>(null);
+const receptionReady = computed(() => Boolean(targetRef.value && identityRef.value && bindingRef.value && expectedUserId.value.trim() && datasourceRef.value));
+let datasourceSequence = 0;
+// 预检仅证明当时选择的来源/身份/项目，切换后不继续展示旧绿灯。
+watch([targetRef, identityRef, bindingRef, expectedUserId, datasourceRef], () => { datasourcePreflight.value = null; });
+function datasourceStatus(value: string) { return ({ passed: '通过', failed: '失败', not_verified: '未验证', not_required: '无需验证' } as Record<string, string>)[value] || value; }
+async function loadDatasources() {
+  if (datasourceLoading.value) return;
+  const sequence = ++datasourceSequence;
+  datasourceLoading.value = true; datasourceError.value = ''; datasourcePreflight.value = null;
+  try {
+    const result = await apiClient.get<BusinessDatasource[]>('/business-datasources');
+    if (sequence !== datasourceSequence) return;
+    datasources.value = result; datasourcesLoaded.value = true;
+    if (!result.some(source => source.id === datasourceRef.value)) datasourceRef.value = '';
+  } catch (cause) { datasourceError.value = resolveApiErrorMessage(cause, '读取业务数据源失败'); }
+  finally { if (sequence === datasourceSequence) datasourceLoading.value = false; }
+}
+function onReceptionToggle(event: Event) { if ((event.target as HTMLDetailsElement).open && !datasourcesLoaded.value) void loadDatasources(); }
+const receptionPayload = () => ({ target_ref: targetRef.value, identity_ref: identityRef.value, binding_ref: bindingRef.value, expected_user_id: expectedUserId.value.trim(), datasource_ref: datasourceRef.value });
+async function preflightDatasource(executeQuery: boolean) { await action(async () => {
+  const selection = JSON.stringify(receptionPayload());
+  const result = await apiClient.post<DatasourcePreflight>(`/business-datasources/${encodeURIComponent(datasourceRef.value)}/preflight`, { ...receptionPayload(), execute_query: executeQuery });
+  if (selection === JSON.stringify(receptionPayload())) datasourcePreflight.value = result;
+}); }
+async function importReceptions() { await action(async () => {
+  const result = await apiClient.post<{ assets: Asset[]; note: string }>('/imports/yanji-reception', receptionPayload());
+  await load();
+  message.value = `接诊筛选回归草稿已就绪（${result.assets.length} 条）；已有草稿保留原编辑。请选择场景，预检后发布和执行。`;
+}); }
 const collection = () => props.kind === 'suites' ? '/suite-assets' : '/scenarios';
 const url = () => `/${props.kind}/${selected.value?.id}`;
 const split = (value: string) => value.split(',').map(v => v.trim()).filter(Boolean);
