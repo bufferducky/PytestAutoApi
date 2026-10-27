@@ -2,20 +2,21 @@
   <section class="evaluation">
     <h3 aria-label="AI / 语音评估历史">AI / 语音评估历史<HelpHint topic="evaluation" /></h3>
     <p class="state-banner state-banner--info" role="status">新评估已禁用：尚未接入真实评估服务。历史报告与详情仍可查询，历史模拟结果不代表真实验证。</p>
-    <button type="button" disabled>新建评估（已禁用）</button>
+    <el-button native-type="button" disabled>新建评估（已禁用）</el-button>
     <p v-if="error" class="state-banner state-banner--error">{{ error }}</p>
-    <button type="button" @click="load">刷新历史版本</button>
+    <el-button native-type="button" @click="load">刷新历史版本</el-button>
     <details><summary aria-label="历史样本集与规则版本">历史样本集与规则版本<HelpHint topic="evaluation" /></summary>
       <pre>{{ JSON.stringify({ datasets, rubrics }, null, 2) }}</pre>
     </details>
-    <label><span class="field-caption"><span>历史 run ID</span><HelpHint topic="evaluation" /></span><input v-model="queryRun" aria-label="历史 run ID" /></label>
-    <button type="button" @click="report" :disabled="!queryRun.trim()">查看评估报告</button>
-    <label><span class="field-caption"><span>对比 run ID</span><HelpHint topic="evaluationCompare" /></span><input v-model="otherRun" aria-label="对比 run ID" /></label>
-    <span class="action-help"><button type="button" @click="compare" :disabled="!queryRun.trim() || !otherRun.trim()">同集合/规则/采样对比</button><HelpHint topic="evaluationCompare" /></span>
-    <pre v-if="result">{{ result }}</pre>
+    <label><span class="field-caption"><span>历史 run ID</span><HelpHint topic="evaluation" /></span><UiInput v-model="queryRun" aria-label="历史 run ID"  /></label>
+    <el-button native-type="button" @click="report" :disabled="!queryRun.trim()">查看评估报告</el-button>
+    <label><span class="field-caption"><span>对比 run ID</span><HelpHint topic="evaluationCompare" /></span><UiInput v-model="otherRun" aria-label="对比 run ID"  /></label>
+    <span class="action-help"><el-button native-type="button" @click="compare" :disabled="!queryRun.trim() || !otherRun.trim()">同集合/规则/采样对比</el-button><HelpHint topic="evaluationCompare" /></span>
+    <JsonResult v-if="result" :value="result" />
   </section>
 </template>
 <script setup lang="ts">
+import JsonResult from '@/components/common/JsonResult.vue';
 import HelpHint from '@/components/common/HelpHint.vue';
 import { onMounted, ref } from 'vue';
 import { apiClient } from '@/api/client';

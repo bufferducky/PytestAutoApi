@@ -2,8 +2,8 @@
   <section class="diagnostics">
     <h3 aria-label="失败诊断与证据">失败诊断与证据<HelpHint topic="evidence" /></h3>
     <p v-if="error" role="alert" class="state-banner state-banner--error">{{ error }}（已有证据保留，可能不是最新）</p>
-    <button type="button" :disabled="loading" @click="load">{{ loading ? '更新中…' : '刷新诊断' }}</button>
-    <button type="button" v-if="diagnostic" @click="copySummary">复制脱敏问题摘要</button>
+    <el-button native-type="button" :disabled="loading" @click="load">{{ loading ? '更新中…' : '刷新诊断' }}</el-button>
+    <el-button native-type="button" v-if="diagnostic" @click="copySummary">复制脱敏问题摘要</el-button>
     <p v-if="notice" class="state-banner state-banner--info">{{ notice }}</p>
     <template v-if="diagnostic">
       <p>状态 {{ statusLabel(diagnostic.status) }} · {{ diagnostic.transport_mode }} / {{ diagnostic.validation_scope }} · 清理 {{ diagnostic.cleanup_status }}</p>
@@ -26,21 +26,21 @@
       </ol>
       <details><summary aria-label="公开身份 / 项目快照与资源别名">公开身份 / 项目快照与资源别名<HelpHint topic="snapshot" /></summary><pre>{{ JSON.stringify({context:diagnostic.context_snapshots,resources:diagnostic.resources},null,2) }}</pre></details>
       <details><summary>关联复跑与版本对比</summary>
-      <span class="action-help"><button type="button" :disabled="['queued','running'].includes(diagnostic.status)" @click="rerunFailed">仅复跑失败场景（从准备阶段重建）</button><HelpHint topic="failedRerun" /></span>
+      <span class="action-help"><el-button native-type="button" :disabled="['queued','running'].includes(diagnostic.status)" @click="rerunFailed">仅复跑失败场景（从准备阶段重建）</el-button><HelpHint topic="failedRerun" /></span>
       <p>原运行：{{ diagnostic.original_run_id || '本次是原始运行' }}。复跑保留失败记录，不覆盖历史。</p>
-      <label><span class="field-caption"><span>对比 run ID</span><HelpHint topic="compare" /></span><input v-model="otherRunId" aria-label="对比 run ID" /></label><span class="action-help"><button type="button" :disabled="!otherRunId" @click="compare">比较版本 / 环境 / 首次失败</button><HelpHint topic="compare" /></span>
+      <label><span class="field-caption"><span>对比 run ID</span><HelpHint topic="compare" /></span><UiInput v-model="otherRunId" aria-label="对比 run ID"  /></label><span class="action-help"><el-button native-type="button" :disabled="!otherRunId" @click="compare">比较版本 / 环境 / 首次失败</el-button><HelpHint topic="compare" /></span>
       <pre v-if="comparison">{{ comparison }}</pre>
       </details><details><summary>附件与证据保留</summary>
       <p>REDACTED 表示脱敏，不是 null；未核验媒体不能外发。缺失、损坏或过期会明确提示。</p>
       <ul><li v-for="artifact in diagnostic.artifacts" :key="artifact.artifact_id">
         {{ artifact.content_type }} · {{ artifact.byte_size }} bytes · {{ artifact.availability }} · {{ artifact.redaction_status }}
         <a :href="artifactUrl(artifact.artifact_id)" target="_blank" rel="noopener">查看 / 下载</a>
-        <span class="action-help"><button type="button" @click="pin(artifact)">{{ artifact.pinned ? '取消保留' : '标记保留' }}</button><HelpHint topic="pin" /></span>
+        <span class="action-help"><el-button native-type="button" @click="pin(artifact)">{{ artifact.pinned ? '取消保留' : '标记保留' }}</el-button><HelpHint topic="pin" /></span>
       </li></ul>
       <form @submit.prevent="attach">
-        <label><span class="field-caption"><span>关联步骤 ID（可选）</span><HelpHint topic="attachmentStep" /></span><input v-model="stepId" aria-label="关联步骤 ID（可选）" /></label>
-        <label><span class="field-caption"><span>脱敏 JSON 附件</span><HelpHint topic="attachment" /></span><textarea v-model="attachment" rows="5" aria-label="脱敏 JSON 附件" /></label>
-        <span class="action-help"><button>保存 JSON 附件</button><HelpHint topic="attachment" /></span>
+        <label><span class="field-caption"><span>关联步骤 ID（可选）</span><HelpHint topic="attachmentStep" /></span><UiInput v-model="stepId" aria-label="关联步骤 ID（可选）"  /></label>
+        <label><span class="field-caption"><span>脱敏 JSON 附件</span><HelpHint topic="attachment" /></span><UiInput type="textarea" v-model="attachment" rows="5" aria-label="脱敏 JSON 附件"  /></label>
+        <span class="action-help"><el-button native-type="submit">保存 JSON 附件</el-button><HelpHint topic="attachment" /></span>
       </form></details>
     </template>
   </section>

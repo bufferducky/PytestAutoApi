@@ -1,5 +1,5 @@
 <template>
-  <span class="status-tag" :class="`status-tag--${tone}`">{{ label }}</span>
+  <el-tag class="status-tag" :class="`status-tag--${tone}`" :type="tone === 'success' ? 'success' : tone === 'attention' ? 'danger' : tone === 'warning' ? 'warning' : tone === 'running' ? 'primary' : 'info'" effect="light" disable-transitions>{{ label }}</el-tag>
 </template>
 
 <script setup lang="ts">

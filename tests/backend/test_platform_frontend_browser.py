@@ -19,11 +19,34 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
+def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path, monkeypatch):
     import uvicorn
     from fastapi.responses import FileResponse
     from fastapi.staticfiles import StaticFiles
+    from manual_browser_support import check_manual_desktop
+    from frontend_ux_browser_support import check_ux_workspace, check_configuration_and_tools, check_ux_tab_layouts
     from playwright.sync_api import expect, sync_playwright
+
+    # 使用真实 Element Plus 下拉与确认对话框，保留原业务链路断言。
+    from playwright.sync_api import Locator
+    native_select = Locator.select_option
+    def select_option(locator, value=None, *, label=None, **kwargs):
+        if locator.evaluate("element => element.tagName") == "SELECT":
+            return native_select(locator, value, label=label, **kwargs)
+        locator.click()
+        options = locator.page.locator('.el-select-dropdown__item:visible')
+        option = options.filter(has_text=re.compile('^' + re.escape(label) + '$')) if label is not None else options.locator(f'[data-value={json.dumps(str(value))}]')
+        if label is None:
+            option = locator.page.locator(f'.el-select-dropdown__item:visible[data-value={json.dumps(str(value))}]')
+        option.click()
+        expect(locator.page.locator(".el-select-dropdown:visible")).to_have_count(0)
+        return [str(value)]
+    monkeypatch.setattr(Locator, 'select_option', select_option)
+    def confirm_dialog(accept):
+        dialog = page.get_by_role('dialog', name='请确认操作', exact=True)
+        expect(dialog).to_be_visible()
+        dialog.get_by_role('button', name='确认' if accept else '取消', exact=True).click()
+        expect(dialog).not_to_be_visible()
 
     root = Path(__file__).resolve().parents[2]
     dist = tmp_path / "dist"
@@ -103,7 +126,7 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
             )
             target_help = editor.get_by_role("button", name="查看帮助：目标系统", exact=True)
             target_help.hover()
-            tooltip = page.get_by_role("tooltip")
+            tooltip = page.locator('.help-tooltip [role="tooltip"]')
             expect(tooltip).to_contain_text("包含其基础地址")
             tooltip.hover()
             expect(tooltip).to_be_visible()
@@ -133,14 +156,15 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
             editor.get_by_role("button", name="新增", exact=True).click()
             editor.get_by_label("名称", exact=True).fill("真实工作台本地回归")
             editor.get_by_label(re.compile("^目标系统")).select_option("workbench-local")
-            editor.get_by_role("button", name="添加 HTTP 步骤", exact=True).click()
+            editor.get_by_role("button", name="添加 HTTP 步骤", exact=True).first.click()
             step = editor.get_by_role("group", name="步骤 1", exact=True)
+            step.get_by_role("tab", name="高级设置", exact=True).click()
             step.get_by_label("稳定 ID", exact=True).fill("check")
             step.get_by_label("步骤名称", exact=True).fill("业务码验证")
             step.get_by_label("URL", exact=True).fill("{{host}}/check")
             confirmation = step.get_by_label("请求契约已确认，可进入真实运行预检", exact=True)
             step.get_by_role("button", name="查看帮助：请求契约确认", exact=True).click()
-            expect(page.get_by_role("tooltip")).to_be_visible()
+            expect(page.locator('.help-tooltip [role="tooltip"]')).to_be_visible()
             expect(confirmation).not_to_be_checked()
             page.keyboard.press("Escape")
             step.get_by_label("请求契约已确认，可进入真实运行预检").check()
@@ -155,22 +179,30 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
             editor.get_by_role("button", name="清空搜索", exact=True).click()
             expect(editor.locator(".asset-list__item")).to_have_count(1)
             if not editor.get_by_label("名称", exact=True).is_visible():
-                editor.locator(".scenario-settings > summary").click()
+                editor.get_by_role("tab", name="场景设置", exact=True).click()
             editor.get_by_label("名称", exact=True).fill("未保存的编辑")
-            page.once("dialog", lambda dialog: dialog.dismiss())
+            manual_checks = check_manual_desktop(
+                context,
+                page,
+                editor,
+                base,
+                root,
+                os.environ.get("PYTA_BROWSER_EVIDENCE_DIR"),
+            )
             editor.get_by_role("button", name="新增", exact=True).click()
+            confirm_dialog(False)
             expect(editor.get_by_label("名称", exact=True)).to_have_value("未保存的编辑")
             # 调试当前未保存内容，且路由离开取消不会丢编辑。
             saved_asset = app.state.asset_service.list("scenarios")[0]
-            page.once("dialog", lambda dialog: dialog.dismiss())
             page.locator('.side-nav__menu a[href="/runs"]').click()
+            confirm_dialog(False)
             expect(page).to_have_url(base + "/cases")
             expect(editor.get_by_label("名称", exact=True)).to_have_value("未保存的编辑")
             editor.get_by_role("button", name="调试当前整场景", exact=True).click()
             debug = page.get_by_role("region", name="当前草稿调试", exact=True)
-            page.once("dialog", lambda dialog: dialog.accept())
             with page.expect_response(re.compile(r"/api/v1/scenarios/debug$")) as debug_response:
                 debug.get_by_role("button", name="确认范围并真实调试", exact=True).click()
+                confirm_dialog(True)
             assert debug_response.value.status == 202, debug_response.value.text()
             debug_id = debug_response.value.json()["run_id"]
             end = time.monotonic() + 10
@@ -187,14 +219,17 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
             debug.get_by_role("button", name="刷新调试结果", exact=True).click()
             expect(debug.get_by_role("status")).to_contain_text(debug_id)
             expect(editor.get_by_label("名称", exact=True)).to_have_value("未保存的编辑")
+            editor.get_by_role("tab", name="场景设置", exact=True).click()
             editor.get_by_label("名称", exact=True).fill("真实工作台本地回归")
-            step.get_by_text("请求选项", exact=False).click()
+            editor.get_by_role("tab", name="编辑与调试", exact=True).click()
+            step.get_by_role("tab", name="请求体", exact=True).click()
             expect(step.get_by_role("combobox", name="请求体类型", exact=True)).to_be_visible()
-            step.get_by_text("请求选项", exact=False).click()
+            step.get_by_role("tab", name="参数", exact=True).click()
             expect(step.get_by_role("combobox", name="请求体类型", exact=True)).not_to_be_visible()
 
+            editor.get_by_role("tab", name="发布与版本", exact=True).click()
             editor.get_by_role("button", name="发布预检", exact=True).click()
-            expect(editor.locator("pre").filter(has_text='"valid": true').first).to_be_visible()
+            expect(editor.get_by_text("预检通过", exact=True)).to_be_visible()
             editor.get_by_label("发布说明", exact=True).fill("真实浏览器本地机制验证")
             editor.get_by_role("button", name="发布不可变版本", exact=True).click()
             expect(
@@ -205,28 +240,33 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                 Path(evidence_dir).mkdir(parents=True, exist_ok=True)
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 page.evaluate("window.scrollTo(0, 0)")
-                page.screenshot(path=str(Path(evidence_dir) / "1440-cases-selected.png"))
+                page.screenshot(animations="disabled", path=str(Path(evidence_dir) / "1440-cases-selected.png"))
             if evidence_dir:
                 page.evaluate("window.scrollTo(0, 0)")
                 if not editor.get_by_label("名称", exact=True).is_visible():
-                    editor.locator(".scenario-settings > summary").click()
+                    editor.get_by_role("tab", name="场景设置", exact=True).click()
                 editor.get_by_role("button", name="查看帮助：优先级", exact=True).hover()
-                expect(page.get_by_role("tooltip")).to_contain_text("P0")
-                page.screenshot(path=str(Path(evidence_dir) / "1440-help-hover.png"))
+                expect(page.locator('.help-tooltip [role="tooltip"]')).to_contain_text("P0")
+                page.screenshot(animations="disabled", path=str(Path(evidence_dir) / "1440-help-hover.png"))
                 page.keyboard.press("Escape")
+            editor.get_by_role("tab", name="正式运行", exact=True).click()
             editor.locator(".version-section").get_by_label("被测构建", exact=True).fill(
                 "workbench-local-v1"
             )
+            editor.get_by_role("button",name="计划预览",exact=True).click()
             editor.get_by_label("已核对计划与测试数据/写入范围").check()
             if not editor.get_by_label("名称", exact=True).is_visible():
-                editor.locator(".scenario-settings > summary").click()
+                editor.get_by_role("tab", name="场景设置", exact=True).click()
             editor.get_by_label("名称", exact=True).fill("正式执行前未保存")
             count_before_cancel = app.state.run_service.repository.list_runs(100, 0).total
-            page.once("dialog", lambda dialog: dialog.dismiss())
+            editor.get_by_role("tab", name="正式运行", exact=True).click()
             editor.get_by_role("button", name="提交运行", exact=True).click()
+            confirm_dialog(False)
             expect(editor.get_by_label("名称", exact=True)).to_have_value("正式执行前未保存")
             assert app.state.run_service.repository.list_runs(100, 0).total == count_before_cancel
+            editor.get_by_role("tab", name="场景设置", exact=True).click()
             editor.get_by_label("名称", exact=True).fill("真实工作台本地回归")
+            editor.get_by_role("tab", name="正式运行", exact=True).click()
             with page.expect_response(
                 re.compile(r"/api/v1/scenarios/[^/]+/versions/1/runs$")
             ) as response:
@@ -251,12 +291,14 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
             page.goto(base + "/suites")
             suite = page.get_by_test_id("asset-editor-suites")
             suite.get_by_label("名称", exact=True).fill("本地回归套件")
+            suite.get_by_role("tab", name="场景编排", exact=True).click()
             suite.get_by_role("button", name="添加固定场景版本", exact=True).click()
             suite.get_by_role("combobox", name="场景", exact=True).select_option(
                 label="真实工作台本地回归"
             )
             suite.get_by_role("button", name="保存草稿", exact=True).click()
             expect(suite.locator(".asset-list__item--selected")).to_contain_text("本地回归套件")
+            suite.get_by_role("tab", name="发布与版本", exact=True).click()
             suite.get_by_label("发布说明", exact=True).fill("浏览器调度回归")
             suite.get_by_role("button", name="发布不可变版本", exact=True).click()
             expect(
@@ -281,27 +323,30 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                 "empty": None,
             }
             page.get_by_label("环境名称", exact=True).fill("尚未保存环境")
-            page.once("dialog", lambda dialog: dialog.dismiss())
             page.get_by_role("button", name="新增环境", exact=True).click()
+            confirm_dialog(False)
             expect(page.get_by_label("环境名称", exact=True)).to_have_value("尚未保存环境")
-            page.once("dialog", lambda dialog: dialog.accept())
             page.locator('.side-nav__menu a[href="/schedules"]').click()
+            confirm_dialog(True)
             page.get_by_label("名称", exact=True).fill("浏览器工作日回归")
             page.get_by_role("combobox", name="发布套件", exact=True).select_option(suite_id)
             page.get_by_role("combobox", name="固定发布版本", exact=True).select_option("1")
             page.get_by_role("combobox", name="运行环境", exact=True).select_option("env-demo-mock")
             page.get_by_role("combobox", name="时间规则", exact=True).select_option("weekdays")
             page.get_by_label("执行时间", exact=True).fill("09:30")
+            help_alignment=page.locator('.plan-fields > .action-help').evaluate("""element=>{const button=element.querySelector('.el-button').getBoundingClientRect();const hint=element.querySelector('.help-hint').getBoundingClientRect();return Math.abs((button.top+button.bottom)/2-(hint.top+hint.bottom)/2)}""")
+            assert help_alignment<=3, help_alignment
             page.get_by_role("button", name="保存为暂停计划", exact=True).click()
             expect(page.get_by_text("计划已保存并暂停。", exact=True)).to_be_visible()
-            plan_row = page.locator(".plans tbody tr").filter(has_text="浏览器工作日回归")
+            plan_row = page.locator(".plan-library button").filter(has_text="浏览器工作日回归")
             expect(plan_row).to_contain_text("30 9 * * 1-5")
-            plan_row.get_by_role("button", name="预览5次", exact=True).click()
+            page.get_by_role("tab", name="触发与记录", exact=True).click()
+            page.get_by_role("button", name="预览5次", exact=True).click()
             expect(page.get_by_role("region", name="触发时间预览").locator("time")).to_have_count(5)
             page.get_by_role("button", name="新计划", exact=True).click()
             expect(page.get_by_label("名称", exact=True)).to_have_value("")
-            expect(page.get_by_role("combobox", name="发布套件", exact=True)).to_have_value("")
-            expect(page.get_by_role("combobox", name="运行环境", exact=True)).to_have_value("")
+            expect(page.locator('.plan-detail .ui-select').first).to_contain_text("选择套件")
+            expect(page.locator('.plan-detail .ui-select').nth(2)).to_contain_text("选择环境")
             # 后来的成功记录不能挤掉失败入口；失败详情展示真实断言差异。
             debug_model = importlib.import_module(
                 "pyta_platform_backend.schemas.assets"
@@ -352,7 +397,7 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                 page.set_viewport_size({"width": width, "height": 900})
                 for route in layout_config["routes"]:
                     page.goto(base + route)
-                    expect(page.locator(".side-nav__menu a")).to_have_count(6)
+                    expect(page.locator(".side-nav__menu a")).to_have_count(7)
                     if route == "/cases":
                         expect(page.locator(".asset-list__item--selected")).to_contain_text(
                             "真实工作台本地回归"
@@ -366,23 +411,29 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                         expect(page.locator(".run-row--selected")).to_contain_text(
                             re.compile("成功|调试断言通过")
                         )
-                    first_help = page.locator(".help-hint__trigger:visible").first
-                    expect(first_help).to_be_visible()
-                    first_help.scroll_into_view_if_needed()
-                    page.mouse.move(0, 0)
-                    first_help.hover()
-                    expect(page.get_by_role("tooltip")).to_be_visible()
-                    tooltip_box = page.get_by_role("tooltip").bounding_box()
-                    assert tooltip_box and tooltip_box["x"] >= 0 and tooltip_box["y"] >= 0
-                    assert tooltip_box["x"] + tooltip_box["width"] <= width
-                    assert tooltip_box["y"] + tooltip_box["height"] <= 900
-                    page.keyboard.press("Escape")
+                    if route == "/manual":
+                        expect(page.locator(".manual-article h1")).to_be_visible()
+                        expect(page.locator(".manual-diagram [role='status']")).to_have_count(
+                            0, timeout=30000
+                        )
+                    if route != "/manual":
+                        first_help = page.locator(".help-hint__trigger:visible").first
+                        expect(first_help).to_be_visible()
+                        first_help.scroll_into_view_if_needed()
+                        page.mouse.move(0, 0)
+                        first_help.hover()
+                        expect(page.locator('.help-tooltip [role="tooltip"]')).to_be_visible()
+                        tooltip_box = page.locator(".help-tooltip").bounding_box()
+                        assert tooltip_box and tooltip_box["x"] >= 0 and tooltip_box["y"] >= 0
+                        assert tooltip_box["x"] + tooltip_box["width"] <= width
+                        assert tooltip_box["y"] + tooltip_box["height"] <= 900
+                        page.keyboard.press("Escape")
                     evidence_dir = os.environ.get("PYTA_BROWSER_EVIDENCE_DIR")
-                    if evidence_dir and width in {390, 980, 1440}:
+                    if evidence_dir and width in {1280, 1440, 1920}:
                         image_path = Path(evidence_dir) / f"{width}-{route[1:]}-default.png"
                         image_path.parent.mkdir(parents=True, exist_ok=True)
                         page.evaluate("window.scrollTo(0, 0)")
-                        page.screenshot(path=str(image_path))
+                        page.screenshot(animations="disabled", path=str(image_path))
                     layout_checks.append(
                         {
                             "label": f"{width} {route} default",
@@ -399,11 +450,11 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                         }
                     )
                     evidence_dir = os.environ.get("PYTA_BROWSER_EVIDENCE_DIR")
-                    if evidence_dir and width in {390, 980, 1440}:
+                    if evidence_dir and width in {1280, 1440, 1920}:
                         image_path = Path(evidence_dir) / f"{width}-{route[1:]}.png"
                         image_path.parent.mkdir(parents=True, exist_ok=True)
                         page.evaluate("window.scrollTo(0, 0)")
-                        page.screenshot(path=str(image_path))
+                        page.screenshot(animations="disabled", path=str(image_path))
             layout_validation = subprocess.run(
                 [
                     "node",
@@ -420,27 +471,16 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                 text=True,
             )
             assert layout_validation.returncode == 0, layout_validation.stderr
-            touch_context = browser.new_context(
-                viewport={"width": 390, "height": 844},
-                is_mobile=True,
-                has_touch=True,
-            )
-            touch_page = touch_context.new_page()
-            touch_page.goto(base + "/cases")
-            touch_page.locator(".scenario-settings > summary").click()
-            touch_help = touch_page.get_by_role("button", name="查看帮助：优先级", exact=True)
-            touch_help.tap()
-            expect(touch_page.get_by_role("tooltip")).to_contain_text("P0")
-            if evidence_dir:
-                touch_page.screenshot(path=str(Path(evidence_dir) / "390-help-tap.png"))
-            touch_help.tap()
-            expect(touch_page.get_by_role("tooltip")).not_to_be_visible()
-            touch_help.tap()
-            touch_page.locator(".editor-heading h3").tap()
-            expect(touch_page.get_by_role("tooltip")).not_to_be_visible()
-            touch_context.close()
+            page.set_viewport_size({"width":1440,"height":900})
+            ux_checks=check_ux_workspace(page,app,base,saved_asset,os.environ.get("PYTA_BROWSER_EVIDENCE_DIR"))
+            configuration_checks=check_configuration_and_tools(page,app,base,os.environ.get("PYTA_BROWSER_EVIDENCE_DIR"))
+            extra_layout_checks=check_ux_tab_layouts(page,base,layout_config["widths"],layout_config["measure"],os.environ.get("PYTA_BROWSER_EVIDENCE_DIR"))
+            for entry in extra_layout_checks:
+                assert entry['metrics']['scroll'] <= entry['metrics']['viewport']+1, entry
             page.set_viewport_size({"width": 1280, "height": 900})
             # 断开页面API，验证实际DOM出现错误而非自动填入演示数据。
+            # 手册不依赖业务 API，离线错误仍应在业务页面验收。
+            page.goto(base + "/cases")
             page.route("**/api/v1/**", lambda route: route.abort())
             page.reload()
             expect(page.locator(".state-banner--error").first).to_be_visible()
@@ -450,12 +490,16 @@ def test_real_workbench_edit_publish_live_run_and_offline_error(tmp_path):
                 json.dumps(
                     {
                         "scope": "真实平台前端+本地API，未调用公司业务",
+                        "ux_workspace":ux_checks,
+                        "configuration_tools":configuration_checks,
                         "created_published_run": True,
                         "live_http_evidence": True,
                         "offline_error_visible": True,
                         "page_errors": page_errors,
                         "layout_checks": len(layout_checks),
-                        "help_hover_keyboard_touch": True,
+                        "opened_tab_layout_checks":len(extra_layout_checks),
+                        "help_hover_keyboard_desktop": True,
+                        "manual": manual_checks,
                         "help_does_not_mutate_forms": True,
                         "unsaved_draft_debug": True,
                         "formal_run_preserves_unsaved_on_cancel": True,

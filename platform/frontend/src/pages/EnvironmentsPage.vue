@@ -1,24 +1,25 @@
 <template>
   <section class="page-grid">
-    <details><summary aria-label="目标系统、身份与项目绑定">目标系统、身份与项目绑定<HelpHint topic="profileKind" /></summary><ContextProfilesPanel /></details>
-    <div class="content-grid">
+    <el-tabs v-model="environmentTab" :before-leave="beforeEnvironmentTab" aria-label="环境配置分类"><el-tab-pane label="环境" name="environments" /><el-tab-pane label="目标系统" name="targets" /><el-tab-pane label="身份" name="identity-profiles" /><el-tab-pane label="租户 / 项目绑定" name="context-bindings" /></el-tabs>
+    <ContextProfilesPanel ref="contextPanel" v-show="environmentTab !== 'environments'" :profile-kind="lastProfileKind" />
+    <div v-show="environmentTab === 'environments'" class="content-grid">
       <ContentPanel
         title="环境目录"
         description="配置基础地址与环境变量，供场景和套件运行使用。"
       >
         <template #actions>
           <div class="action-row">
-            <button
+            <el-button
               class="action-button action-button--secondary"
-              type="button"
+              native-type="button"
               :disabled="saving || deleting || detailLoading"
               @click="startCreateMode()"
             >
               新增环境
-            </button>
-            <button class="action-button" type="button" :disabled="loading" @click="loadEnvironments()">
+            </el-button>
+            <el-button class="action-button" native-type="button" :disabled="loading" @click="loadEnvironments()" type="primary">
               {{ loading ? '加载中...' : '重新加载' }}
-            </button>
+            </el-button>
           </div>
         </template>
 
@@ -32,58 +33,9 @@
           暂无环境，请填写表单创建第一个执行环境。
         </div>
 
-        <div v-else class="table-shell">
-          <table>
-            <thead>
-              <tr>
-                <th>环境</th>
-                <th aria-label="Base URL">Base URL<HelpHint topic="baseUrl" /></th>
-                <th aria-label="鉴权方式">鉴权方式<HelpHint topic="authMode" /></th>
-                <th aria-label="状态">状态<HelpHint topic="environmentStatus" /></th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in environments"
-                :key="item.id"
-                class="environment-row"
-                :class="{ 'environment-row--selected': item.id === selectedEnvironmentId }"
-                tabindex="0"
-                role="button"
-                :aria-selected="item.id === selectedEnvironmentId"
-                @click="startEditMode(item.id)"
-                @keydown.enter.prevent="startEditMode(item.id)"
-                @keydown.space.prevent="startEditMode(item.id)"
-              >
-                <td>
-                  <div class="environment-name-row">
-                    <span class="environment-name">{{ item.name }}</span>
-                    <span v-if="item.id === selectedEnvironmentId" class="environment-current">当前编辑</span>
-                  </div>
-                </td>
-                <td>{{ item.baseUrl }}</td>
-                <td>{{ item.authMode }}</td>
-                <td>
-                  <StatusTag
-                    :label="environmentStatusLabelMap[item.status]"
-                    :tone="item.status === 'online' ? 'success' : 'warning'"
-                  />
-                </td>
-                <td>
-                  <button
-                    class="action-link"
-                    type="button"
-                    :disabled="detailLoading && item.id === selectedEnvironmentId"
-                    @click.stop="startEditMode(item.id)"
-                  >
-                    编辑
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <label class="directory-search">搜索环境<UiInput v-model="environmentSearch" placeholder="名称或基础地址" aria-label="搜索环境" /></label><el-table :data="filteredEnvironments" row-key="id" :current-row-key="selectedEnvironmentId" highlight-current-row :row-class-name="({row}: {row: EnvironmentSummary}) => row.id === selectedEnvironmentId ? 'environment-row environment-row--selected' : 'environment-row'" @row-click="(row: EnvironmentSummary)=>startEditMode(row.id)" empty-text="暂无匹配环境">
+<el-table-column label="环境与基础地址" min-width="200"><template #default="{row}"><strong>{{ row.name }}</strong><small class="environment-directory-meta">{{ row.baseUrl }}</small><el-button native-type="button" text type="primary" :disabled="detailLoading" @click.stop="startEditMode(row.id)">编辑</el-button></template></el-table-column>
+<el-table-column label="状态" width="85"><template #default="{row}"><StatusTag :label="environmentStatusLabelMap[row.status as EnvironmentSummary['status']]" :tone="row.status==='online'?'success':'warning'" /></template></el-table-column></el-table>
       </ContentPanel>
 
       <ContentPanel
@@ -120,61 +72,61 @@
           <div class="form-grid">
             <label class="field-stack">
               <span>环境名称</span>
-              <input
+              <UiInput
                 v-model.trim="formState.name"
                 type="text"
                 maxlength="32"
                 placeholder="例如：预发联调环境"
                 required
-              />
+               />
             </label>
 
-            <label class="field-stack"><span class="field-caption"><span>Base URL</span><HelpHint topic="baseUrl" /></span><input
+            <label class="field-stack"><span class="field-caption"><span>Base URL</span><HelpHint topic="baseUrl" /></span><UiInput
                 v-model.trim="formState.baseUrl"
                 type="url"
                 placeholder="https://staging.example.com"
                 required
-              aria-label="Base URL" />
+              aria-label="Base URL"  />
             </label>
 
-            <label class="field-stack"><span class="field-caption"><span>鉴权方式</span><HelpHint topic="authMode" /></span><select v-model="formState.authMode" aria-label="鉴权方式">
+            <label class="field-stack"><span class="field-caption"><span>鉴权方式</span><HelpHint topic="authMode" /></span><UiSelect v-model="formState.authMode" aria-label="鉴权方式">
                 <option v-for="item in authModeOptions" :key="item" :value="item">
                   {{ item }}
                 </option>
-              </select>
+              </UiSelect>
             </label>
 
-            <label class="field-stack"><span class="field-caption"><span>状态</span><HelpHint topic="environmentStatus" /></span><select v-model="formState.status" aria-label="状态">
+            <label class="field-stack"><span class="field-caption"><span>状态</span><HelpHint topic="environmentStatus" /></span><UiSelect v-model="formState.status" aria-label="状态">
                 <option value="draft">待配置</option>
                 <option value="online">可用</option>
-              </select>
+              </UiSelect>
             </label>
           </div>
 
           <EnvironmentVariablesEditor v-model="variablesText" @validity="variablesValid = $event" />
           <p v-if="dirty" role="status">有未保存修改</p>
           <div class="form-actions">
-            <button class="action-button" type="submit" :disabled="saving || deleting || detailLoading || !variablesValid">
+            <el-button class="action-button" native-type="submit" :disabled="saving || deleting || detailLoading || !variablesValid" type="primary">
               {{ primaryActionLabel }}
-            </button>
-            <button
+            </el-button>
+            <el-button
               v-if="formMode === 'edit'"
               class="action-button action-button--secondary"
-              type="button"
+              native-type="button"
               :disabled="saving || deleting || detailLoading"
               @click="startCreateMode()"
             >
               取消编辑
-            </button>
-            <button
+            </el-button>
+            <el-button
               v-if="formMode === 'edit'"
               class="action-button action-button--danger"
-              type="button"
+              native-type="button"
               :disabled="deleting || saving || detailLoading"
               @click="removeEnvironment"
-            >
+             type="danger" plain>
               {{ deleting ? '删除中...' : '删除环境' }}
-            </button>
+            </el-button>
             <p class="form-tip">{{ formTip }}</p>
           </div>
           </fieldset>
@@ -188,8 +140,9 @@
 
 <script setup lang="ts">
 import HelpHint from '@/components/common/HelpHint.vue';
+import { confirmAction } from '@/utils/confirmation';
 import ContextProfilesPanel from '@/components/ContextProfilesPanel.vue';
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import EnvironmentVariablesEditor from '@/components/EnvironmentVariablesEditor.vue';
 import { apiClient } from '@/api/client';
@@ -238,14 +191,19 @@ const formState = ref<CreateEnvironmentPayload>({
   status: 'draft',
 });
 
+const environmentTab = ref('environments'), lastProfileKind=ref('targets'), environmentSearch=ref('');
+watch(environmentTab,value=>{if(value!=='environments')lastProfileKind.value=value;});
+const contextPanel=ref<{mayDiscard:()=>Promise<boolean>} | null>(null);
+const filteredEnvironments=computed(()=>environments.value.filter(item=>[item.name,item.baseUrl].join(' ').toLowerCase().includes(environmentSearch.value.toLowerCase())));
+async function beforeEnvironmentTab(next: string | number) { return !saving.value && !deleting.value && (next==='environments' || next===lastProfileKind.value || await (contextPanel.value?.mayDiscard() ?? true)); }
 const variablesText = ref('{}'), variablesValid = ref(true);
 const snapshot = () => JSON.stringify([formState.value, variablesText.value]);
 const savedSnapshot = ref(snapshot());
 const dirty = computed(() => snapshot() !== savedSnapshot.value || !variablesValid.value);
-const mayDiscard = () => !dirty.value || window.confirm('有未保存修改，确认放弃？');
+const mayDiscard = async () => !dirty.value || await confirmAction('有未保存修改，确认放弃？');
 let detailSequence = 0, listSequence = 0;
 const beforeUnload = (event: BeforeUnloadEvent) => { if (dirty.value || saving.value) { event.preventDefault(); event.returnValue = ''; } };
-onBeforeRouteLeave(() => !saving.value && !deleting.value && mayDiscard());
+onBeforeRouteLeave(async () => !saving.value && !deleting.value && await mayDiscard() && await (contextPanel.value?.mayDiscard() ?? true));
 onBeforeUnmount(() => { ++detailSequence; ++listSequence; window.removeEventListener('beforeunload', beforeUnload); });
 
 const resetFormState = () => {
@@ -299,15 +257,15 @@ const resetCreateState = () => {
   variablesText.value = '{}'; variablesValid.value = true; savedSnapshot.value = snapshot();
 };
 
-const startCreateMode = () => {
-  if (saving.value || deleting.value || !mayDiscard()) return;
+const startCreateMode = async () => {
+  if (saving.value || deleting.value || !(await mayDiscard())) return;
   resetCreateState();
 };
 
 const startEditMode = async (environmentId: string, options?: { silent?: boolean }) => {
   if (saving.value || deleting.value) return;
   if (!options?.silent && environmentId === selectedEnvironmentId.value) return;
-  if (!options?.silent && !mayDiscard()) return;
+  if (!options?.silent && !(await mayDiscard())) return;
   const sequence = ++detailSequence;
   detailLoading.value = true;
   if (!options?.silent) { note.value = ''; errorMessage.value = ''; }
@@ -367,7 +325,7 @@ const removeEnvironment = async () => {
     return;
   }
 
-  const shouldDelete = window.confirm(`确认删除环境「${currentEnvironmentDetail.value.name}」吗？`);
+  const shouldDelete = await confirmAction(`确认删除环境「${currentEnvironmentDetail.value.name}」吗？`);
   if (!shouldDelete) {
     return;
   }
@@ -553,3 +511,7 @@ onMounted(() => {
   }
 }
 </style>
+
+<style scoped>.content-grid{grid-template-columns:minmax(250px,.85fr) minmax(0,1.3fr);gap:16px}.environment-form{min-width:0}.directory-search{display:grid;gap:6px}.environment-hero__title{font-size:17px}.table-shell table{table-layout:fixed}.table-shell td{overflow-wrap:anywhere}.table-shell th:nth-child(3),.table-shell td:nth-child(3){display:none}.environment-row{cursor:pointer}</style>
+
+<style scoped>.environment-directory-meta{display:block;overflow-wrap:anywhere;font-size:11px;color:var(--color-ink-subtle);line-height:1.7}.content-grid :deep(.el-table .cell){word-break:normal}.content-grid :deep(.el-table strong){font-size:13px}.content-grid :deep(.el-table .el-tag){white-space:nowrap}</style>

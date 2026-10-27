@@ -295,7 +295,7 @@ def test_layout_warns_only_for_extension_brand_height():
     metrics = {
         "scroll": 390,
         "viewport": 390,
-        "links": 6,
+        "links": 7,
         "body": {"width": 390},
         "brand": {"height": 110},
         "navItem": {"height": 45},
@@ -320,7 +320,7 @@ def test_real_browser_checks_all_routes_and_widths_locally(local_site):
       <div class="side-nav__brand">Release</div><nav class="side-nav__menu">
       <a class="side-nav__item" href="/dashboard">One</a><a href="/cases">Two</a>
       <a href="/suites">Three</a><a href="/environments">Four</a>
-      <a href="/runs">Five</a><a href="/schedules">Six</a></nav>
+      <a href="/runs">Five</a><a href="/schedules">Six</a><a href="/manual">Manual</a></nav>
       <h1 class="hero-banner__title">Release verification</h1></main>
       <script>if(location.pathname==='/extensions')
       document.querySelector('.side-nav__brand').style.height='110px';</script></body></html>"""
@@ -330,8 +330,9 @@ def test_real_browser_checks_all_routes_and_widths_locally(local_site):
     )
     checks, warnings = [], []
     verifier.verify_browser(local_site["url"], (USERNAME, PASSWORD), checks, warnings)
-    assert len(checks) == 63 and all(check["passed"] for check in checks)
-    assert len(warnings) == 9
+    assert len(checks) == len(verifier.ROUTES) * len(verifier.WIDTHS)
+    assert all(check["passed"] for check in checks)
+    assert len(warnings) == len(verifier.WIDTHS)
     assert {row["route"] for row in warnings} == {"/extensions"}
     assert all(method == "GET" for method, _, _ in local_site["requests"])
 

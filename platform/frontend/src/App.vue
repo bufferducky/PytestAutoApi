@@ -1,8 +1,9 @@
 <template>
-  <AppShell />
+  <el-config-provider :locale="zhCn"><AppShell /></el-config-provider>
 </template>
 
 <script setup lang="ts">
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import AppShell from '@/layouts/AppShell.vue';
 </script>
 

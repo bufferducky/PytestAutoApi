@@ -21,3 +21,15 @@
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 html { font-size: 14px; }
+:root {
+  --el-color-primary: #3659d9;
+  --el-color-primary-light-3: #738ce4;
+  --el-color-primary-light-5: #9aa9ec;
+  --el-color-primary-light-7: #c3ccf5;
+  --el-color-primary-light-9: #eef2ff;
+  --el-font-family: var(--font-sans);
+  --el-font-size-base: 14px;
+  --el-border-radius-base: 6px;
+  --el-border-color: #dce1ea;
+  --el-text-color-primary: #202939;
+}

@@ -1,16 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 
-import ExtensionsPage from '@/pages/ExtensionsPage.vue';
+const ExtensionsPage = () => import('@/pages/ExtensionsPage.vue');
 import DashboardPage from '@/pages/DashboardPage.vue';
-import CasesPage from '@/pages/CasesPage.vue';
-import SuitesPage from '@/pages/SuitesPage.vue';
-import EnvironmentsPage from '@/pages/EnvironmentsPage.vue';
-import RunsPage from '@/pages/RunsPage.vue';
-import SchedulesPage from '@/pages/SchedulesPage.vue';
+const CasesPage = () => import('@/pages/CasesPage.vue');
+const SuitesPage = () => import('@/pages/SuitesPage.vue');
+const EnvironmentsPage = () => import('@/pages/EnvironmentsPage.vue');
+const RunsPage = () => import('@/pages/RunsPage.vue');
+const SchedulesPage = () => import('@/pages/SchedulesPage.vue');
 import { useAppStore } from '@/stores/app';
 
 const routes: RouteRecordRaw[] = [
+  { path: '/manual/:articleId?', name: 'manual', component: () => import('@/pages/ManualPage.vue'), meta: { title: '使用手册', description: '从基础概念到完整测试链路，按步骤配置，随时查阅字段说明。', navLabel: '使用手册', shortLabel: 'MA', section: 'manual' } },
   { path: '/extensions', name: 'extensions', component: ExtensionsPage, meta: { title: '扩展工具', description: '覆盖账本、测试资源、旅程能力与历史评估。', navLabel: '扩展工具', shortLabel: 'EX', section: 'cases' } },
   {
     path: '/',
@@ -93,7 +94,8 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior: () => ({ top: 0 }),
+  // 手册正文延迟加载，小节位置由阅读器在内容就绪后处理。
+  scrollBehavior: to => to.name === 'manual' ? false : ({ top: 0 }),
 });
 
 router.afterEach((to) => {

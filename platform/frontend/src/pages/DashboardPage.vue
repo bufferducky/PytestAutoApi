@@ -6,7 +6,7 @@
         <RouterLink class="action-button action-button--secondary" to="/suites">执行固定版本套件</RouterLink>
         <RouterLink class="action-button action-button--secondary" to="/runs">查看执行结果</RouterLink>
       </div>
-      <div class="toolbar"><small v-if="loadedAt">更新于 {{ loadedAt }}</small><button :disabled="loading" @click="reload">{{ loading ? '更新中…' : '刷新' }}</button></div>
+      <div class="toolbar"><small v-if="loadedAt">更新于 {{ loadedAt }}</small><el-button :disabled="loading" @click="reload" native-type="submit">{{ loading ? '更新中…' : '刷新' }}</el-button></div>
     </div>
     <p v-if="error" role="alert" class="state-banner state-banner--error">{{ error }} 已加载内容继续保留。</p>
     <div v-if="overview.metrics.length" class="metrics-grid"><MetricCard v-for="metric in overview.metrics" :key="metric.key" :metric="metric" /></div>

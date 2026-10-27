@@ -10,6 +10,7 @@ const defaultNavigation: NavigationItem[] = [
   { name: 'environments', label: '环境管理', shortLabel: 'EN', description: '维护 base_url、鉴权和环境变量。' },
   { name: 'runs', label: '执行结果', shortLabel: 'RU', description: '查看运行记录、失败明细与定位信息。' },
   { name: 'schedules', label: '调度任务', shortLabel: 'SC', description: '配置轻量 cron 任务与执行入口。' },
+  { name: 'manual', label: '使用手册', shortLabel: 'MA', description: '从零理解概念，按步骤配置并查阅字段说明。' },
 ];
 
 export const useAppStore = defineStore('app', () => {

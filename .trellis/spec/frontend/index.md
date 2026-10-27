@@ -1,13 +1,18 @@
 # 前端规范：PytestAutoApi
 
-作用域：`platform/frontend/`（Vue 3、TypeScript、Pinia、vue-router）。
+作用域：`platform/frontend/`（Vue 3、TypeScript、Pinia、vue-router、Element Plus）。
 修改布局、导航、表单、表格或运行证据展示前，读取
 [响应式布局与验收](./responsive-layout.md)。
 修改 API 字段时，同时读取后端对应契约。
 
 质量门槛：TypeScript / 生产构建、现有前端可靠性检查、真实浏览器布局回归。
-构建成功与 HTTP 200 只说明产物可生成/访问，不证明移动端布局可用。
+构建成功与 HTTP 200 只说明产物可生成/访问，不能替代真实桌面操作验收。
+
+用户于 2026-10-27 明确：后续页面工作不再要求手机兼容。布局验收仅检查
+1280、1440、1920px 桌面，保留鼠标与键盘可访问性，不增加手机/触屏专项。
 
 修改资产表单回填/套件引用时，读取 [资产编辑器回填](./asset-editor.md)。
 
 修改页面信息层级、公共控件或资产搜索/编辑状态时，读取 [工作台交互与视觉约束](./workbench-ui.md)。
+
+修改手册正文、目录、搜索、小节地址或问号联动时，读取 [使用手册与帮助契约](./user-manual.md)。

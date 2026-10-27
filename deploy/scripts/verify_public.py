@@ -15,8 +15,11 @@ from urllib.error import HTTPError
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-WIDTHS = (320, 390, 768, 960, 980, 1080, 1081, 1280, 1440)
-ROUTES = ("/dashboard", "/cases", "/suites", "/environments", "/runs", "/schedules", "/extensions")
+WIDTHS = (1280, 1440, 1920)
+ROUTES = (
+    "/dashboard", "/cases", "/suites", "/environments",
+    "/runs", "/schedules", "/extensions", "/manual",
+)
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 MEASURE_LAYOUT = """() => {
   const rect = selector => {
@@ -296,7 +299,7 @@ def verify_http(client, manifest, base_url, checks):
 def check_layout(metrics, extension=False):
     require(metrics["scroll"] <= metrics["viewport"] + 1, "horizontal_overflow")
     require(
-        metrics["links"] == 6 and metrics["body"] and metrics["brand"] and metrics["navItem"],
+        metrics["links"] == 7 and metrics["body"] and metrics["brand"] and metrics["navItem"],
         "layout_elements_missing",
     )
     tall_brand = metrics["brand"]["height"] >= 100

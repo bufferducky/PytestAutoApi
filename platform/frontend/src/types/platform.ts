@@ -12,7 +12,8 @@ export type RouteName =
   | 'suites'
   | 'environments'
   | 'runs'
-  | 'schedules';
+  | 'schedules'
+  | 'manual';
 
 export interface NavigationItem {
   name: RouteName;

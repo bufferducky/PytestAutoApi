@@ -7,9 +7,9 @@
     <div class="side-nav__navigation">
       <p class="side-nav__group">测试工作空间</p>
       <nav class="side-nav__menu" aria-label="平台主导航">
-        <RouterLink v-for="item in appStore.navigation" :key="item.name" :to="{ name: item.name }" class="side-nav__item" :class="{ 'side-nav__item--active': route.name === item.name }" :aria-current="route.name === item.name ? 'page' : undefined">
+        <el-menu :default-active="String(route.name)" class="workbench-menu"><el-menu-item v-for="item in appStore.navigation" :key="item.name" :index="item.name"><RouterLink :to="{ name: item.name }" class="side-nav__item" :class="{ 'side-nav__item--active': route.name === item.name }" :aria-current="route.name === item.name ? 'page' : undefined">
           <NavIcon :name="item.name" /><span>{{ item.label }}</span>
-        </RouterLink>
+        </RouterLink></el-menu-item></el-menu>
       </nav>
       <RouterLink to="/extensions" class="side-nav__extension" :aria-current="route.name === 'extensions' ? 'page' : undefined">扩展工具 <span aria-hidden="true">↗</span></RouterLink>
     </div>
@@ -56,3 +56,5 @@ const appStore = useAppStore();
   .side-nav__item svg { width: 16px; height: 16px; }
 }
 </style>
+
+<style scoped>.workbench-menu{border:0}.workbench-menu .el-menu-item{padding:0!important;height:44px;line-height:normal;margin-bottom:4px}.workbench-menu .side-nav__item{width:100%;height:100%;margin:0;display:flex;align-items:center}.side-nav{gap:24px;padding-top:22px}.side-nav__menu{display:block}</style>

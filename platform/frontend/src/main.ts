@@ -1,5 +1,8 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { ElAlert, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElConfigProvider, ElDescriptions, ElDescriptionsItem, ElEmpty, ElMenu, ElMenuItem, ElPagination, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag } from 'element-plus';
+import 'element-plus/dist/index.css';
+import { UiInput, UiSelect } from '@/components/ui/controls';
 
 import App from './App.vue';
 import router from './router';
@@ -13,6 +16,10 @@ const pinia = createPinia();
 // 这里先挂载 Pinia，再挂载路由。
 // 原因是路由守卫里会读取 store；如果顺序反了，首次导航时 store 还没准备好。
 app.use(pinia);
+const components = { ElAlert, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElConfigProvider, ElDescriptions, ElDescriptionsItem, ElEmpty, ElMenu, ElMenuItem, ElPagination, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag };
+for (const [name,component] of Object.entries(components)) app.component(name,component);
+app.component('UiInput', UiInput);
+app.component('UiSelect', UiSelect);
 app.use(router);
 app.mount('#app');
 

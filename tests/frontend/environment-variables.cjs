@@ -27,13 +27,13 @@ assert.deepEqual(JSON.parse(events.findLast(event=>event[0]==='update:modelValue
 const {state:env,descriptor,script}=setup('pages/EnvironmentsPage');
 const template=compileTemplate({source:descriptor.template.content,filename:'EnvironmentsPage.vue',id:'env',compilerOptions:{bindingMetadata:script.bindings}});
 const moduleResult={exports:{}};
-new Function('require','module','exports',ts.transpileModule(template.code,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(()=>vue,moduleResult,moduleResult.exports);
+new Function('require','module','exports',ts.transpileModule(template.code,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(()=>({...vue,resolveComponent:name=>({name})}),moduleResult,moduleResult.exports);
 const warn=console.warn;console.warn=()=>{};
 try {
  for(const flag of ['saving','deleting','detailLoading']) {
   env[flag].value=true;
   const nodes=[];
-  function visit(node) {if(Array.isArray(node)) return node.forEach(visit);if(!node||typeof node!=='object')return;nodes.push(node);if(Array.isArray(node.children))visit(node.children);else if(node.children&&typeof node.children==='object')for(const slot of Object.values(node.children))if(typeof slot==='function')visit(slot());}
+  function visit(node) {if(Array.isArray(node)) return node.forEach(visit);if(!node||typeof node!=='object')return;nodes.push(node);if(Array.isArray(node.children))visit(node.children);else if(node.children&&typeof node.children==='object')if(node.type?.name!=='el-table-column')for(const slot of Object.values(node.children))if(typeof slot==='function')visit(slot());}
   visit(moduleResult.exports.render({},[],{},vue.proxyRefs(env),{},{}));
   const form=nodes.find(node=>node.type==='form');assert(form);
   const fieldset=form.children.find(node=>node.type==='fieldset');assert.equal(fieldset.props.disabled,true,flag);

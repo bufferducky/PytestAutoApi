@@ -1,0 +1,33 @@
+{
+  "id": "frontend-ux-component-library",
+  "name": "frontend-ux-component-library",
+  "title": "前端全量体验重构与 UI 组件库接入",
+  "description": "已完成 Element Plus 2.14.7 接入及八类页面体验重构，20 项问题与16项验收均有实现及本地证据，156次布局检查和完整浏览器链路通过。",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "platform/frontend",
+  "package": null,
+  "priority": "P1",
+  "creator": "ys",
+  "assignee": "ys",
+  "createdAt": "2026-10-27",
+  "completedAt": "2026-10-27",
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "prd.md",
+    "ux-audit.md",
+    "design.md",
+    "implement.md"
+  ],
+  "notes": "用户明确批准后已完整实施。构建/类型、可靠性、手册检查通过；真实浏览器 1 passed in 53.76s，48+108=156 次布局检查、0 页面脚本错误。报告位于 docs/reviews/2026-10-27-frontend-ux/README.md。代码与会话记录不自动提交，任务保留未归档以避免归档脚本自动提交原工作区；未部署远端。",
+  "meta": {}
+}

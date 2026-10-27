@@ -4,29 +4,29 @@
     <p v-if="error || jsonError" class="state-banner state-banner--error" role="alert">{{ error || jsonError }}</p>
     <fieldset v-for="(row,index) in rows" :key="index">
       <legend>断言 {{ index + 1 }}</legend>
-      <label>断言名称 <input :value="row.name" @input="patch(index,{name:text($event)})" /></label>
-      <label><span class="field-caption"><span>来源</span><HelpHint topic="assertSource" /></span><select :value="row.source || 'response_body'" @change="patch(index,{source:text($event)})" aria-label="来源">
+      <label>断言名称 <UiInput :value="row.name" @input="patch(index,{name:text($event)})"  /></label>
+      <label><span class="field-caption"><span>来源</span><HelpHint topic="assertSource" /></span><UiSelect :value="row.source || 'response_body'" @change="patch(index,{source:text($event)})" aria-label="来源">
         <option value="response_body">响应体</option><option value="response_headers">响应头</option><option value="status_code">HTTP 状态</option><option value="context">运行上下文</option>
-      </select></label>
-      <label><span class="field-caption"><span>字段路径</span><HelpHint topic="selector" /></span><input :value="row.selector || ''" @input="patch(index,{selector:text($event)})" aria-label="字段路径" /></label>
-      <label><span class="field-caption"><span>比较规则</span><HelpHint topic="operator" /></span><select :value="row.operator || 'equals'" @change="patch(index,{operator:text($event)})" aria-label="比较规则">
+      </UiSelect></label>
+      <label><span class="field-caption"><span>字段路径</span><HelpHint topic="selector" /></span><UiInput :value="row.selector || ''" @input="patch(index,{selector:text($event)})" aria-label="字段路径"  /></label>
+      <label><span class="field-caption"><span>比较规则</span><HelpHint topic="operator" /></span><UiSelect :value="row.operator || 'equals'" @change="patch(index,{operator:text($event)})" aria-label="比较规则">
         <option v-for="operator in operators" :key="operator" :value="operator">{{ operator }}</option>
-      </select></label>
-      <label><span class="field-caption"><span>期望 JSON</span><HelpHint topic="expected" /></span><input :value="JSON.stringify(row.expected ?? null)" @change="expected(index,text($event))" aria-label="期望 JSON" /></label>
+      </UiSelect></label>
+      <label><span class="field-caption"><span>期望 JSON</span><HelpHint topic="expected" /></span><UiInput :value="JSON.stringify(row.expected ?? null)" @change="expected(index,text($event))" aria-label="期望 JSON"  /></label>
       <details class="assertion-advanced"><summary aria-label="高级断言选项">高级断言选项<HelpHint topic="invariant" /></summary><div class="assertion-fields">
-      <label><span class="field-caption"><span>或期望引用（params/fixtures/outputs）</span><HelpHint topic="expectedRef" /></span><input :value="row.expected_ref || ''" @input="patch(index,{expected_ref:text($event) || null})" aria-label="或期望引用（params/fixtures/outputs）" /></label>
-      <label><span class="field-caption"><span>显式值类型</span><HelpHint topic="valueType" /></span><select :value="row.value_type || 'native'" @change="patch(index,{value_type:text($event)})" aria-label="显式值类型"><option>native</option><option>decimal</option><option>datetime</option></select></label>
-      <label><span class="field-caption"><span>容差（时间为秒）</span><HelpHint topic="tolerance" /></span><input type="number" min="0" step="any" :value="row.tolerance || 0" @input="patch(index,{tolerance:Number(text($event))})" aria-label="容差（时间为秒）" /></label>
-      <label><span class="field-caption"><span>业务不变量</span><HelpHint topic="invariant" /></span><select :value="row.rule_ref || ''" @change="patch(index,{rule_ref:text($event) || null})" aria-label="业务不变量">
+      <label><span class="field-caption"><span>或期望引用（params/fixtures/outputs）</span><HelpHint topic="expectedRef" /></span><UiInput :value="row.expected_ref || ''" @input="patch(index,{expected_ref:text($event) || null})" aria-label="或期望引用（params/fixtures/outputs）"  /></label>
+      <label><span class="field-caption"><span>显式值类型</span><HelpHint topic="valueType" /></span><UiSelect :value="row.value_type || 'native'" @change="patch(index,{value_type:text($event)})" aria-label="显式值类型"><option>native</option><option>decimal</option><option>datetime</option></UiSelect></label>
+      <label><span class="field-caption"><span>容差（时间为秒）</span><HelpHint topic="tolerance" /></span><UiInput type="number" min="0" step="any" :value="row.tolerance || 0" @input="patch(index,{tolerance:Number(text($event))})" aria-label="容差（时间为秒）"  /></label>
+      <label><span class="field-caption"><span>业务不变量</span><HelpHint topic="invariant" /></span><UiSelect :value="row.rule_ref || ''" @change="patch(index,{rule_ref:text($event) || null})" aria-label="业务不变量">
         <option value="">普通比较</option><option>count_delta@1</option><option>unchanged@1</option><option>relation@1</option>
-      </select></label>
-      <label><span class="field-caption"><span>前置快照引用</span><HelpHint topic="baseline" /></span><input :value="row.baseline_ref || ''" @input="patch(index,{baseline_ref:text($event) || null})" aria-label="前置快照引用" /></label>
+      </UiSelect></label>
+      <label><span class="field-caption"><span>前置快照引用</span><HelpHint topic="baseline" /></span><UiInput :value="row.baseline_ref || ''" @input="patch(index,{baseline_ref:text($event) || null})" aria-label="前置快照引用"  /></label>
       </div></details>
       <p class="assertion-tip">精确对象选择和时区/单位可在下面 JSON 中设置 select_by、normalization；集合按 key 比较用 extras.key。</p>
-      <button type="button" @click="remove(index)">删除断言</button>
+      <el-button native-type="button" @click="remove(index)">删除断言</el-button>
     </fieldset>
-    <button type="button" @click="add">添加断言</button>
-    <details><summary aria-label="编辑完整断言 JSON">编辑完整断言 JSON<HelpHint topic="assertJson" /></summary><label><span class="field-caption"><span>完整结构化断言 JSON（保留高级字段）</span><HelpHint topic="assertJson" /></span><textarea :value="modelValue" @input="$emit('update:modelValue',text($event))" rows="5" aria-label="完整结构化断言 JSON（保留高级字段）" /></label></details>
+    <el-button native-type="button" @click="add">添加断言</el-button>
+    <details><summary aria-label="编辑完整断言 JSON">编辑完整断言 JSON<HelpHint topic="assertJson" /></summary><label><span class="field-caption"><span>完整结构化断言 JSON（保留高级字段）</span><HelpHint topic="assertJson" /></span><UiInput type="textarea" :value="modelValue" @input="$emit('update:modelValue',text($event))" rows="5" aria-label="完整结构化断言 JSON（保留高级字段）"  /></label></details>
   </section>
 </template>
 <script setup lang="ts">

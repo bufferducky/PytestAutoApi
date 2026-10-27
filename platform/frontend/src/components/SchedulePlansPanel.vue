@@ -1,41 +1,34 @@
 <template>
   <section class="plans">
-    <header class="section-heading"><div><h3>回归计划</h3><p>固定套件版本，配置触发时间。新计划默认暂停。</p></div><div class="toolbar"><button type="button" @click="load" :disabled="busy">刷新</button><button class="action-button" type="button" @click="reset" :disabled="busy">新计划</button></div></header>
+    <header class="section-heading"><div><h3>回归计划</h3><p>固定套件版本，配置触发时间。新计划默认暂停。</p></div><div class="toolbar"><el-button native-type="button" @click="load" :disabled="busy">刷新</el-button><el-button class="action-button" native-type="button" @click="reset" :disabled="busy" type="primary">新计划</el-button></div></header>
     <p v-if="notice" role="status">{{ notice }}</p>
     <p v-if="dirty" role="status">有未保存修改</p>
     <p v-if="error" class="state-banner state-banner--error" role="alert">{{ error }}</p>
-    <form @submit.prevent="save"><fieldset :disabled="busy" class="plan-fields">
-      <label>名称<input v-model="name" required /></label>
-      <label>发布套件<select aria-label="发布套件" v-model="suiteId" required @change="loadVersions()"><option value="">选择套件</option><option v-if="suiteId && !suites.some(item => item.id === suiteId)" :value="suiteId">当前套件（目录不可用）：{{ suiteId }}</option><option v-for="suite in suites" :key="suite.id" :value="suite.id">{{ suite.draft.name }} · {{ suite.id }}</option></select></label>
-      <label>固定发布版本<select aria-label="固定发布版本" v-model.number="suiteVersion" required :disabled="versionsLoading"><option :value="0">选择已发布版本</option><option v-if="suiteVersion && !versions.some(item => item.version === suiteVersion)" :value="suiteVersion">当前固定版本 v{{ suiteVersion }}（待核验）</option><option v-for="version in versions" :key="version.version" :value="version.version">v{{ version.version }} · {{ version.change_note || '已发布' }}</option></select><button v-if="suiteId" type="button" :disabled="versionsLoading" @click="loadVersions(true)">刷新发布版本</button></label>
-      <label>运行环境<select aria-label="运行环境" v-model="environment" required><option value="">选择环境</option><option v-if="environment && !environments.some(item => item.id === environment)" :value="environment">当前环境（目录不可用）：{{ environment }}</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></select></label>
-      <label>时间规则<select aria-label="时间规则" v-model="rule"><option value="weekdays">工作日</option><option value="daily">每天</option><option value="weekly">每周</option><option value="advanced">高级 Cron</option></select></label>
-      <label v-if="rule !== 'advanced'">执行时间<input v-model="time" type="time" required /></label>
-      <label v-if="rule === 'weekly'">星期<select aria-label="星期" v-model="weekday"><option v-for="(day, index) in ['周日','周一','周二','周三','周四','周五','周六']" :key="index" :value="String(index)">{{ day }}</option></select></label>
-      <label v-if="rule === 'advanced'"><span class="field-caption"><span>标准5段cron</span><HelpHint topic="cron" /></span><input v-model="cron" placeholder="0 9 * * 1-5" required aria-label="标准5段cron" /></label>
-      <label><span class="field-caption"><span>IANA时区</span><HelpHint topic="timezone" /></span><input v-model="timezone" required aria-label="IANA时区" /></label>
+    <div class="plan-workspace"><aside class="plan-library"><label>搜索计划<UiInput v-model="search" aria-label="搜索计划" placeholder="名称或套件 ID" /></label><el-empty v-if="!filteredPlans.length" description="暂无匹配计划" :image-size="50" /><el-button v-for="plan in filteredPlans" :key="plan.id" native-type="button" :class="{'is-selected':selected?.id===plan.id}" @click="edit(plan)"><strong>{{ plan.name }}</strong><small>{{ plan.cron }} · {{ plan.status==='active'?'已启用':'已暂停' }}</small><small>{{ plan.timezone }} · r{{ plan.revision }}</small></el-button></aside><div class="plan-detail"><el-tabs v-model="planTab" aria-label="计划工作区"><el-tab-pane label="计划配置" name="edit" /><el-tab-pane label="触发与记录" name="records" /><el-tab-pane label="调度运维与摘要" name="operations" /></el-tabs>    <form v-show="planTab === 'edit'" @submit.prevent="save"><fieldset :disabled="busy" class="plan-fields">
+      <label>名称<UiInput v-model="name" required  /></label>
+      <label>发布套件<UiSelect aria-label="发布套件" v-model="suiteId" required @change="loadVersions()"><option value="">选择套件</option><option v-if="suiteId && !suites.some(item => item.id === suiteId)" :value="suiteId">当前套件（目录不可用）：{{ suiteId }}</option><option v-for="suite in suites" :key="suite.id" :value="suite.id">{{ suite.draft.name }} · {{ suite.id }}</option></UiSelect></label>
+      <label>固定发布版本<UiSelect aria-label="固定发布版本" v-model.number="suiteVersion" required :disabled="versionsLoading"><option :value="0">选择已发布版本</option><option v-if="suiteVersion && !versions.some(item => item.version === suiteVersion)" :value="suiteVersion">当前固定版本 v{{ suiteVersion }}（待核验）</option><option v-for="version in versions" :key="version.version" :value="version.version">v{{ version.version }} · {{ version.change_note || '已发布' }}</option></UiSelect><el-button v-if="suiteId" native-type="button" :disabled="versionsLoading" @click="loadVersions(true)">刷新发布版本</el-button></label>
+      <label>运行环境<UiSelect aria-label="运行环境" v-model="environment" required><option value="">选择环境</option><option v-if="environment && !environments.some(item => item.id === environment)" :value="environment">当前环境（目录不可用）：{{ environment }}</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></UiSelect></label>
+      <label>时间规则<UiSelect aria-label="时间规则" v-model="rule"><option value="weekdays">工作日</option><option value="daily">每天</option><option value="weekly">每周</option><option value="advanced">高级 Cron</option></UiSelect></label>
+      <label v-if="rule !== 'advanced'">执行时间<UiInput v-model="time" type="time" required  /></label>
+      <label v-if="rule === 'weekly'">星期<UiSelect aria-label="星期" v-model="weekday"><option v-for="(day, index) in ['周日','周一','周二','周三','周四','周五','周六']" :key="index" :value="String(index)">{{ day }}</option></UiSelect></label>
+      <label v-if="rule === 'advanced'"><span class="field-caption"><span>标准5段cron</span><HelpHint topic="cron" /></span><UiInput v-model="cron" placeholder="0 9 * * 1-5" required aria-label="标准5段cron"  /></label>
+      <label><span class="field-caption"><span>IANA时区</span><HelpHint topic="timezone" /></span><UiInput v-model="timezone" required aria-label="IANA时区"  /></label>
       <p class="rule-summary">{{ effectiveCron }} · {{ timezone }}。保存后可预览后续触发时间。</p>
-      <label><span class="field-caption"><span>错过策略</span><HelpHint topic="missed" /></span><select v-model="missed" aria-label="错过策略"><option>skip</option><option>fire_once</option></select></label><label><span class="field-caption"><span>执行槽忙</span><HelpHint topic="busyPolicy" /></span><select v-model="busyPolicy" aria-label="执行槽忙"><option>queue</option><option>skip</option></select></label>
-      <label><span class="field-caption"><span>排队预算秒</span><HelpHint topic="queueBudget" /></span><input v-model.number="queueBudget" type="number" min="1" max="86400" aria-label="排队预算秒" /></label><label><span class="field-caption"><span>执行预算秒</span><HelpHint topic="budget" /></span><input v-model.number="runBudget" type="number" min="1" max="86400" aria-label="执行预算秒" /></label>
-      <label><span class="field-caption"><span>参数JSON</span><HelpHint topic="parameters" /></span><textarea v-model="parameters" rows="3" aria-label="参数JSON" /></label>
-      <span class="action-help"><button :disabled="busy || versionsLoading">保存为暂停计划</button><HelpHint topic="scheduleSave" /></span>
+      <label><span class="field-caption"><span>错过策略</span><HelpHint topic="missed" /></span><UiSelect v-model="missed" aria-label="错过策略"><option>skip</option><option>fire_once</option></UiSelect></label><label><span class="field-caption"><span>执行槽忙</span><HelpHint topic="busyPolicy" /></span><UiSelect v-model="busyPolicy" aria-label="执行槽忙"><option>queue</option><option>skip</option></UiSelect></label>
+      <label><span class="field-caption"><span>排队预算秒</span><HelpHint topic="queueBudget" /></span><UiInput v-model.number="queueBudget" type="number" min="1" max="86400" aria-label="排队预算秒"  /></label><label><span class="field-caption"><span>执行预算秒</span><HelpHint topic="budget" /></span><UiInput v-model.number="runBudget" type="number" min="1" max="86400" aria-label="执行预算秒"  /></label>
+      <label><span class="field-caption"><span>参数JSON</span><HelpHint topic="parameters" /></span><UiInput type="textarea" v-model="parameters" rows="3" aria-label="参数JSON"  /></label>
+      <span class="action-help"><el-button type="primary" :disabled="busy || versionsLoading" native-type="submit">保存为暂停计划</el-button><HelpHint topic="scheduleSave" /></span>
     </fieldset></form>
-    <div class="table-shell"><table><thead><tr><th aria-label="计划/版本">计划/版本<HelpHint topic="configurationRevision" /></th><th aria-label="套件/环境">套件/环境<HelpHint topic="suiteId" /></th><th aria-label="cron/时区">cron/时区<HelpHint topic="cron" /></th><th aria-label="状态">状态<HelpHint topic="scheduleState" /></th><th>操作</th></tr></thead><tbody><tr v-if="!plans.length"><td colspan="5" class="empty-copy">暂无回归计划，填写上方配置后保存。</td></tr>
-      <tr v-for="plan in plans" :key="plan.id"><td>{{ plan.name }} r{{ plan.revision }}</td><td>{{ suites.find(item => item.id === plan.suite_id)?.draft.name || plan.suite_id }} v{{ plan.suite_version }} / {{ environments.find(item => item.id === plan.environment_id)?.name || plan.environment_id }}</td>
-        <td>{{ plan.cron }} / {{ plan.timezone }}</td><td>{{ plan.status }} · {{ plan.transport_mode || 'historical_unknown' }}<p v-if="plan.migration_required">{{ plan.migration_required }}</p></td>
-        <td><button type="button" @click="edit(plan)" :disabled="busy || plan.transport_mode !== 'live'">编辑</button><span class="action-help"><button type="button" @click="preview(plan)" :disabled="busy">预览5次</button><HelpHint topic="schedulePreview" /></span>
-          <span class="action-help"><button type="button" @click="change(plan,plan.status==='active'?'pause':'resume')" :disabled="busy || !!plan.migration_required || plan.transport_mode !== 'live'">{{ plan.status==='active'?'暂停':'启用' }}</button><HelpHint topic="scheduleToggle" /></span>
-          <span class="action-help"><button type="button" @click="triggers(plan)" :disabled="busy">触发记录</button><HelpHint topic="triggers" /></span><span class="action-help"><button type="button" @click="remove(plan)" :disabled="busy">删除计划</button><HelpHint topic="scheduleDelete" /></span></td>
-      </tr></tbody></table></div>
-    <section v-if="previewResult" aria-label="触发时间预览"><h4>后续触发时间 · {{ previewResult.timezone }}</h4><p>仅计算时间，不发送业务请求。</p><ol><li v-for="at in previewResult.times" :key="at"><time :datetime="at">{{ at }}</time></li></ol></section>
-    <details v-if="triggerResult"><summary>触发记录</summary><pre>{{ triggerResult }}</pre></details>
-    <details><summary aria-label="调度与执行器状态">调度与执行器状态<HelpHint topic="scheduler" /></summary><h4>调度 / worker 运维</h4><span class="action-help"><button type="button" @click="status">查看状态</button><HelpHint topic="scheduler" /></span><span class="action-help"><button type="button" @click="pauseAll">暂停全部新触发</button><HelpHint topic="pauseAll" /></span><pre>{{ statusResult }}</pre></details>
-    <details><summary aria-label="生成发布回归摘要">生成发布回归摘要<HelpHint topic="report" /></summary><h4>发布回归摘要</h4><label><span class="field-caption"><span>run IDs（逗号分隔）</span><HelpHint topic="reportRuns" /></span><input v-model="reportRuns" aria-label="run IDs（逗号分隔）" /></label><label><span class="field-caption"><span>构建标识</span><HelpHint topic="build" /></span><input v-model="build" aria-label="构建标识" /></label>
-    <label><span class="field-caption"><span>报告模式</span><HelpHint topic="reportMode" /></span><select v-model="reportMode" aria-label="报告模式"><option>report_only</option><option>strict</option></select></label><span class="action-help"><button type="button" @click="report">生成摘要（不部署）</button><HelpHint topic="report" /></span><pre>{{ reportResult }}</pre></details>
-  </section>
-</template>
+<section v-show="planTab==='records'" class="workspace-section"><el-empty v-if="!selected" description="选择或保存一份计划后查看触发信息" /><div v-else class="toolbar"><el-tag>{{ selected.name }} · {{ selected.status }}</el-tag><el-button native-type="button" @click="preview(selected)" :disabled="busy">预览5次</el-button><el-button native-type="button" @click="change(selected,selected.status==='active'?'pause':'resume')" :disabled="busy || !!selected.migration_required || selected.transport_mode !== 'live'">{{ selected.status==='active'?'暂停':'启用' }}</el-button><el-button native-type="button" @click="triggers(selected)" :disabled="busy">触发记录</el-button><el-button native-type="button" type="danger" plain @click="remove(selected)" :disabled="busy">删除计划</el-button></div>    <section v-if="previewResult" aria-label="触发时间预览"><h4>后续触发时间 · {{ previewResult.timezone }}</h4><p>仅计算时间，不发送业务请求。</p><ol><li v-for="at in previewResult.times" :key="at"><time :datetime="at">{{ at }}</time></li></ol></section>
+    <details v-if="triggerResult"><summary>触发记录</summary><JsonResult v-if="triggerResult" :value="triggerResult" title="触发记录" /></details>
+</section><section v-show="planTab==='operations'" class="workspace-section">    <details><summary aria-label="调度与执行器状态">调度与执行器状态<HelpHint topic="scheduler" /></summary><h4>调度 / worker 运维</h4><span class="action-help"><el-button native-type="button" @click="status">查看状态</el-button><HelpHint topic="scheduler" /></span><span class="action-help"><el-button native-type="button" @click="pauseAll">暂停全部新触发</el-button><HelpHint topic="pauseAll" /></span><JsonResult v-if="statusResult" :value="statusResult" title="调度状态" /></details>
+    <details><summary aria-label="生成发布回归摘要">生成发布回归摘要<HelpHint topic="report" /></summary><h4>发布回归摘要</h4><label><span class="field-caption"><span>run IDs（逗号分隔）</span><HelpHint topic="reportRuns" /></span><UiInput v-model="reportRuns" aria-label="run IDs（逗号分隔）"  /></label><label><span class="field-caption"><span>构建标识</span><HelpHint topic="build" /></span><UiInput v-model="build" aria-label="构建标识"  /></label>
+    <label><span class="field-caption"><span>报告模式</span><HelpHint topic="reportMode" /></span><UiSelect v-model="reportMode" aria-label="报告模式"><option>report_only</option><option>strict</option></UiSelect></label><span class="action-help"><el-button native-type="button" @click="report">生成摘要（不部署）</el-button><HelpHint topic="report" /></span><JsonResult v-if="reportResult" :value="reportResult" title="回归摘要" /></details></section></div></div></section></template>
 <script setup lang="ts">
 import HelpHint from '@/components/common/HelpHint.vue';
+import { confirmAction } from '@/utils/confirmation';
+import JsonResult from '@/components/common/JsonResult.vue';
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { managementApi } from '@/api';
@@ -43,6 +36,8 @@ import type { EnvironmentSummary } from '@/types/platform';
 import { apiClient } from '@/api/client';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
 interface Plan {id:string;revision:number;name:string;suite_id:string;suite_version:number;environment_id:string;transport_mode:string;cron:string;timezone:string;status:string;missed_policy:string;busy_policy:string;queue_timeout_seconds:number;timeout_seconds:number;parameters:unknown;concurrency_keys?:string[];migration_required?:string}
+const planTab=ref('edit'),search=ref('');
+const filteredPlans=computed(()=>plans.value.filter(plan=>[plan.name,plan.suite_id].join(' ').toLowerCase().includes(search.value.toLowerCase())));
 const emit = defineEmits<{ saved: [] }>();
 const plans = ref<Plan[]>([]), selected = ref<Plan | null>(null), busy = ref(false), error = ref(''), notice = ref('');
 const suites = ref<{ id: string; draft: {name: string} }[]>([]), environments = ref<EnvironmentSummary[]>([]);
@@ -56,10 +51,10 @@ const reportRuns = ref(''), build = ref(''), reportMode = ref('report_only'), re
 const snapshot = () => JSON.stringify([name.value, suiteId.value, suiteVersion.value, environment.value, cron.value, timezone.value, missed.value, busyPolicy.value, queueBudget.value, runBudget.value, parameters.value, rule.value, time.value, weekday.value]);
 const savedSnapshot = ref(snapshot());
 const dirty = computed(() => snapshot() !== savedSnapshot.value);
-const mayDiscard = () => !dirty.value || window.confirm('有未保存计划修改，确认放弃？');
+const mayDiscard = async () => !dirty.value || await confirmAction('有未保存计划修改，确认放弃？');
 let versionSequence = 0, listSequence = 0;
 const beforeUnload = (event: BeforeUnloadEvent) => { if (dirty.value || busy.value) { event.preventDefault(); event.returnValue = ''; } };
-onBeforeRouteLeave(() => !busy.value && mayDiscard());
+onBeforeRouteLeave(async () => !busy.value && await mayDiscard());
 onBeforeUnmount(() => { ++versionSequence; ++listSequence; window.removeEventListener('beforeunload', beforeUnload); });
 async function act(fn: () => Promise<void>) {
   if (busy.value) return;
@@ -98,9 +93,9 @@ async function loadVersions(keepVersion = false) {
   } catch (cause) { if (sequence === versionSequence) error.value = resolveApiErrorMessage(cause, '发布版本更新失败，请重试。'); }
   finally { if (sequence === versionSequence) versionsLoading.value = false; }
 }
-function reset() {
-  if (!mayDiscard()) return;
-  ++versionSequence; versionsLoading.value = false;
+async function reset() {
+  if (!(await mayDiscard())) return;
+  planTab.value='edit'; ++versionSequence; versionsLoading.value = false;
   selected.value = null; name.value = suiteId.value = environment.value = ''; suiteVersion.value = 0; versions.value = [];
   cron.value = '0 9 * * 1-5'; timezone.value = 'Asia/Shanghai'; missed.value = 'skip'; busyPolicy.value = 'queue';
   rule.value = 'weekdays'; time.value = '09:00'; weekday.value = '1'; queueBudget.value = runBudget.value = 300; parameters.value = '{}';
@@ -113,7 +108,7 @@ function applyPlan(plan: Plan) {
   queueBudget.value = plan.queue_timeout_seconds; runBudget.value = plan.timeout_seconds; parameters.value = JSON.stringify(plan.parameters, null, 2);
   previewResult.value = null; triggerResult.value = ''; savedSnapshot.value = snapshot();
 }
-function edit(plan: Plan) { if (selected.value?.id === plan.id || !mayDiscard()) return; applyPlan(plan); versions.value = []; void loadVersions(true); }
+async function edit(plan: Plan) { if (busy.value || !(await mayDiscard())) return; planTab.value='edit'; applyPlan(plan); versions.value = []; void loadVersions(true); }
 async function save() {
   await act(async () => {
     if (!suiteId.value || !suiteVersion.value || !environment.value || versionsLoading.value) throw new Error('请选择套件、已发布版本和环境');
@@ -128,12 +123,12 @@ async function save() {
 }
 async function preview(plan: Plan) { await act(async () => { previewResult.value = await apiClient.get(`/schedules/${plan.id}/preview`); }); }
 async function change(plan: Plan, action: string) {
-  if (action === 'resume' && !window.confirm(`启用「${plan.name}」后将按计划发送真实请求，确认启用？`)) return;
+  if (action === 'resume' && !(await confirmAction(`启用「${plan.name}」后将按计划发送真实请求，确认启用？`))) return;
   await act(async () => { await apiClient.post(`/schedules/${plan.id}/${action}`, {expected_revision: plan.revision}); emit('saved'); await refreshPlans(); });
 }
 async function remove(plan: Plan) {
-  if (!window.confirm(`确认删除「${plan.name}」？不会取消正在运行的任务。`)) return;
-  if (selected.value?.id === plan.id && !mayDiscard()) return;
+  if (!(await confirmAction(`确认删除「${plan.name}」？不会取消正在运行的任务。`))) return;
+  if (selected.value?.id === plan.id && !(await mayDiscard())) return;
   await act(async () => {
     await apiClient.request(`/schedules/${plan.id}`, {method: 'DELETE', query: {revision: plan.revision}});
     if (selected.value?.id === plan.id) { savedSnapshot.value = snapshot(); reset(); }
@@ -143,7 +138,7 @@ async function remove(plan: Plan) {
 async function triggers(plan: Plan) { await act(async () => { triggerResult.value = JSON.stringify(await apiClient.get(`/schedules/${plan.id}/triggers`), null, 2); }); }
 async function status() { await act(async () => { statusResult.value = JSON.stringify(await apiClient.get('/scheduler/status'), null, 2); }); }
 async function pauseAll() {
-  if (!window.confirm('确认暂停全部计划的新触发？已运行任务继续执行。')) return;
+  if (!(await confirmAction('确认暂停全部计划的新触发？已运行任务继续执行。'))) return;
   await act(async () => { await apiClient.post('/scheduler/pause-all'); emit('saved'); await refreshPlans(); });
 }
 async function report() { await act(async () => { reportResult.value = JSON.stringify(await apiClient.post('/release-reports', {run_ids: reportRuns.value.split(',').map(value => value.trim()).filter(Boolean), mode: reportMode.value, build: build.value}), null, 2); }); }
@@ -156,10 +151,13 @@ onMounted(() => { window.addEventListener('beforeunload', beforeUnload); void lo
 .plans > p { margin: 0; }
 .plans > button { justify-self: start; margin: 0; }
 form { gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); padding: 20px; background: #fafbfc; border: 1px solid var(--color-border); border-radius: 8px; }
-form button { align-self: end; background: var(--color-accent-strong); color: white; border-color: var(--color-accent-strong); }
+
 form > .action-help { align-self: end; }
 input, select, textarea { padding: 9px 11px; }
 details { border: 1px solid var(--color-border); border-radius: 7px; }
 details h4 { margin: 14px; }
 @media (max-width:540px) { .plans { padding: 16px; } form { padding: 14px; } }
 </style>
+
+<style scoped>.plan-workspace{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px}.plan-library{display:grid;gap:10px;align-content:start}.plan-library .el-button{height:auto;min-height:70px;padding:12px;text-align:left;justify-content:flex-start}.plan-library .el-button :deep(>span){display:grid;gap:6px;justify-items:start;white-space:normal}.plan-library small{font-size:11px;color:var(--color-ink-subtle)}.plan-library .is-selected{background:var(--color-accent-soft);border-color:#a9b9f4}.plan-detail{min-width:0}.workspace-section{display:grid;gap:16px}form{padding:16px;grid-template-columns:repeat(2,minmax(0,1fr))}</style>
+<style scoped>.plan-fields > .action-help{align-self:end;justify-self:start}</style>

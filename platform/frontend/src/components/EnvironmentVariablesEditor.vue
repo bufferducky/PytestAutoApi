@@ -1,16 +1,16 @@
 <template>
   <fieldset><legend>环境变量</legend>
     <p>保留字符串、数字、布尔值及嵌套 JSON 类型；凭证请使用秘密引用。</p>
-    <label>编辑方式<select :value="mode" aria-label="编辑方式" @change="changeMode"><option value="rows">结构化</option><option value="json">高级 JSON</option></select></label>
-    <label v-if="mode === 'json'">变量 JSON<textarea :value="modelValue" rows="10" @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)" /></label>
+    <label>编辑方式<UiSelect :value="mode" aria-label="编辑方式" @change="changeMode"><option value="rows">结构化</option><option value="json">高级 JSON</option></UiSelect></label>
+    <label v-if="mode === 'json'">变量 JSON<UiInput type="textarea" :value="modelValue" rows="10" @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"  /></label>
     <template v-else>
       <div v-for="(row, index) in rows" :key="index" class="variable-row">
-        <label>变量名<input v-model="row.key" @input="publish" /></label>
-        <label>类型<select v-model="row.type" aria-label="类型" @change="changeType(row)"><option v-for="type in types" :key="type" :value="type">{{ type }}</option></select></label>
-        <label>值<textarea v-model="row.text" rows="2" @input="publish" /></label>
-        <button type="button" @click="rows.splice(index, 1); publish()">移除</button>
+        <label>变量名<UiInput v-model="row.key" @input="publish"  /></label>
+        <label>类型<UiSelect v-model="row.type" aria-label="类型" @change="changeType(row)"><option v-for="type in types" :key="type" :value="type">{{ type }}</option></UiSelect></label>
+        <label>值<UiInput type="textarea" v-model="row.text" rows="2" @input="publish"  /></label>
+        <el-button native-type="button" @click="rows.splice(index, 1); publish()">移除</el-button>
       </div>
-      <button type="button" @click="rows.push({ key: '', type: 'string', text: '' }); publish()">添加变量</button>
+      <el-button native-type="button" @click="rows.push({ key: '', type: 'string', text: '' }); publish()">添加变量</el-button>
     </template>
     <p v-if="error" role="alert">{{ error }}</p>
   </fieldset>

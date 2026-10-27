@@ -13,6 +13,7 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   function load(name) {
     if (name === 'vue') return { ...vue, onMounted(callback) { mounted.push(callback); }, onBeforeUnmount(callback) { unmounted.push(callback); } };
     if (name === 'vue-router') return { useRouter: () => ({ push: async () => {} }), useRoute: () => ({ query: {} }), onBeforeRouteLeave() {}, onBeforeRouteUpdate() {} };
+    if (name === '@/utils/confirmation') return { confirmAction: async () => await confirm() };
     if (name.endsWith('.vue')) return {};
     const base = path.join(root, name.replace(/^@\//, ''));
     const filename = fs.existsSync(base + '.ts') ? base + '.ts' : path.join(base, 'index.ts');
@@ -114,7 +115,7 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   assert.equal(refsRuntime.calls.some(call => call.method === 'PATCH'), false);
   const saveRuntime = runtime(call => call.method === 'POST' && call.path === '/api/v1/scenarios' ? {id:'saved-id',revision:1,draft:{schema_version:'1.0',...call.body,timeout_seconds:300,source:{},migration_warnings:[],migration_blockers:[],fixtures:[]}} : []);
   const savedEditor = saveRuntime.component('ScenarioAssetsPanel', {kind:'scenarios'});
-  savedEditor.name.value = '保存事件';
+  savedEditor.name.value = '保存事件'; savedEditor.targetRef.value = 'target';
   await savedEditor.save();
   assert.deepEqual(saveRuntime.emissions.find(item => item.event === 'saved').payload, {id:'saved-id'});
   assert.equal(savedEditor.dirty.value, false, 'server-added defaults must not dirty a freshly saved draft');
@@ -124,14 +125,14 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   const inFlightRuntime = runtime(call => call.method === 'POST' && call.path === '/api/v1/scenarios'
     ? new Promise(resolve => { releaseSave = () => resolve({ id:'in-flight', revision:2, draft:{schema_version:'1.0',...call.body,timeout_seconds:300} }); }) : []);
   const inFlight = inFlightRuntime.component('ScenarioAssetsPanel', {kind:'scenarios'});
-  inFlight.name.value = 'submitted';
+  inFlight.name.value = 'submitted'; inFlight.targetRef.value = 'target';
   const saving = inFlight.save();
   inFlight.name.value = 'typed while saving';
   releaseSave(); await saving;
   assert.equal(inFlight.name.value, 'typed while saving');
   assert.equal(inFlight.selected.value.revision, 2);
   assert.equal(inFlight.dirty.value, true, 'save baseline excludes edits made after submission');
-  inFlight.name.value = 'submitted';
+  inFlight.name.value = 'submitted'; inFlight.targetRef.value = 'target';
   assert.equal(inFlight.dirty.value, false);
   let releasePublish;
   const publishRuntime = runtime(call => call.path.endsWith('/publish') ? new Promise(resolve => { releasePublish = resolve; }) : []);
@@ -214,6 +215,24 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   assert.match(missingDebug.error.value, /缺少前置输入/);
   assert.equal(debugRuntime.calls.length, debugCalls);
   const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+  // 异步范围确认的快照在弹窗打开前冻结，期间的输入不能改变确认后发送的请求。
+  const permission = deferred();
+  const confirmationRuntime = runtime(call => call.path.endsWith('/debug') ? {run_id:'confirmed'} : {status:'succeeded',steps:[]}, () => permission.promise);
+  const frozenDraft={name:'confirmed-buffer',steps:[{step_id:'one',depends_on:[],request:{method:'GET',url:'http://localhost/confirmed'},operation_kind:'query'}]};
+  const confirmationPanel=confirmationRuntime.component('ScenarioDebugPanel',{getDraft:()=>frozenDraft,environments:[]});
+  confirmationPanel.environment.value='confirmed-environment'; confirmationPanel.build.value='confirmed-build';
+  const awaitingPermission=confirmationPanel.start();
+  frozenDraft.name='changed-during-confirmation'; confirmationPanel.environment.value='new-environment'; confirmationPanel.build.value='new-build';
+  permission.resolve(true); await awaitingPermission;
+  const confirmedBody=confirmationRuntime.calls.find(call=>call.path.endsWith('/debug')).body;
+  assert.equal(confirmedBody.draft.name,'confirmed-buffer');
+  assert.equal(confirmedBody.environment_id,'confirmed-environment');
+  assert.equal(confirmedBody.build,'confirmed-build');
+  const cancelledPermission=deferred();
+  const cancelledRuntime=runtime(()=>{throw new Error('cancelled confirmation must not send');},()=>cancelledPermission.promise);
+  const cancelledPanel=cancelledRuntime.component('ScenarioDebugPanel',{getDraft:()=>frozenDraft,environments:[]});
+  const awaitingCancel=cancelledPanel.start();cancelledPermission.resolve(false);await awaitingCancel;
+  assert.equal(cancelledRuntime.calls.length,0);
   const initialPost = deferred(), oldRead = deferred();
   let readCount = 0;
   const racingRuntime = runtime(call => {
@@ -226,6 +245,7 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   racingRuntime.mount();
   const submitting = racing.start();
   await racing.start();
+  await Promise.resolve();
   assert.equal(racingRuntime.calls.length, 1, 'duplicate debug submissions are blocked');
   initialPost.resolve({run_id:'running-debug'}); await submitting;
   assert.equal(racing.failure.value.step_id, 'one', 'nested case steps yield structured failure evidence');
@@ -249,6 +269,7 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   const closing = closingRuntime.component('ScenarioDebugPanel', { getDraft: () => liveDraft, environments: [] });
   closingRuntime.mount();
   const pendingSubmit = closing.start();
+  await new Promise(resolve => setImmediate(resolve));
   closingRuntime.unmount();
   latePost.reject(new Error('late failure')); await pendingSubmit;
   assert.equal(closing.error.value, '', 'unmounted submissions cannot write errors');

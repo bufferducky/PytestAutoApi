@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <div class="app-header__breadcrumb"><span>工作空间</span><span aria-hidden="true">/</span><strong>{{ route.meta.title }}</strong></div>
+    <el-breadcrumb class="app-header__breadcrumb" separator="/"><el-breadcrumb-item>工作空间</el-breadcrumb-item><el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item></el-breadcrumb>
     <div class="app-header__heading"><div><h1>{{ route.meta.title }}</h1><p>{{ route.meta.description }}</p></div></div>
   </header>
 </template>
@@ -19,3 +19,5 @@ p { margin: 7px 0 0; font-size: 13px; color: var(--color-ink-subtle); }
 .app-header__badge { flex-shrink: 0; padding: 5px 9px; color: var(--color-ink-subtle); background: white; border: 1px solid var(--color-border); border-radius: 5px; font-size: 11px; }
 @media (max-width: 540px) { .app-header { padding: 18px 0; } .app-header__breadcrumb { margin-bottom: 12px; } .app-header__badge { display: none; } h1 { font-size: 22px; } }
 </style>
+
+<style scoped>.app-header{padding:14px 0}.app-header h1{font-size:21px}.app-header p{margin-top:5px;font-size:12px}.app-header__breadcrumb{margin-bottom:8px;font-size:11px}</style>

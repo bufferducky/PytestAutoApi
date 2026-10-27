@@ -1,0 +1,51 @@
+{
+  "scope": "真实平台前端+本地API，未调用公司业务",
+  "ux_workspace": {
+    "three_assets_three_steps": true,
+    "search_and_single_visible_step": true,
+    "hidden_invalid_json_located": true,
+    "switch_copy_move_delete_preserve_inputs": true,
+    "typed_body_headers_and_extensions_roundtrip": true,
+    "primary_actions_first_viewport": true,
+    "invalid_dependency_prevents_debug_request": true
+  },
+  "configuration_tools": {
+    "target_identity_binding_created": true,
+    "multiple_select_secret_refs_preserved": true,
+    "cancel_category_change_preserves_input": true,
+    "readonly_resource_definition_saved": true,
+    "all_four_tools_operable": true,
+    "new_evaluation_remains_disabled": true,
+    "published_suite_plan_and_live_run": true,
+    "schedule_confirm_cancel_escape_no_mutation": true
+  },
+  "created_published_run": true,
+  "live_http_evidence": true,
+  "offline_error_visible": true,
+  "page_errors": [],
+  "layout_checks": 48,
+  "opened_tab_layout_checks": 108,
+  "help_hover_keyboard_desktop": true,
+  "manual": {
+    "articles": 44,
+    "topics": 161,
+    "rendered_diagrams": 23,
+    "new_tab_keyboard_and_unsaved_preserved": true,
+    "search_hash_reload_and_history": true,
+    "invalid_article_and_section_explained": true,
+    "business_writes": 0
+  },
+  "help_does_not_mutate_forms": true,
+  "unsaved_draft_debug": true,
+  "formal_run_preserves_unsaved_on_cancel": true,
+  "typed_environment_variables": true,
+  "schedule_select_preview_reset": true,
+  "date": "2026-10-27",
+  "element_plus": "2.14.7",
+  "production_build": "passed",
+  "frontend_reliability": "passed",
+  "manual_content": "passed",
+  "diff_check": "passed",
+  "browser_result": "1 passed in 53.76s",
+  "total_layout_checks": 156
+}

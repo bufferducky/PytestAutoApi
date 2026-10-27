@@ -1,18 +1,18 @@
 <template>
-  <details><summary>变量提取 · {{ rows.length }} 条</summary>
+  <section class="extractor-editor"><h4>变量提取 · {{ rows.length }} 条</h4>
     <p v-if="error" role="alert">{{ error }}</p>
     <fieldset v-for="(row, index) in rows" :key="index">
       <legend>提取 {{ index + 1 }}</legend>
-      <label>名称 <input :value="row.name" @input="patch(index, 'name', value($event))" /></label>
-      <label>来源 <select :value="row.source || 'response_body'" @change="patch(index, 'source', value($event))"><option value="response_body">响应体</option><option value="response_headers">响应头</option></select></label>
-      <label>字段路径 <input :value="row.selector" @input="patch(index, 'selector', value($event))" /></label>
-      <label>输出路径 <input :value="row.target" @input="patch(index, 'target', value($event))" /></label>
+      <label>名称 <UiInput :value="String(row.name ?? '')" @input="patch(index, 'name', value($event))"  /></label>
+      <label>来源 <UiSelect :value="String(row.source || 'response_body')" @change="patch(index, 'source', value($event))"><option value="response_body">响应体</option><option value="response_headers">响应头</option></UiSelect></label>
+      <label>字段路径 <UiInput :value="String(row.selector ?? '')" @input="patch(index, 'selector', value($event))"  /></label>
+      <label>输出路径 <UiInput :value="String(row.target ?? '')" @input="patch(index, 'target', value($event))"  /></label>
       <label><input type="checkbox" :checked="row.required !== false" @change="patch(index, 'required', ($event.target as HTMLInputElement).checked)" /> 必须存在</label>
-      <button type="button" @click="remove(index)">删除提取</button>
+      <el-button native-type="button" @click="remove(index)">删除提取</el-button>
     </fieldset>
-    <button type="button" @click="add">添加变量提取</button>
-    <details><summary>高级提取 JSON</summary><textarea :value="modelValue" aria-label="提取 JSON（写 outputs.本步骤ID.*）" rows="4" @input="$emit('update:modelValue', value($event))" /></details>
-  </details>
+    <el-button native-type="button" @click="add">添加变量提取</el-button>
+    <details><summary>高级提取 JSON</summary><UiInput type="textarea" :value="modelValue" aria-label="提取 JSON（写 outputs.本步骤ID.*）" rows="4" @input="$emit('update:modelValue', value($event))"  /></details>
+  </section>
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue';

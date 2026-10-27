@@ -198,7 +198,7 @@ export const helpTopics = {
   },
   "operator": {
     "title": "比较规则",
-    "text": "equals/not_equals 比较相等或不等；contains 检查包含；exists 只检查存在；is_null 检查存在且为 null；is_missing 检查缺失。数值大小、类型、schema 和集合规则需与数据类型匹配；set_equals 忽略顺序但保留重复数量，keyed_equals 按 extras.key 比较唯一对象。"
+    "text": "equals/not_equals 比较相等或不等；contains 检查包含；exists 只检查存在；is_null 检查存在且为 null；is_missing 检查缺失。数值、类型和 schema 规则需与数据类型匹配。当前 set_equals 的字符串、布尔及对象数组存在比较限制，详见完整手册；不要直接用它判断此类集合。keyed_equals 用于按 extras.key 比较唯一对象。"
   },
   "expected": {
     "title": "期望 JSON",
@@ -627,7 +627,11 @@ export const helpTopics = {
   "attachmentStep": {
     "title": "附件关联步骤",
     "text": "可选，填写当前运行中要关联的步骤 ID，将附件证据归到该步骤。留空作为运行级附件；这里不会创建、重命名或修改业务场景步骤。"
-  }
+  },
+  "debugParameters": { "title": "调试公开参数", "text": "填写本次调试要覆盖的公开参数 JSON 对象，例如 {\"customer_id\":\"customer-001\"}。只能覆盖参数 schema 已声明的键；不填写时沿用草稿默认值，不在这里填账号、密码或 Token。" },
+  "debugInputs": { "title": "前置 outputs 输入", "text": "单步调试不会自动执行前置业务步骤。请按已声明的依赖提供公开输出，例如 {\"load_customer\":{\"id\":\"customer-001\"}}；这对应 outputs.load_customer.id。缺少输入会阻止执行，数据库核验等步骤需调试整场景。" },
+  "debugScenario": { "title": "调试当前整场景", "text": "真实执行当前编辑中的整份场景，包括尚未保存的修改、准备和清理步骤。调试不会替你保存草稿或发布版本，也不计入正式回归统计；确认环境与写入范围后再执行。" },
+  "debugStep": { "title": "仅调试此步骤", "text": "真实执行所选步骤，不自动执行依赖。若步骤引用前置 outputs，需要填写本次输入；不确定数据来源时先调试整场景。数据库核验等依赖完整身份验证的步骤不支持单步调试。" }
 } as const;
 
 export type HelpTopic = keyof typeof helpTopics;

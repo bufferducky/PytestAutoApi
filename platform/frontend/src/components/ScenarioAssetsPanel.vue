@@ -2,198 +2,185 @@
   <section class="asset-panel" :data-testid="'asset-editor-' + kind">
     <header class="asset-header">
       <div><h2>{{ kind === 'scenarios' ? '场景资产' : '固定版本套件' }} <span class="count-badge">{{ assets.length }}</span></h2><p>编辑草稿 → 预检发布 → 选择版本运行</p></div>
-      <div class="toolbar"><button type="button" @click="load" :disabled="busy">{{ busy ? '处理中…' : '刷新' }}</button><button class="action-button" type="button" @click="createDraft" :disabled="busy"><span aria-hidden="true">＋</span> 新增</button></div>
+      <div class="toolbar"><el-button native-type="button" @click="load" :disabled="busy">{{ busy ? '处理中…' : '刷新' }}</el-button><el-button class="action-button" native-type="button" @click="createDraft" :disabled="busy" type="primary"><span aria-hidden="true">＋</span> 新增</el-button></div>
     </header>
     <p v-if="error" class="state-banner state-banner--error" role="alert">{{ error }}</p>
     <p v-if="message" class="state-banner state-banner--info" role="status">{{ message }}</p>
     <div class="asset-grid">
       <aside class="asset-library" aria-label="资产列表">
-        <label class="asset-search"><span>搜索资产</span><input v-model="search" type="search" placeholder="名称、标签或 ID" /></label>
+        <label class="asset-search"><span>搜索资产</span><UiInput v-model="search" type="search" placeholder="名称、标签或 ID"  /></label>
         <p class="asset-library__count">{{ search ? `找到 ${filteredAssets.length} 个结果` : `全部资产 · ${assets.length}` }}</p>
         <ul class="asset-list" :aria-busy="busy">
           <li v-for="item in filteredAssets" :key="item.id">
-            <button type="button" class="asset-list__item" :class="{ 'asset-list__item--selected': selected?.id === item.id }" :aria-pressed="selected?.id === item.id" @click="chooseAsset(item)" :disabled="busy">
+            <el-button native-type="button" class="asset-list__item" :class="{ 'asset-list__item--selected': selected?.id === item.id }" :aria-pressed="selected?.id === item.id" @click="chooseAsset(item)" :disabled="busy">
               <span class="asset-list__name">{{ item.draft.name }}</span><span class="asset-list__meta"><span class="asset-priority">{{ item.draft.priority }}</span><span>草稿 r{{ item.revision }}</span></span>
               <span v-if="item.draft.tags?.length" class="asset-list__tags">{{ item.draft.tags.join(' · ') }}</span>
-            </button>
+            </el-button>
           </li>
         </ul>
-        <div v-if="!filteredAssets.length" class="asset-empty"><strong>{{ busy ? '正在加载…' : search ? '没有匹配的资产' : '还没有资产' }}</strong><p>{{ search ? '试试其他关键词，或清空搜索。' : '点击“新增”创建第一份草稿。' }}</p><button v-if="search" type="button" @click="search = ''">清空搜索</button></div>
-      </aside>
-      <form class="asset-form" @submit.prevent="save" @invalid.capture="revealInvalid">
-        <div class="editor-heading">
-          <div>
-            <span class="editor-eyebrow">{{ selected ? '编辑草稿' : '新建草稿' }}</span>
-            <h3>{{ selected ? name || '未命名资产' : kind === 'scenarios' ? '创建业务场景' : '创建测试套件' }}</h3>
-          </div>
-          <div class="toolbar">
-            <span class="draft-state">{{ dirty ? '未保存' : selected ? '已保存' : '待创建' }}</span>
-            <button v-if="kind === 'scenarios'" type="button" :disabled="busy" @click="openDebug()">调试当前整场景</button>
-            <button class="action-button" :disabled="busy || !dirty">保存</button>
-          </div>
+        <div v-if="!filteredAssets.length" class="asset-empty"><strong>{{ busy ? '正在加载…' : search ? '没有匹配的资产' : '还没有资产' }}</strong><p>{{ search ? '试试其他关键词，或清空搜索。' : '点击“新增”创建第一份草稿。' }}</p><el-button v-if="search" native-type="button" @click="search = ''">清空搜索</el-button></div>
+      <div v-if="kind === 'scenarios'" class="step-directory"><div class="section-heading"><strong>请求步骤 · {{ steps.length }}</strong><el-button native-type="button" size="small" @click="addStep" :disabled="busy">添加 HTTP 步骤</el-button></div><el-empty v-if="!steps.length" description="添加第一个请求步骤" :image-size="40" /><el-button v-for="(step,index) in steps" :key="stepKey(step)" native-type="button" class="step-choice" :class="{'is-current': currentStepKey === stepKey(step)}" :aria-pressed="currentStepKey === stepKey(step)" @click="chooseStep(step)"><span class="method-chip">{{ step.method }}</span><span>{{ index+1 }} · {{ step.name || step.step_id }}</span></el-button></div></aside>
+      <div class="asset-workspace">
+      <form class="asset-form" novalidate @submit.prevent="save">
+        <div class="editor-heading ui-toolbar">
+          <div><span class="editor-eyebrow">{{ selected ? '编辑草稿' : '新建草稿' }}</span><h3>{{ name || (kind === 'scenarios' ? '创建业务场景' : '创建测试套件') }}</h3><small>{{ selected ? selected.id + ' · r' + selected.revision : '保存后生成资产 ID' }}</small></div>
+          <div class="toolbar"><el-tag class="draft-state" :type="dirty ? 'warning' : 'success'">{{ dirty ? '未保存' : selected ? '已保存' : '待创建' }}</el-tag><span v-if="kind === 'scenarios'" class="action-help"><el-button native-type="button" :disabled="busy" @click="openDebug()">调试当前整场景</el-button><HelpHint topic="debugScenario" /></span><el-button native-type="submit" type="primary" :disabled="busy" :loading="busy">保存草稿</el-button></div>
         </div>
-        <details class="editor-details scenario-settings" :open="settingsOpen" @toggle="settingsOpen = ($event.target as HTMLDetailsElement).open">
-          <summary>{{ kind === 'scenarios' ? '场景设置' : '套件设置' }}</summary>
+        <el-tabs v-model="workspaceTab" aria-label="资产工作区">
+          <el-tab-pane :label="kind === 'scenarios' ? '编辑与调试' : '场景编排'" name="edit" />
+          <el-tab-pane :label="kind === 'scenarios' ? '场景设置' : '套件设置'" name="settings" />
+          <el-tab-pane label="发布与版本" name="publish" />
+          <el-tab-pane label="正式运行" name="run" />
+          <el-tab-pane v-if="kind === 'scenarios'" label="接入与高级" name="advanced" />
+        </el-tabs>
+        <p v-if="validationError" role="alert" class="state-banner state-banner--error">{{ validationError }}</p>
+        <section v-show="workspaceTab === 'settings'" class="workspace-section">        <section class="scenario-settings">
+
           <div class="settings-content">
         <div class="form-section-title">基本信息</div>
         <div class="editor-fields">
 
-        <label>名称 <input v-model="name" required /></label>
-        <label><span class="field-caption"><span>优先级</span><HelpHint topic="priority" /></span><select v-model="priority" aria-label="优先级"><option>P0</option><option>P1</option><option>P2</option></select></label>
-        <label><span class="field-caption"><span>标签（逗号分隔）</span><HelpHint topic="tags" /></span><input v-model="tags" placeholder="smoke,core" aria-label="标签（逗号分隔）" /></label>
+        <label>名称 <UiInput v-model="name" required  /></label>
+        <label><span class="field-caption"><span>优先级</span><HelpHint topic="priority" /></span><UiSelect v-model="priority" aria-label="优先级"><option>P0</option><option>P1</option><option>P2</option></UiSelect></label>
+        <label><span class="field-caption"><span>标签（逗号分隔）</span><HelpHint topic="tags" /></span><UiInput v-model="tags" placeholder="smoke,core" aria-label="标签（逗号分隔）"  /></label>
         </div>
         <template v-if="kind === 'scenarios'">
           <div class="form-section-title">执行上下文 <small>配置目标系统与测试身份</small></div>
           <div class="editor-fields">
-          <label><span class="field-caption"><span>目标系统</span><HelpHint topic="target" /></span><select v-model="targetRef" required aria-label="目标系统">
+          <label><span class="field-caption"><span>目标系统</span><HelpHint topic="target" /></span><UiSelect v-model="targetRef" required aria-label="目标系统">
             <option v-for="target in targets" :key="target.id" :value="target.id">{{ target.name }} · {{ target.id }}</option>
-          </select></label>
-          <label><span class="field-caption"><span>身份（可选）</span><HelpHint topic="identity" /></span><select v-model="identityRef" aria-label="身份（可选）"><option value="">无</option><option v-for="item in availableIdentities" :key="item.id" :value="item.id">{{ item.name }}</option></select></label>
-          <label><span class="field-caption"><span>租户 / 项目绑定</span><HelpHint topic="binding" /></span><select v-model="bindingRef" aria-label="租户 / 项目绑定"><option value="">无</option><option v-for="item in availableBindings" :key="item.id" :value="item.id">{{ item.name }}</option></select></label>
-          <label>模块 <input v-model="moduleName" /></label>
+          </UiSelect></label>
+          <label><span class="field-caption"><span>身份（可选）</span><HelpHint topic="identity" /></span><UiSelect v-model="identityRef" aria-label="身份（可选）"><option value="">无</option><option v-for="item in availableIdentities" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>
+          <label><span class="field-caption"><span>租户 / 项目绑定</span><HelpHint topic="binding" /></span><UiSelect v-model="bindingRef" aria-label="租户 / 项目绑定"><option value="">无</option><option v-for="item in availableBindings" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>
+          <label>模块 <UiInput v-model="moduleName"  /></label>
           </div>
           <details class="editor-details"><summary aria-label="场景参数 参数约束与默认值">场景参数 <span>参数约束与默认值</span><HelpHint topic="schema" /></summary><div class="editor-fields">
-          <label><span class="field-caption"><span>参数 schema（名称 → type/required）</span><HelpHint topic="schema" /></span><textarea v-model="parametersSchema" rows="3" aria-label="参数 schema（名称 → type/required）" /></label>
-          <label><span class="field-caption"><span>默认公开参数</span><HelpHint topic="parameters" /></span><textarea v-model="parameters" rows="3" aria-label="默认公开参数" /></label>
+          <label><span class="field-caption"><span>参数 schema（名称 → type/required）</span><HelpHint topic="schema" /></span><UiInput type="textarea" v-model="parametersSchema" rows="3" aria-label="参数 schema（名称 → type/required）"  /></label>
+          <label><span class="field-caption"><span>默认公开参数</span><HelpHint topic="parameters" /></span><UiInput type="textarea" v-model="parameters" rows="3" aria-label="默认公开参数"  /></label>
           </div></details>
         </template>
           </div>
-        </details>
-        <template v-if="kind === 'scenarios'">
-          <div class="form-section-title">请求步骤 <small>{{ steps.length }} 个步骤 · 按依赖顺序执行</small></div>
-          <p v-if="!steps.length" class="step-empty">暂无请求步骤。添加 HTTP 步骤，配置请求和预期结果。</p>
-          <nav class="step-navigation" aria-label="步骤导航"><button v-for="(step, index) in steps" :key="index" type="button" @click="focusStep(index)">{{ index + 1 }} · {{ step.name || step.step_id }}</button></nav>
-          <ScenarioDebugPanel v-if="kind === 'scenarios' && debugOpen" :key="(selected?.id || 'new') + ':' + debugStep" :get-draft="validatedDraft" :asset-id="selected?.id" :revision="selected?.revision" :step-id="debugStep" :environments="environments" />
-          <fieldset class="step-card" v-for="(step, index) in steps" :id="'scenario-step-' + index" :key="stepKey(step)" :aria-label="'步骤 ' + (index + 1)">
-            <legend>步骤 {{ index + 1 }} · {{ step.name }}</legend>
-            <div class="toolbar"><button type="button" @click="toggleStep(step.step_id)" :aria-expanded="!collapsed.includes(step.step_id)">{{ collapsed.includes(step.step_id) ? '展开' : '折叠' }}</button><button type="button" @click="copyStep(index)">复制步骤</button><button type="button" :disabled="index === 0" @click="moveStep(index, -1)">上移</button><button type="button" :disabled="index === steps.length - 1" @click="moveStep(index, 1)">下移</button><button type="button" :disabled="Boolean(step.database_check)" @click="openDebug(step.step_id)">仅调试此步骤</button></div>
-            <div v-show="!collapsed.includes(step.step_id)" class="step-content">
-            <div v-if="step.database_check" class="state-banner state-banner--info">
+        </section>
+</section>
+        <section v-show="workspaceTab === 'edit'" class="workspace-section">
+          <template v-if="kind === 'scenarios'">
+            <el-empty v-if="!steps.length" description="暂无请求步骤，添加 HTTP 步骤后配置请求和断言"><el-button native-type="button" type="primary" @click="addStep">添加 HTTP 步骤</el-button></el-empty>
+            <fieldset v-for="(step,index) in steps" v-show="currentStepKey === stepKey(step)" :key="stepKey(step)" :id="'scenario-step-' + index" class="step-card" :aria-label="'步骤 ' + (index+1)">
+              <legend>步骤 {{ index+1 }} · {{ step.name }}</legend>
+              <div class="step-header"><label>步骤名称<UiInput v-model="step.name" aria-label="步骤名称" /></label><div class="toolbar"><el-button native-type="button" @click="copyStep(index)">复制步骤</el-button><el-button native-type="button" @click="moveStep(index,-1)" :disabled="index===0">上移</el-button><el-button native-type="button" @click="moveStep(index,1)" :disabled="index===steps.length-1">下移</el-button><el-button native-type="button" type="danger" plain @click="removeStep(index)">删除步骤</el-button></div></div>
+              <div class="request-address"><label>方法<UiSelect v-model="step.method" aria-label="方法"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></UiSelect></label><label>URL<UiInput v-model="step.url" aria-label="URL" placeholder="{{host}}/api/v1/..." /></label><span class="action-help"><el-button native-type="button" type="primary" :disabled="busy || Boolean(step.database_check)" @click="openDebug(step.step_id)">仅调试此步骤</el-button><HelpHint topic="debugStep" /></span></div>
+                          <div v-if="step.database_check" class="state-banner state-banner--info">
               <span class="field-caption">只读数据库核验<HelpHint topic="receptionPack" /></span>
               <p>数据源：{{ step.database_check.datasource_ref }} · 规则：{{ step.database_check.contract_ref }}</p>
               <p>本步骤同时核对数据库期望；缺数据、权限变化或连接失败会明确报错。调试时请使用“调试当前整场景”，以便先核对身份和项目。</p>
               <p>回归包按测试项目内的现有数据选取筛选样本，实际条件会记录在运行请求中。</p>
             </div>
-            <div class="editor-fields">
-            <label><span class="field-caption"><span>稳定 ID</span><HelpHint topic="stepId" /></span><input v-model="step.step_id" required aria-label="稳定 ID" /></label>
-            <label>步骤名称 <input v-model="step.name" required /></label>
-            <label><span class="field-caption"><span>步骤类型</span><HelpHint topic="stepType" /></span><select v-model="step.type" aria-label="步骤类型"><option value="http">HTTP</option><option value="wait_until">等待异步终态</option></select></label>
-            <label><span class="field-caption"><span>阶段</span><HelpHint topic="phase" /></span><select v-model="step.phase" aria-label="阶段"><option>setup</option><option>action</option><option>verify</option><option>cleanup</option></select></label>
 
-            <label><span class="field-caption"><span>方法</span><HelpHint topic="method" /></span><select v-model="step.method" aria-label="方法"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select></label>
-            <label><span class="field-caption"><span>URL</span><HelpHint topic="url" /></span><input v-model="step.url" placeholder="{{host}}/api/v1/..." required aria-label="URL" /></label>
-            <label><span class="field-caption"><span>业务用途</span><HelpHint topic="operation" /></span><select v-model="step.operation_kind" aria-label="业务用途"><option value="query">查询</option><option value="write">写入</option></select></label>
-            </div>
-            <label><input type="checkbox" v-model="step.contract_confirmed" aria-label="请求契约已确认，可进入真实运行预检" /><span class="field-caption">请求契约已确认，可进入真实运行预检<HelpHint topic="contract" /></span></label>
-            <details class="editor-details"><summary aria-label="请求选项 请求头、参数、请求体与重放策略">请求选项 <span>请求头、参数、请求体与重放策略</span><HelpHint topic="headers" /></summary><div class="advanced-fields">
-            <label><span class="field-caption"><span>依赖（逗号分隔的前置步骤 ID）</span><HelpHint topic="dependencies" /></span><input v-model="step.dependenciesText" aria-label="依赖（逗号分隔的前置步骤 ID）" /></label>
-            <label><input type="checkbox" v-model="step.safe_to_replay" aria-label="此查询已确认允许401后重放一次" /><span class="field-caption">此查询已确认允许401后重放一次<HelpHint topic="replay" /></span></label>
-            <fieldset aria-label="请求头"><legend>请求头<HelpHint topic="headers" /></legend><div v-for="(row, i) in step.headerRows" :key="i" class="request-row"><input v-model="row.key" aria-label="请求头名称" /><input v-model="row.value" aria-label="请求头值" /><button type="button" @click="step.headerRows.splice(i, 1)">移除</button></div><button type="button" @click="step.headerRows.push({key: '', value: ''})">添加请求头</button></fieldset>
-            <fieldset aria-label="查询参数"><legend>查询参数<HelpHint topic="query" /></legend><div v-for="(row, i) in step.queryRows" :key="i" class="request-row"><input v-model="row.key" aria-label="查询参数名称" /><input v-model="row.value" aria-label="查询参数值" /><button type="button" @click="step.queryRows.splice(i, 1)">移除</button></div><button type="button" @click="step.queryRows.push({key: '', value: ''})">添加查询参数</button></fieldset>
-            <label><span class="field-caption"><span>请求体类型</span><HelpHint topic="bodyType" /></span><select v-model="step.bodyType" aria-label="请求体类型"><option value="none">无</option><option value="json">JSON</option><option value="form">表单</option><option value="raw">原始文本</option></select></label>
-            <label><span class="field-caption"><span>请求体（JSON/表单填写 JSON，原始文本直接填写）</span><HelpHint topic="body" /></span><textarea v-model="step.bodyText" rows="3" aria-label="请求体（JSON/表单填写 JSON，原始文本直接填写）" /></label>
-            </div></details>
-            <AssertionEditor v-model="step.assertionsText" />
-            <fieldset v-if="step.type === 'wait_until'">
+              <el-tabs v-model="requestTab" aria-label="请求配置分区">
+                <el-tab-pane label="参数" name="query" /><el-tab-pane label="请求头" name="headers" /><el-tab-pane label="请求体" name="body" /><el-tab-pane label="断言" name="assertions" /><el-tab-pane label="变量提取" name="extractors" /><el-tab-pane label="高级设置" name="advanced" />
+              </el-tabs>
+<section v-show="requestTab === 'query'" aria-label="查询参数"><div class="section-heading"><strong>查询参数 · {{ step.queryRows.length }}</strong><HelpHint topic="query" /></div><div v-for="(row,i) in step.queryRows" :key="i" class="request-row"><UiInput v-model="row.key" aria-label="查询参数名称" placeholder="名称" /><UiInput v-model="row.value" aria-label="查询参数值" placeholder="值或变量引用" /><el-button native-type="button" @click="step.queryRows.splice(i,1)">移除</el-button></div><el-empty v-if="!step.queryRows.length" description="暂无查询参数" :image-size="40" /><el-button native-type="button" @click="step.queryRows.push({key:'',value:''})">添加查询参数</el-button></section><section v-show="requestTab === 'headers'" aria-label="请求头"><div class="section-heading"><strong>请求头 · {{ step.headerRows.length }}</strong><HelpHint topic="headers" /></div><div v-for="(row,i) in step.headerRows" :key="i" class="request-row"><UiInput v-model="row.key" aria-label="请求头名称" placeholder="名称" /><UiInput v-model="row.value" aria-label="请求头值" placeholder="值或变量引用" /><el-button native-type="button" @click="step.headerRows.splice(i,1)">移除</el-button></div><el-empty v-if="!step.headerRows.length" description="暂无请求头" :image-size="40" /><el-button native-type="button" @click="step.headerRows.push({key:'',value:''})">添加请求头</el-button></section>
+              <section v-show="requestTab === 'body'" class="workspace-section"><label>请求体类型<UiSelect v-model="step.bodyType" aria-label="请求体类型"><option value="none">无</option><option value="json">JSON</option><option value="form">表单</option><option value="raw">原始文本</option></UiSelect></label><label><span class="field-caption">请求体（JSON/表单填写 JSON，原始文本直接填写）<HelpHint topic="body" /></span><UiInput type="textarea" v-model="step.bodyText" rows="10" aria-label="请求体（JSON/表单填写 JSON，原始文本直接填写）" /></label></section>
+              <section v-show="requestTab === 'assertions'"><AssertionEditor v-model="step.assertionsText" /></section>
+              <section v-show="requestTab === 'extractors'"><ExtractorEditor v-model="step.extractorsText" :step-id="step.step_id" /></section>
+              <section v-show="requestTab === 'advanced'" class="workspace-section"><div class="editor-fields"><label><span class="field-caption">稳定 ID<HelpHint topic="stepId" /></span><UiInput v-model="step.step_id" aria-label="稳定 ID" /></label><label><span class="field-caption">步骤类型<HelpHint topic="stepType" /></span><UiSelect v-model="step.type" aria-label="步骤类型"><option value="http">HTTP</option><option value="wait_until">等待异步终态</option></UiSelect></label><label><span class="field-caption">阶段<HelpHint topic="phase" /></span><UiSelect v-model="step.phase" aria-label="阶段"><option>setup</option><option>action</option><option>verify</option><option>cleanup</option></UiSelect></label><label><span class="field-caption">业务用途<HelpHint topic="operation" /></span><UiSelect v-model="step.operation_kind" aria-label="业务用途"><option value="query">查询</option><option value="write">写入</option></UiSelect></label><label>依赖（逗号分隔的前置步骤 ID）<UiInput v-model="step.dependenciesText" aria-label="依赖（逗号分隔的前置步骤 ID）" /></label></div><label><input type="checkbox" v-model="step.safe_to_replay" aria-label="此查询已确认允许401后重放一次" />此查询已确认允许401后重放一次<HelpHint topic="replay" /></label>            <fieldset v-if="step.type === 'wait_until'">
               <legend>有限状态轮询</legend>
               <label><input v-model="step.waitConfirmed" type="checkbox" aria-label="状态/查询契约已确认" /><span class="field-caption">状态/查询契约已确认<HelpHint topic="contract" /></span></label>
-              <label><span class="field-caption"><span>状态字段</span><HelpHint topic="stateSelector" /></span><input v-model="step.stateSelector" aria-label="状态字段" /></label>
-              <label><span class="field-caption"><span>状态映射 JSON</span><HelpHint topic="stateMap" /></span><textarea v-model="step.stateMapText" rows="4" aria-label="状态映射 JSON" /></label>
-              <label><span class="field-caption"><span>间隔（秒）</span><HelpHint topic="pollInterval" /></span><input v-model.number="step.pollInterval" type="number" min="0" step="any" aria-label="间隔（秒）" /></label>
-              <label><span class="field-caption"><span>总等待预算（秒）</span><HelpHint topic="pollDeadline" /></span><input v-model.number="step.pollDeadline" type="number" min="0.001" step="any" aria-label="总等待预算（秒）" /></label>
-              <label><span class="field-caption"><span>最大次数</span><HelpHint topic="pollAttempts" /></span><input v-model.number="step.pollAttempts" type="number" min="1" aria-label="最大次数" /></label>
-              <label><span class="field-caption"><span>安全查询网络重试（0—3）</span><HelpHint topic="networkRetries" /></span><input v-model.number="step.networkRetries" type="number" min="0" max="3" aria-label="安全查询网络重试（0—3）" /></label>
-              <details><summary aria-label="高级等待策略 JSON（退避/谓词/轨迹上限）">高级等待策略 JSON（退避/谓词/轨迹上限）<HelpHint topic="waitPolicy" /></summary><textarea v-model="step.waitPolicyText" rows="6" /></details>
+              <label><span class="field-caption"><span>状态字段</span><HelpHint topic="stateSelector" /></span><UiInput v-model="step.stateSelector" aria-label="状态字段"  /></label>
+              <label><span class="field-caption"><span>状态映射 JSON</span><HelpHint topic="stateMap" /></span><UiInput type="textarea" v-model="step.stateMapText" rows="4" aria-label="状态映射 JSON"  /></label>
+              <label><span class="field-caption"><span>间隔（秒）</span><HelpHint topic="pollInterval" /></span><UiInput v-model.number="step.pollInterval" type="number" min="0" step="any" aria-label="间隔（秒）"  /></label>
+              <label><span class="field-caption"><span>总等待预算（秒）</span><HelpHint topic="pollDeadline" /></span><UiInput v-model.number="step.pollDeadline" type="number" min="0.001" step="any" aria-label="总等待预算（秒）"  /></label>
+              <label><span class="field-caption"><span>最大次数</span><HelpHint topic="pollAttempts" /></span><UiInput v-model.number="step.pollAttempts" type="number" min="1" aria-label="最大次数"  /></label>
+              <label><span class="field-caption"><span>安全查询网络重试（0—3）</span><HelpHint topic="networkRetries" /></span><UiInput v-model.number="step.networkRetries" type="number" min="0" max="3" aria-label="安全查询网络重试（0—3）"  /></label>
+              <details><summary aria-label="高级等待策略 JSON（退避/谓词/轨迹上限）">高级等待策略 JSON（退避/谓词/轨迹上限）<HelpHint topic="waitPolicy" /></summary><UiInput type="textarea" v-model="step.waitPolicyText" rows="6"  /></details>
             </fieldset>
-            <ExtractorEditor v-model="step.extractorsText" :step-id="step.step_id" />
-            <button class="action-button action-button--danger step-delete" type="button" @click="steps.splice(index, 1)">删除步骤</button>
-            </div>
-          </fieldset>
-          <button type="button" @click="addStep">添加 HTTP 步骤</button>
-        </template>
-        <template v-else>
-          <div class="form-section-title">场景编排 <small>引用固定发布版本</small></div>
-          <label><span class="field-caption"><span>总预算（秒）</span><HelpHint topic="budget" /></span><input v-model.number="budget" type="number" min="1" max="86400" aria-label="总预算（秒）" /></label>
+</section>
+              <label class="contract-confirmation"><input type="checkbox" v-model="step.contract_confirmed" aria-label="请求契约已确认，可进入真实运行预检" /><span class="field-caption">请求契约已确认，可进入真实运行预检<HelpHint topic="contract" /></span></label>
+            </fieldset>
+            <ScenarioDebugPanel v-if="debugOpen" :key="(selected?.id || 'new') + ':' + debugStep" :get-draft="validatedDraft" :asset-id="selected?.id" :revision="selected?.revision" :step-id="debugStep" :environments="environments" />
+          </template>
+          <template v-else>          <div class="form-section-title">场景编排 <small>引用固定发布版本</small></div>
+          <label><span class="field-caption"><span>总预算（秒）</span><HelpHint topic="budget" /></span><UiInput v-model.number="budget" type="number" min="1" max="86400" aria-label="总预算（秒）"  /></label>
           <fieldset v-for="(ref, index) in scenarioRefs" :key="index">
             <legend>场景引用 {{ index + 1 }}</legend>
-            <label><span class="field-caption"><span>场景</span><HelpHint topic="scenarioRef" /></span><select v-model="ref.scenario_id" required aria-label="场景" @change="changeScenarioReference(ref)"><option value="" disabled>选择场景</option><option v-for="item in scenarioOptions" :key="item.id" :value="item.id">{{ item.draft.name }}</option></select></label>
-            <label><span class="field-caption"><span>固定发布版本</span><HelpHint topic="version" /></span><select v-model.number="ref.version" required aria-label="固定发布版本" :disabled="!ref.scenario_id || referenceLoading[ref.scenario_id]">
+            <label><span class="field-caption"><span>场景</span><HelpHint topic="scenarioRef" /></span><UiSelect v-model="ref.scenario_id" required aria-label="场景" @change="changeScenarioReference(ref)"><option value="" disabled>选择场景</option><option v-for="item in scenarioOptions" :key="item.id" :value="item.id">{{ item.draft.name }}</option></UiSelect></label>
+            <label><span class="field-caption"><span>固定发布版本</span><HelpHint topic="version" /></span><UiSelect v-model.number="ref.version" required aria-label="固定发布版本" :disabled="!ref.scenario_id || referenceLoading[ref.scenario_id]">
               <option :value="0" disabled>选择已发布版本</option>
               <option v-if="ref.version && !referenceVersions[ref.scenario_id]?.some(item => item.version === ref.version)" :value="ref.version" disabled>v{{ ref.version }} · 待核验 / 未找到</option>
               <option v-for="version in referenceVersions[ref.scenario_id] || []" :key="version.version" :value="version.version">v{{ version.version }} · {{ version.change_note }}</option>
-            </select></label>
+            </UiSelect></label>
             <p v-if="referenceLoading[ref.scenario_id]" role="status">正在核验已发布版本，保留当前引用。</p>
             <p v-else-if="referenceErrors[ref.scenario_id]" role="alert">{{ referenceErrors[ref.scenario_id] }}</p>
             <p v-else-if="ref.version && referenceVersions[ref.scenario_id] && !referenceVersions[ref.scenario_id]?.some(item => item.version === ref.version)" role="alert">当前固定版本未找到，请重新选择已发布版本。</p>
-            <button v-if="ref.scenario_id" type="button" :disabled="referenceLoading[ref.scenario_id]" @click="loadReferenceVersions(ref.scenario_id, true)">刷新发布版本</button>
-            <button type="button" @click="scenarioRefs.splice(index, 1)">移除</button>
+            <el-button v-if="ref.scenario_id" native-type="button" :disabled="referenceLoading[ref.scenario_id]" @click="loadReferenceVersions(ref.scenario_id, true)">刷新发布版本</el-button>
+            <div class="toolbar"><el-button native-type="button" @click="moveReference(index,-1)" :disabled="index === 0">上移</el-button><el-button native-type="button" @click="moveReference(index,1)" :disabled="index === scenarioRefs.length-1">下移</el-button><el-button native-type="button" @click="scenarioRefs.splice(index, 1)">移除</el-button></div>
           </fieldset>
-          <button type="button" @click="scenarioRefs.push({ scenario_id: '', version: 1 })">添加固定场景版本</button>
+          <el-button native-type="button" @click="scenarioRefs.push({ scenario_id: '', version: 1 })">添加固定场景版本</el-button>
         </template>
-        <details v-if="kind === 'scenarios'"><summary aria-label="迁移与扩展元数据">迁移与扩展元数据<HelpHint topic="migration" /></summary>
-          <p>迁移缺口解决后再更新 migration_blockers；不能删除仍然未知的业务契约来绕过预检。</p>
-          <textarea v-model="draftExtras" rows="8" aria-label="迁移与扩展元数据" />
-        </details>
-        <p v-if="dirty" class="state-banner state-banner--info">有未保存修改；请先保存，再预检或发布。</p>
-        <p class="asset-id">{{ selected ? `ID: ${selected.id} · r${selected.revision}` : '保存后自动生成资产 ID' }}</p>
-        <div class="editor-save-bar"><button class="action-button" :disabled="busy">{{ busy ? '处理中…' : '保存草稿' }}</button><span class="action-help" v-if="selected"><button type="button" @click="preflight" :disabled="busy || dirty">发布预检</button><HelpHint topic="preflight" /></span><button type="button" v-if="selected" @click="copyAsset" :disabled="busy">复制</button><span class="action-help" v-if="selected"><button class="action-button action-button--danger" type="button" @click="archive" :disabled="busy">归档草稿</button><HelpHint topic="archive" /></span></div>
-        <section v-if="selected" class="publish-section"><div class="form-section-title">发布版本 <small>发布后内容不可变</small></div><label><span class="field-caption"><span>发布说明</span><HelpHint topic="publish" /></span><input v-model="changeNote" placeholder="说明本次调整，便于追溯" aria-label="发布说明" /></label><span class="action-help"><button type="button" @click="publish" :disabled="busy || dirty || !changeNote">发布不可变版本</button><HelpHint topic="publish" /></span></section>
-      </form>
-    </div>
-    <pre v-if="checkResult">{{ checkResult }}</pre>
-    <section v-if="selected" class="version-section">
+        </section>
+        <section v-show="workspaceTab === 'publish'" class="workspace-section"><el-alert v-if="dirty" title="草稿有未保存修改，请先保存后预检或发布。" type="warning" :closable="false" /><el-empty v-if="!selected" description="保存草稿后即可预检和发布" /><div v-else class="toolbar"><el-button native-type="button" :disabled="busy || dirty" @click="preflight">发布预检</el-button><el-button native-type="button" :disabled="busy" @click="copyAsset">复制资产</el-button><el-button native-type="button" type="danger" plain :disabled="busy" @click="archive">归档草稿</el-button></div>        <section v-if="selected" class="publish-section"><div class="form-section-title">发布版本 <small>发布后内容不可变</small></div><label><span class="field-caption"><span>发布说明</span><HelpHint topic="publish" /></span><UiInput v-model="changeNote" placeholder="说明本次调整，便于追溯" aria-label="发布说明"  /></label><span class="action-help"><el-button native-type="button" @click="publish" :disabled="busy || dirty || !changeNote">发布不可变版本</el-button><HelpHint topic="publish" /></span></section>
+<h3>版本历史</h3><el-table :data="versions" empty-text="尚无发布版本"><el-table-column prop="version" label="版本" width="90" /><el-table-column prop="change_note" label="发布说明" /></el-table></section>
+        <section v-show="workspaceTab === 'run'" class="workspace-section">    <section v-if="selected" class="version-section">
       <div class="section-heading"><div><h3>已发布版本</h3><p>选择固定版本，预览计划后提交运行。</p></div><span class="count-badge">{{ versions.length }} 个版本</span></div>
       <p v-if="!versions.length" class="empty-copy">尚未发布版本。保存草稿并完成预检后，填写发布说明进行发布。</p>
       <div class="editor-fields">
-      <label><span class="field-caption"><span>选择版本</span><HelpHint topic="version" /></span><select v-model.number="chosenVersion" aria-label="选择版本"><option v-for="version in versions" :key="version.version" :value="version.version">v{{ version.version }} · {{ version.change_note }}</option></select></label>
-      <label><span class="field-caption"><span>运行环境</span><HelpHint topic="runEnvironment" /></span><select v-model="runEnvironment" aria-label="运行环境"><option value="">按已发布目标自动确定</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></select></label>
-      <label><span class="field-caption"><span>被测构建</span><HelpHint topic="build" /></span><input v-model="build" placeholder="填写实际版本；未知构建不能用于发布" aria-label="被测构建" /></label>
-      <label><span class="field-caption"><span>本次公开参数 JSON</span><HelpHint topic="parameters" /></span><textarea v-model="runParameters" rows="3" aria-label="本次公开参数 JSON" /></label>
-      </div><div class="toolbar"><span class="action-help"><button type="button" :disabled="busy || !chosenVersion" @click="plan">计划预览</button><HelpHint topic="plan" /></span></div>
+      <label><span class="field-caption"><span>选择版本</span><HelpHint topic="version" /></span><UiSelect v-model.number="chosenVersion" aria-label="选择版本"><option v-for="version in versions" :key="version.version" :value="version.version">v{{ version.version }} · {{ version.change_note }}</option></UiSelect></label>
+      <label><span class="field-caption"><span>运行环境</span><HelpHint topic="runEnvironment" /></span><UiSelect v-model="runEnvironment" aria-label="运行环境"><option value="">按已发布目标自动确定</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></UiSelect></label>
+      <label><span class="field-caption"><span>被测构建</span><HelpHint topic="build" /></span><UiInput v-model="build" placeholder="填写实际版本；未知构建不能用于发布" aria-label="被测构建"  /></label>
+      <label><span class="field-caption"><span>本次公开参数 JSON</span><HelpHint topic="parameters" /></span><UiInput type="textarea" v-model="runParameters" rows="3" aria-label="本次公开参数 JSON"  /></label>
+      </div><div class="toolbar"><span class="action-help"><el-button native-type="button" :disabled="busy || !chosenVersion" @click="plan">计划预览</el-button><HelpHint topic="plan" /></span></div>
       <label><input v-model="liveConfirmed" type="checkbox" aria-label="已核对计划与测试数据/写入范围" /><span class="field-caption">已核对计划与测试数据/写入范围<HelpHint topic="liveConfirmation" /></span></label>
-      <div class="toolbar"><span class="action-help"><button class="action-button" type="button" :disabled="busy || !chosenVersion || !liveConfirmed" @click="run">提交运行</button><HelpHint topic="run" /></span>
-      <span class="action-help"><button type="button" :disabled="busy || !chosenVersion" @click="exportAsset">查看脱敏导出</button><HelpHint topic="export" /></span></div>
+      <div class="toolbar"><span class="action-help"><el-button class="action-button" native-type="button" :disabled="busy || !chosenVersion || !liveConfirmed" @click="run" type="primary">提交运行</el-button><HelpHint topic="run" /></span>
+      <span class="action-help"><el-button native-type="button" :disabled="busy || !chosenVersion" @click="exportAsset">查看脱敏导出</el-button><HelpHint topic="export" /></span></div>
     </section>
+<el-empty v-if="!selected" description="保存并发布版本后即可正式运行" /></section>
+        <section v-show="workspaceTab === 'advanced'" class="workspace-section">        <details v-if="kind === 'scenarios'"><summary aria-label="迁移与扩展元数据">迁移与扩展元数据<HelpHint topic="migration" /></summary>
+          <p>迁移缺口解决后再更新 migration_blockers；不能删除仍然未知的业务契约来绕过预检。</p>
+          <UiInput type="textarea" v-model="draftExtras" rows="8" aria-label="迁移与扩展元数据"  />
+        </details>
     <div v-if="kind === 'scenarios'" class="asset-imports"><details><summary aria-label="接入言迹测试环境查询包">接入言迹测试环境查询包<HelpHint topic="yanjiPack" /></summary>
       <p>选择目标、身份和项目绑定后，填写测试用户 ID。仅创建查询草稿，不发送请求。</p>
-      <span class="action-help"><button type="button" :disabled="busy" @click="showYanjiContracts">查看四组契约与所缺资源</button><HelpHint topic="yanjiPack" /></span>
-      <label><span class="field-caption"><span>预期测试用户 ID</span><HelpHint topic="expectedUser" /></span><input v-model="expectedUserId" aria-label="预期测试用户 ID" /></label>
-      <span class="action-help"><button type="button" :disabled="busy || !targetRef || !identityRef || !bindingRef || !expectedUserId" @click="importYanji">创建查询草稿</button><HelpHint topic="yanjiPack" /></span>
+      <span class="action-help"><el-button native-type="button" :disabled="busy" @click="showYanjiContracts">查看四组契约与所缺资源</el-button><HelpHint topic="yanjiPack" /></span>
+      <label><span class="field-caption"><span>预期测试用户 ID</span><HelpHint topic="expectedUser" /></span><UiInput v-model="expectedUserId" aria-label="预期测试用户 ID"  /></label>
+      <span class="action-help"><el-button native-type="button" :disabled="busy || !targetRef || !identityRef || !bindingRef || !expectedUserId" @click="importYanji">创建查询草稿</el-button><HelpHint topic="yanjiPack" /></span>
       <details class="reception-import" @toggle="onReceptionToggle">
         <summary aria-label="接诊记录筛选回归">接诊记录筛选回归<HelpHint topic="receptionPack" /></summary>
         <p>核对筛选后的接诊单、总数和分页。沿用上方目标、身份、项目绑定及预期用户 ID，只读取业务数据。</p>
         <label><span class="field-caption"><span>言迹业务数据源</span><HelpHint topic="businessDatasource" /></span>
-          <select v-model="datasourceRef" aria-label="言迹业务数据源" :disabled="busy || datasourceLoading">
+          <UiSelect v-model="datasourceRef" aria-label="言迹业务数据源" :disabled="busy || datasourceLoading">
             <option value="">选择已配置的数据源</option>
             <option v-for="source in datasources" :key="source.id" :value="source.id">{{ source.id }} · {{ source.schema }} · {{ source.configuration === 'passed' ? '配置就绪' : '配置待修复' }}</option>
-          </select>
+          </UiSelect>
         </label>
         <p v-if="datasourceLoading" role="status">正在读取业务数据源配置…</p>
         <p v-if="datasourceError" class="state-banner state-banner--error" role="alert">{{ datasourceError }}</p>
         <p v-else-if="datasourcesLoaded && !datasources.length">尚未配置业务数据源。请在服务端配置言迹测试库及秘密引用，再刷新列表。</p>
         <div class="toolbar">
-          <button type="button" :disabled="busy || datasourceLoading" @click="loadDatasources">刷新数据源</button>
-          <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(false)">检查数据源配置</button><HelpHint topic="businessDatasource" /></span>
-          <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(true)">验证数据库连接与权限</button><HelpHint topic="businessDatasourceProbe" /></span>
+          <el-button native-type="button" :disabled="busy || datasourceLoading" @click="loadDatasources">刷新数据源</el-button>
+          <span class="action-help"><el-button native-type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(false)">检查数据源配置</el-button><HelpHint topic="businessDatasource" /></span>
+          <span class="action-help"><el-button native-type="button" :disabled="busy || !receptionReady" @click="preflightDatasource(true)">验证数据库连接与权限</el-button><HelpHint topic="businessDatasourceProbe" /></span>
         </div>
         <div v-if="datasourcePreflight" class="datasource-result" role="status">
           <p>配置：{{ datasourceStatus(datasourcePreflight.configuration) }} · 连接：{{ datasourceStatus(datasourcePreflight.connection) }} · 权限：{{ datasourceStatus(datasourcePreflight.permission) }}</p>
           <p v-if="datasourcePreflight.errors?.length">{{ datasourcePreflight.errors.join('；') }}</p>
         </div>
-        <span class="action-help"><button type="button" :disabled="busy || !receptionReady" @click="importReceptions">创建接诊筛选回归草稿</button><HelpHint topic="receptionPack" /></span>
+        <span class="action-help"><el-button native-type="button" :disabled="busy || !receptionReady" @click="importReceptions">创建接诊筛选回归草稿</el-button><HelpHint topic="receptionPack" /></span>
         <p>创建后选择场景进行预检、发布，再编排固定版本套件。创建草稿不执行接口，也不会启用定时任务。</p>
       </details>
     </details><details><summary aria-label="迁移已有资产（只创建草稿，不发送请求）">迁移已有资产（只创建草稿，不发送请求）<HelpHint topic="import" /></summary>
-      <label v-if="importKind === 'legacy'"><span class="field-caption"><span>旧 YAML 内容</span><HelpHint topic="import" /></span><textarea v-model="importSource" rows="8" placeholder="粘贴 YAML；导入时会移除旧秘密值" aria-label="旧 YAML 内容" /></label>
-      <label><span class="field-caption"><span>导入类型</span><HelpHint topic="import" /></span><select v-model="importKind" aria-label="导入类型"><option value="legacy">旧 YAML</option><option value="standard">标准发布 JSON</option></select></label>
-      <label v-if="importKind === 'standard'"><span class="field-caption"><span>发布 JSON</span><HelpHint topic="import" /></span><textarea v-model="importText" rows="10" aria-label="发布 JSON" /></label>
-      <span class="action-help"><button type="button" :disabled="busy" @click="importAsset">导入并显示迁移报告</button><HelpHint topic="import" /></span>
-    </details></div>
+      <label v-if="importKind === 'legacy'"><span class="field-caption"><span>旧 YAML 内容</span><HelpHint topic="import" /></span><UiInput type="textarea" v-model="importSource" rows="8" placeholder="粘贴 YAML；导入时会移除旧秘密值" aria-label="旧 YAML 内容"  /></label>
+      <label><span class="field-caption"><span>导入类型</span><HelpHint topic="import" /></span><UiSelect v-model="importKind" aria-label="导入类型"><option value="legacy">旧 YAML</option><option value="standard">标准发布 JSON</option></UiSelect></label>
+      <label v-if="importKind === 'standard'"><span class="field-caption"><span>发布 JSON</span><HelpHint topic="import" /></span><UiInput type="textarea" v-model="importText" rows="10" aria-label="发布 JSON"  /></label>
+      <span class="action-help"><el-button native-type="button" :disabled="busy" @click="importAsset">导入并显示迁移报告</el-button><HelpHint topic="import" /></span>
+    </details></div></section>
+      </form><JsonResult v-if="checkResult" :value="checkResult" title="操作结果" /></div>
+    </div>
   </section>
 </template>
-
 <script setup lang="ts">
 import HelpHint from '@/components/common/HelpHint.vue';
+import JsonResult from '@/components/common/JsonResult.vue';
+import { confirmAction } from '@/utils/confirmation';
 import { computed, onMounted, onBeforeUnmount, nextTick, ref, watch } from 'vue';
 import { useRouter, useRoute, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import ExtractorEditor from '@/components/ExtractorEditor.vue';
@@ -236,6 +223,11 @@ const router = useRouter();
 const route = useRoute();
 const formalNavigation = ref(false);
 const settingsOpen = ref(true);
+const workspaceTab = ref('settings'), requestTab = ref('query'), currentStepKey = ref<number>();
+const validationError = ref('');
+function chooseStep(step: EditorStep) { if (debugStep.value && debugStep.value !== step.step_id) debugOpen.value=false; currentStepKey.value = stepKey(step); workspaceTab.value = 'edit'; validationError.value = ''; }
+function removeStep(index: number) { steps.value.splice(index,1); if (!steps.value.some(step => stepKey(step) === currentStepKey.value)) currentStepKey.value = steps.value[0] ? stepKey(steps.value[0]) : undefined; }
+function moveReference(index: number, offset: number) { const target=index+offset; if (target<0 || target>=scenarioRefs.value.length) return; const [item]=scenarioRefs.value.splice(index,1); if (item) scenarioRefs.value.splice(target,0,item); }
 function revealInvalid(event: Event) {
   const control = event.target as HTMLElement;
   // Native validation runs before submit, so expand synchronously before the browser focuses.
@@ -256,10 +248,12 @@ let stepKeySequence = 0;
 function stepKey(step: EditorStep) { if (!stepKeys.has(step)) stepKeys.set(step, ++stepKeySequence); return stepKeys.get(step); }
 const debugStep = ref('');
 const debugOpen = ref(false);
-async function openDebug(stepId = '') { debugStep.value = stepId; debugOpen.value = true; await nextTick(); const panel = document.querySelector<HTMLElement>('[aria-label="当前草稿调试"]'); panel?.scrollIntoView({ block: 'start' }); panel?.focus({ preventScroll: true }); }
+async function openDebug(stepId = '') { workspaceTab.value = 'edit'; debugStep.value = stepId; debugOpen.value = true; await nextTick(); const panel = document.querySelector<HTMLElement>('[aria-label="当前草稿调试"]'); panel?.scrollIntoView({ block: 'start' }); panel?.focus({ preventScroll: true }); }
 function toggleStep(id: string) { collapsed.value = collapsed.value.includes(id) ? collapsed.value.filter(item => item !== id) : [...collapsed.value, id]; }
 async function focusStep(index: number, field = '') {
   const step = steps.value[index]; if (!step) return;
+  chooseStep(step);
+  requestTab.value = ({'请求头':'headers','查询参数':'query','请求体':'body','断言 JSON':'assertions','变量提取 JSON':'extractors'} as Record<string,string>)[field] || 'advanced';
   collapsed.value = collapsed.value.filter(id => id !== step.step_id);
   await nextTick();
   const card = document.getElementById(`scenario-step-${index}`);
@@ -280,11 +274,11 @@ function copyStep(index: number) {
   const original = steps.value[index]; if (!original) return;
   const copy = JSON.parse(JSON.stringify(original)) as EditorStep;
   const id = uniqueStepId(); copy.extractorsText = copy.extractorsText.replaceAll(`outputs.${copy.step_id}.`, `outputs.${id}.`);
-  copy.step_id = id; copy.name += ' 副本'; steps.value.splice(index + 1, 0, copy);
+  copy.step_id = id; copy.name += ' 副本'; steps.value.splice(index + 1, 0, copy); chooseStep(steps.value[index+1]!);
 }
 function beforeUnload(event: BeforeUnloadEvent) { if (dirty.value) { event.preventDefault(); event.returnValue = ''; } }
-onBeforeRouteLeave(() => formalNavigation.value || (!busy.value && canLeaveDraft()));
-onBeforeRouteUpdate(to => to.query.assetId === route.query.assetId || canLeaveDraft());
+onBeforeRouteLeave(async () => formalNavigation.value || (!busy.value && await canLeaveDraft()));
+onBeforeRouteUpdate(async to => to.query.assetId === route.query.assetId || await canLeaveDraft());
 onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
 
 const assets = ref<Asset[]>([]), selected = ref<Asset | null>(null), targets = ref<{id: string; name: string}[]>([]);
@@ -329,9 +323,9 @@ const filteredAssets = computed(() => {
   return assets.value.filter(item => [item.draft.name, item.id, ...(item.draft.tags || [])].join(' ').toLocaleLowerCase().includes(query));
 });
 // 切换资产和新建都可能丢失编辑中的草稿，统一在入口确认。
-function canLeaveDraft() { return !dirty.value || window.confirm('有未保存的修改，确认放弃并切换草稿？'); }
-function createDraft() { if (canLeaveDraft()) newDraft(); }
-async function chooseAsset(asset: Asset) { if (asset.id === selected.value?.id || !canLeaveDraft()) return; await action(() => select(asset)); }
+async function canLeaveDraft() { return !dirty.value || await confirmAction('有未保存的修改，确认放弃并切换草稿？'); }
+async function createDraft() { if (!busy.value && await canLeaveDraft()) newDraft(); }
+async function chooseAsset(asset: Asset) { if (asset.id === selected.value?.id || !(await canLeaveDraft())) return; await action(() => select(asset)); }
 
 const availableIdentities = computed(() => identities.value.filter(item => item.target_ids?.includes(targetRef.value)));
 const availableBindings = computed(() => bindings.value.filter(item => item.target_id === targetRef.value && (!identityRef.value || item.identity_id === identityRef.value)));
@@ -381,7 +375,7 @@ const url = () => `/${props.kind}/${selected.value?.id}`;
 const split = (value: string) => value.split(',').map(v => v.trim()).filter(Boolean);
 const parse = (value: string) => JSON.parse(value);
 function newDraft() {
-  ++selectionSequence; settingsOpen.value = true; collapsed.value = []; debugOpen.value = false;
+  ++selectionSequence; workspaceTab.value = 'settings'; validationError.value = ''; settingsOpen.value = true; collapsed.value = []; debugOpen.value = false;
   selected.value = null; name.value = ''; priority.value = 'P1'; tags.value = 'core';
   steps.value = []; scenarioRefs.value = []; versions.value = []; chosenVersion.value = 0;
   targetRef.value = identityRef.value = bindingRef.value = ''; moduleName.value = '未分类'; budget.value = 300;
@@ -395,11 +389,12 @@ function addStep() {
     assertionsText: '[{"name":"business-code","selector":"code","expected":200}]', extractorsText: '[]',
     waitConfirmed:false, stateSelector:'data.state', stateMapText:'{"pending":"pending","running":"running","success":"succeeded","failed":"failed"}',
     pollInterval:2, pollDeadline:60, pollAttempts:30, networkRetries:0, waitPolicyText:'{}' });
+  chooseStep(steps.value[steps.value.length-1]!);
 }
 let selectionSequence = 0;
 async function select(asset: Asset) {
   const sequence = ++selectionSequence;
-  selected.value = asset; settingsOpen.value = false; emit('selected', asset.id); collapsed.value = []; debugOpen.value = false; const d = asset.draft;
+  selected.value = asset; workspaceTab.value = 'edit'; validationError.value = ''; settingsOpen.value = false; emit('selected', asset.id); collapsed.value = []; debugOpen.value = false; const d = asset.draft;
   name.value = d.name; priority.value = d.priority; tags.value = (d.tags || []).join(',');
   targetRef.value = d.target_ref || ''; identityRef.value = d.identity_ref || ''; bindingRef.value = d.identity_binding_ref || '';
   moduleName.value = d.module || ''; parametersSchema.value = JSON.stringify(d.parameters_schema || {}, null, 2);
@@ -413,6 +408,7 @@ async function select(asset: Asset) {
     stateMapText:JSON.stringify(s.wait_policy?.state_map || {},null,2), pollInterval:Number(s.wait_policy?.interval_seconds ?? 2),
     pollDeadline:Number(s.wait_policy?.deadline_seconds ?? 60),pollAttempts:Number(s.wait_policy?.max_attempts ?? 30),
     networkRetries:Number(s.wait_policy?.network_retries ?? 0),waitPolicyText:JSON.stringify(s.wait_policy || {},null,2) }));
+  currentStepKey.value = steps.value[0] ? stepKey(steps.value[0]) : undefined;
   // API 列表进入 ref 后是 Vue Proxy，按引用契约复制字段，避免 structuredClone 抛错。
   scenarioRefs.value = (d.scenarios || []).map(ref => ({ scenario_id: ref.scenario_id, version: ref.version }));
   for (const reference of scenarioRefs.value) void loadReferenceVersions(reference.scenario_id).catch(() => {});
@@ -426,7 +422,7 @@ async function select(asset: Asset) {
 let loadSequence = 0;
 async function load() {
   const sequence = ++loadSequence;
-  
+
   busy.value = true; error.value = '';
   try {
     const data = await Promise.all([apiClient.get<Asset[]>(collection()), apiClient.get<Profile[]>('/targets'), apiClient.get<Profile[]>('/identity-profiles'), apiClient.get<Profile[]>('/context-bindings'), apiClient.get<Profile[]>('/environments'), apiClient.get<Asset[]>('/scenarios')]);
@@ -437,11 +433,12 @@ async function load() {
   finally { if (sequence === loadSequence) busy.value = false; }
 }
 function draftData(locate = false): Data {
-  const base = { ...selected.value?.draft, ...(props.kind === 'scenarios' ? parse(draftExtras.value) : {}), name: name.value, priority: priority.value, tags: split(tags.value) };
+  const object = (text: string, field: string, tab: string) => { try { const value: unknown = parse(text); if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('必须为 JSON 对象'); return value as Record<string,unknown>; } catch(cause) { if (locate) { workspaceTab.value=tab; validationError.value=field+'：'+(cause instanceof Error ? cause.message : '格式错误'); } throw cause; } };
+  const base = { ...selected.value?.draft, ...(props.kind === 'scenarios' ? object(draftExtras.value,'迁移与扩展元数据','advanced') : {}), name: name.value, priority: priority.value, tags: split(tags.value) };
   if (props.kind === 'suites') return {...base, scenarios: scenarioRefs.value, timeout_seconds: budget.value};
   return { ...base, target_ref: targetRef.value, identity_ref: identityRef.value || null,
     identity_binding_ref: bindingRef.value || null, module: moduleName.value,
-    parameters_schema: parse(parametersSchema.value), parameters: parse(parameters.value),
+    parameters_schema: object(parametersSchema.value,'参数 schema','settings'), parameters: object(parameters.value,'默认公开参数','settings'),
     steps: steps.value.map((s, index) => {
       const at = <T,>(field: string, operation: () => T): T => { try { return operation(); } catch (cause) { if (locate) void focusStep(index, field); throw new Error(`步骤 ${index + 1} (${s.step_id}) · ${field}: ${cause instanceof Error ? cause.message : '格式错误'}`); } };
       const json = (text: string, field: string, array = false) => at(field, () => { const result = parse(text); if (array && !Array.isArray(result)) throw new Error('必须为数组'); return result; });
@@ -454,11 +451,14 @@ function draftData(locate = false): Data {
     }) };
 }
 function validatedDraft(): Data {
+  validationError.value = '';
+  if (!name.value.trim() || (props.kind === 'scenarios' && !targetRef.value)) { workspaceTab.value = 'settings'; validationError.value = '请填写名称并选择目标系统。'; throw new Error(validationError.value); }
   const draft = draftData(true);
   const seen = new Set<string>();
   for (const [index, step] of (draft.steps || []).entries()) {
-    const fail = (message: string) => { void focusStep(index, '依赖'); throw new Error(`步骤 ${index + 1} (${step.step_id}) · 依赖: ${message}`); };
-    if (!step.step_id || seen.has(step.step_id)) fail('稳定 ID 不能为空或重复');
+    for (const [field,value] of [['步骤名称',step.name],['URL',step.request.url]] as const) if (!value?.trim()) { void focusStep(index,field); validationError.value = `步骤 ${index+1} · ${field}不能为空`; throw new Error(validationError.value); }
+    const fail = (message: string, field = '依赖') => { void focusStep(index,field); validationError.value=`步骤 ${index+1} · ${field}: ${message}`; throw new Error(validationError.value); };
+    if (!step.step_id || seen.has(step.step_id)) fail('稳定 ID 不能为空或重复','稳定 ID');
     for (const id of step.depends_on) if (!seen.has(id)) fail(`依赖 ${id} 不存在或位于当前步骤之后，请调整顺序`);
     seen.add(step.step_id);
   }
@@ -500,10 +500,10 @@ async function publish() { await action(async () => {
   if (selected.value) await refreshVersions(selected.value.id); message.value = '发布版本已冻结，编辑草稿不会改写它。';
 }); }
 async function copyAsset() { await action(async () => { const copy = await apiClient.post<Asset>(url() + '/copy'); await load(); await select(copy); }); }
-async function archive() { await action(async () => { await apiClient.post(`${url()}/archive?revision=${selected.value?.revision}`); newDraft(); await load(); }); }
+async function archive() { if (!(await confirmAction('归档当前草稿？已发布版本和历史运行保留。'))) return; await action(async () => { await apiClient.post(`${url()}/archive?revision=${selected.value?.revision}`); newDraft(); await load(); }); }
 const runData = () => ({ transport_mode: 'live', parameters: parse(runParameters.value), environment_id: runEnvironment.value || null, build: build.value.trim() || 'unspecified' });
 async function plan() { await action(async () => { checkResult.value = JSON.stringify(await apiClient.post(`${url()}/versions/${chosenVersion.value}/plan`, runData()), null, 2); }); }
-async function run() { if (busy.value || !canLeaveDraft()) return; await action(async () => { const result = await apiClient.post<{run_id: string}>(`${url()}/versions/${chosenVersion.value}/runs`, runData()); formalNavigation.value = true; try { await router.push({name: 'runs', query: {runId: result.run_id}}); } finally { formalNavigation.value = false; } }); }
+async function run() { if (busy.value || !(await canLeaveDraft())) return; await action(async () => { const result = await apiClient.post<{run_id: string}>(`${url()}/versions/${chosenVersion.value}/runs`, runData()); formalNavigation.value = true; try { await router.push({name: 'runs', query: {runId: result.run_id}}); } finally { formalNavigation.value = false; } }); }
 async function exportAsset() { await action(async () => { checkResult.value = JSON.stringify(await apiClient.get(`${url()}/versions/${chosenVersion.value}/export`), null, 2); }); }
 async function importAsset() { await action(async () => {
   const body = importKind.value === 'standard' ? parse(importText.value)
@@ -590,4 +590,28 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 35rem; }
 @media(max-width:1200px) { .asset-grid { grid-template-columns: 210px minmax(0, 1fr); gap: 16px; } }
 @media(max-width:760px) { .asset-grid { grid-template-columns: minmax(0, 1fr); } .asset-form { padding: 18px; } .asset-list { max-height: 240px; } }
 @media(max-width:540px) { .editor-fields { grid-template-columns: minmax(0, 1fr); } .asset-header { padding: 16px; } .asset-form { padding: 16px; } .step-card { padding: 12px; } .version-section { padding: 16px; } }
+</style>
+<style scoped>
+.asset-grid { grid-template-columns: 230px minmax(0,1fr); gap: 16px; }
+.asset-workspace { min-width:0; display:grid;gap:12px; }
+.asset-form { padding:0 18px 18px; gap:12px; }
+.asset-library { position:sticky;top:12px;max-height:calc(100vh - 30px);overflow:auto; }
+.asset-list { max-height:250px;overflow:auto; }
+.asset-list__item { height:auto;min-height:62px;text-align:left; }
+.asset-list__item :deep(>span) { display:grid;width:100%;justify-items:start;gap:5px; }
+.step-directory { display:grid;gap:8px;padding:14px 10px;border-top:1px solid var(--color-border); }
+.step-directory strong {font-size:12px}.step-directory .section-heading {gap:8px}
+.step-choice {height:auto;min-height:42px;justify-content:flex-start;text-align:left;padding:8px;}
+.step-choice :deep(>span) {display:flex;gap:8px;white-space:normal;overflow-wrap:anywhere;}
+.step-choice.is-current {background:var(--color-accent-soft);color:var(--color-accent-strong);border-color:#a9b9f4}
+.method-chip{font:10px var(--font-mono);color:#087f5b;min-width:35px;align-self:center}
+.workspace-section {display:grid;gap:14px;min-width:0}.workspace-section[style*="display: none"]{display:none!important}
+.step-card {padding:14px;border-color:var(--color-border);display:grid;gap:14px;min-width:0}
+.step-header{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap}.step-header>label{flex:1;min-width:160px}
+.request-address {display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:end;gap:10px}
+.request-address label,.step-header label{display:grid;gap:6px}
+.request-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr) auto;gap:8px;margin:10px 0}
+.contract-confirmation{padding-top:10px;border-top:1px solid var(--color-border)}
+.editor-heading{margin:0;top:0}.editor-heading h3{font-size:16px}.editor-heading small{font-size:11px;color:var(--color-ink-subtle);overflow-wrap:anywhere}
+.asset-header{padding:14px 18px}.version-section{padding:0;border:0;box-shadow:none}
 </style>

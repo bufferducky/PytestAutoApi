@@ -1,19 +1,19 @@
 <template>
   <section class="debug-panel" aria-label="当前草稿调试" tabindex="-1">
-    <h3>{{ stepId ? `单步骤调试 · ${stepId}` : '当前整场景调试' }}</h3>
+    <h3 class="field-caption"><span>{{ stepId ? `单步骤调试 · ${stepId}` : '当前整场景调试' }}</span><HelpHint :topic="stepId ? 'debugStep' : 'debugScenario'" /></h3>
     <p>使用当前未保存内容，不保存或发布。{{ stepId ? '仅发送所选步骤；不会自动执行前置业务步骤。' : '将执行场景内的准备、业务与清理步骤。' }}</p>
-    <div class="debug-fields">
-      <label>调试环境 <select v-model="environment"><option value="">按目标自动确定</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></select></label>
-      <label>被测构建 <input v-model="build" placeholder="未知则留空" /></label>
-      <label>本次公开参数 JSON <textarea v-model="parameters" rows="3" /></label>
-      <label v-if="stepId">前置 outputs 输入 JSON <textarea v-model="inputs" rows="3" placeholder='{"create":{"id":"public-item-id"}}' /></label>
-    </div>
-    <button type="button" :disabled="busy || refreshing || active" @click="start">确认范围并真实调试</button>
-    <button v-if="runId" type="button" :disabled="busy || refreshing" @click="refresh">刷新调试结果</button>
-    <button v-if="active" type="button" :disabled="busy" @click="cancel">取消调试</button>
+    <fieldset :disabled="busy || active" class="debug-fields"><legend>本次调试范围</legend>
+      <label>调试环境 <UiSelect v-model="environment"><option value="">按目标自动确定</option><option v-for="env in environments" :key="env.id" :value="env.id">{{ env.name }}</option></UiSelect></label>
+      <label>被测构建 <UiInput v-model="build" placeholder="未知则留空"  /></label>
+      <label><span class="field-caption"><span>本次公开参数 JSON</span><HelpHint topic="debugParameters" /></span><UiInput type="textarea" v-model="parameters" rows="3" aria-label="本次公开参数 JSON"  /></label>
+      <label v-if="stepId"><span class="field-caption"><span>前置 outputs 输入 JSON</span><HelpHint topic="debugInputs" /></span><UiInput type="textarea" aria-label="前置 outputs 输入 JSON" v-model="inputs" rows="3" placeholder='{"create":{"id":"public-item-id"}}'  /></label>
+    </fieldset>
+    <el-button native-type="button" :disabled="busy || refreshing || active" @click="start">确认范围并真实调试</el-button>
+    <el-button v-if="runId" native-type="button" :disabled="busy || refreshing" @click="refresh">刷新调试结果</el-button>
+    <el-button v-if="active" native-type="button" :disabled="busy" @click="cancel">取消调试</el-button>
     <p v-if="error" role="alert" class="state-banner state-banner--error">{{ error }}</p>
     <p v-if="runId" role="status">调试 {{ runId }} · {{ result ? statusLabel(result.status) : '读取中' }} · {{ runScope }}</p>
-    <template v-if="result">
+    <template v-if="result"><el-alert title="以下结果来自上次确认的调试快照；编辑请求后需重新调试。" type="info" :closable="false" />
       <p v-if="failure" class="state-banner state-banner--error">首个失败步骤：{{ failure.step_id || failure.name }} · {{ statusLabel(failure.status) }}</p>
       <ol><li v-for="(step, index) in debugSteps" :key="index">
         <details :open="isFailure(step.status)"><summary>{{ step.step_id || step.name || index + 1 }} · {{ statusLabel(step.status) }}</summary>
@@ -27,6 +27,8 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import HelpHint from '@/components/common/HelpHint.vue';
+import { confirmAction } from '@/utils/confirmation';
 import RunStepEvidence from '@/components/RunStepEvidence.vue';
 import { getRunStatusMeta, normalizeRunStatus } from '@/utils/runStatus';
 import { apiClient } from '@/api/client';
@@ -81,6 +83,7 @@ async function start() {
   const generationAtStart = generation;
   busy.value = true; error.value = '';
   try {
+    const environmentId=environment.value, testedBuild=build.value.trim() || 'unspecified', assetId=props.assetId, revision=props.revision, stepId=props.stepId;
     const draft = JSON.parse(JSON.stringify(props.getDraft())) as Record<string, unknown>;
     const selected = (draft.steps as Record<string, unknown>[] | undefined)?.find(step => step.step_id === props.stepId);
     if (props.stepId && !selected) throw new Error('所选步骤已删除或改名，请重新选择调试步骤。');
@@ -90,9 +93,10 @@ async function start() {
     const scope = selected ? [selected] : (draft.steps as Record<string, unknown>[] || []);
     if (!scope.length) throw new Error('请先添加步骤');
     const description = scope.map(step => `${step.step_id}: ${(step.request as Record<string, unknown>)?.method || step.type} ${(step.request as Record<string, unknown>)?.url || ''} (${step.operation_kind})`).join('\n');
-    if (!window.confirm(`确认真实执行${selected ? '单步骤（不执行前置步骤）' : '整场景（含准备与清理）'}？\n环境：${environment.value || '按目标确定'}\n${description}\n可能产生业务写入；当前草稿不会保存或发布。`)) return;
-    const scopeLabel = `${draft.name || '未命名场景'} · ${props.assetId || '未保存草稿'}${props.revision ? ` r${props.revision}` : ''} · ${props.stepId || '整场景'} · ${props.environments.find(item => item.id === environment.value)?.name || environment.value || '按目标确定环境'}`;
-    const response = await apiClient.post<{ run_id: string }>('/scenarios/debug', { draft, asset_id: props.assetId, revision: props.revision, step_id: props.stepId || undefined, inputs: supplied, environment_id: environment.value || undefined, parameters: params, build: build.value.trim() || 'unspecified', live_confirmed: true });
+    if (!(await confirmAction(`确认真实执行${selected ? '单步骤（不执行前置步骤）' : '整场景（含准备与清理）'}？\n环境：${environmentId || '按目标确定'}\n${description}\n可能产生业务写入；当前草稿不会保存或发布。`))) return;
+    if (!current(generationAtStart)) return;
+    const scopeLabel = `${draft.name || '未命名场景'} · ${assetId || '未保存草稿'}${revision ? ` r${revision}` : ''} · ${stepId || '整场景'} · ${props.environments.find(item => item.id === environmentId)?.name || environmentId || '按目标确定环境'}`;
+    const response = await apiClient.post<{ run_id: string }>('/scenarios/debug', { draft, asset_id: assetId, revision, step_id: stepId || undefined, inputs: supplied, environment_id: environmentId || undefined, parameters: params, build: testedBuild, live_confirmed: true });
     if (!current(generationAtStart)) return;
     stop(); runId.value = response.run_id; runScope.value = scopeLabel; result.value = null; await refresh();
   } catch (cause) { if (current(generationAtStart)) error.value = resolveApiErrorMessage(cause, '调试提交失败'); }

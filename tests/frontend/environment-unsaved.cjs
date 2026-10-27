@@ -19,9 +19,10 @@ let shouldDiscard = false, confirmations = 0;
 const windowMock = { confirm() { ++confirmations; return shouldDiscard; } };
 const api = { deleteEnvironment: async () => ({ name: 'existing' }), listEnvironments: async () => [] };
 function load(name) {
-  if (name === 'vue') return { ...vue, onMounted() {}, onBeforeUnmount() {} };
+  if (name === 'vue') return { ...vue, resolveComponent: name => ({name}), onMounted() {}, onBeforeUnmount() {} };
   if (name === 'vue-router') return { onBeforeRouteLeave() {} };
   if (name === '@/api') return { managementApi: api };
+  if (name === '@/utils/confirmation') return {confirmAction: async () => windowMock.confirm()};
   if (name === '@/utils/apiErrors') return { resolveApiErrorMessage: String };
   return {};
 }
@@ -37,10 +38,10 @@ function buttons() {
     function visit(value) {
       if (Array.isArray(value)) { value.forEach(visit); return; }
       if (!value || typeof value !== 'object') return;
-      if (value.type === 'button') result.push(value);
+      if (value.type === 'button' || value.type?.name === 'el-button') result.push(value);
       if (Array.isArray(value.children)) visit(value.children);
       else if (value.children && typeof value.children === 'object') {
-        for (const slot of Object.values(value.children)) if (typeof slot === 'function') visit(slot());
+        if (value.type?.name !== 'el-table-column') for (const slot of Object.values(value.children)) if (typeof slot === 'function') visit(slot());
       }
     }
     visit(render({}, [], {}, vue.proxyRefs(setup), {}, {}));
@@ -55,23 +56,23 @@ function prepare() {
 (async () => {
   for (const label of ['新增环境', '取消编辑']) {
     prepare(); shouldDiscard = false; const before = confirmations;
-    const button = buttons().find(item => String(item.children).trim() === label);
+    const button = buttons().find(item => { const children = typeof item.children?.default === 'function' ? item.children.default() : item.children; return (Array.isArray(children) ? children.map(child => child.children ?? child).join('') : String(children)).trim() === label; });
     assert(button, `Missing ${label} button`);
-    button.props.onClick(new Event('click'));
+    await button.props.onClick(new Event('click'));
     assert.equal(confirmations, before + 1, `${label} must confirm even with an event argument`);
     assert.equal(setup.formState.value.name, 'unsaved name');
     assert.equal(setup.variablesText.value, '{"flag":false}');
     assert.equal(setup.selectedEnvironmentId.value, 'existing');
-    shouldDiscard = true; button.props.onClick(new Event('click'));
+    shouldDiscard = true; await button.props.onClick(new Event('click'));
     assert.equal(setup.formMode.value, 'create'); assert.equal(setup.formState.value.name, '');
     assert.equal(setup.variablesText.value, '{}'); assert.equal(setup.dirty.value, false);
   }
   prepare(); shouldDiscard = false;
-  setup.startCreateMode(new Event('click'));
+  await setup.startCreateMode(new Event('click'));
   assert.equal(setup.formState.value.name, 'unsaved name', 'handler itself must never interpret an event as force');
   shouldDiscard = true;
   for (const flag of ['saving', 'deleting']) {
-    setup[flag].value = true; setup.startCreateMode(new Event('click'));
+    setup[flag].value = true; await setup.startCreateMode(new Event('click'));
     assert.equal(setup.formState.value.name, 'unsaved name'); setup[flag].value = false;
   }
   await setup.removeEnvironment();
