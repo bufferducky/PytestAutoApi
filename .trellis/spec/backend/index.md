@@ -6,17 +6,14 @@
 
 ## Overview
 
-This repository currently contains **two backend worlds**:
+项目当前只保留页面交互平台与独立执行引擎：
 
-1. **Legacy framework backend**
-   Based on `data/ + test_case/ + utils/ + run.py`
-2. **Modernized backend**
-   Based on:
-   - `src/testflow_engine/`
-   - `platform/backend/src/pyta_platform_backend/`
-   - `tests/backend/`, `tests/engine/`, `tests/compat/`
+- `src/testflow_engine/`：执行、断言、插件和 YAML 导入兼容。
+- `platform/backend/src/pyta_platform_backend/`：FastAPI、MySQL、worker 和持久调度。
+- `tests/backend/`、`tests/engine/`、`tests/compat/`：回归测试。
+- `tests/fixtures/legacy_yaml/`：独立合成兼容输入。
 
-When working on new functionality, default to the **modernized backend** unless the task explicitly targets the legacy framework.
+2026-10-27 已移除旧 `run.py/common/utils/test_case` 脚本框架及业务示例、Allure 报告。旧 YAML 内容导入继续服务前端；浏览器、移动端旅程和评估模块保留现有边界。实际调度入口是 `services.schedule_service.ScheduleHost`。
 
 ---
 
@@ -25,7 +22,7 @@ When working on new functionality, default to the **modernized backend** unless 
 | Guide | Description | Status |
 |-------|-------------|--------|
 | [Directory Structure](./directory-structure.md) | Modern backend package layout and ownership boundaries | Active |
-| [Database Guidelines](./database-guidelines.md) | Legacy YAML SQL assertions | Legacy |
+| [Database Guidelines](./database-guidelines.md) | 旧 SQL 工具退役说明 | Retired |
 | [MySQL Platform Storage](./mysql-platform-storage.md) | MySQL/Alembic、真实执行、服务器迁移与历史保护 | Active |
 | [Error Handling](./error-handling.md) | Error boundaries and status handling | Placeholder |
 | [Management API Contracts](./management-api-contracts.md) | Executable contracts for management catalogs, environment CRUD, and run environment snapshots | Active |
@@ -118,4 +115,4 @@ When in doubt, follow these rules:
 - New backend functionality goes under `platform/backend/src/pyta_platform_backend/`
 - New execution logic goes under `src/testflow_engine/`
 - New tests go under `tests/backend/`, `tests/engine/`, or `tests/compat/`
-- Legacy files are migration input, not the default target for new design work
+- YAML 兼容回归使用 tests/fixtures；业务测试资产通过平台维护

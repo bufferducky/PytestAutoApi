@@ -31,7 +31,7 @@ import RunStepEvidence from '@/components/RunStepEvidence.vue';
 import { getRunStatusMeta, normalizeRunStatus } from '@/utils/runStatus';
 import { apiClient } from '@/api/client';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
-import { debugInputs } from '@/composables/scenarioDebug';
+import { debugInputs } from '@/utils/debugInputs';
 const props = defineProps<{ getDraft: () => Record<string, unknown>; assetId?: string; revision?: number; stepId?: string; environments: { id: string; name: string }[] }>();
 const environment = ref(''), build = ref(''), parameters = ref('{}'), inputs = ref('{}');
 const busy = ref(false), refreshing = ref(false), error = ref(''), runId = ref(''), runScope = ref('');

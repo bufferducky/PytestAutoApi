@@ -1,15 +1,7 @@
-"""新架构测试的公共路径准备。
+"""为平台和执行引擎的回归测试准备 src 搜索路径。
 
-这里故意把“新引擎 src 路径”和“后端 src 路径”都显式加到 ``sys.path``。
-原因是当前仓库正处在重构过渡期：
-
-1. 旧框架仍然保留在根目录结构中。
-2. 新引擎采用标准 ``src/`` 布局。
-3. 新后端为了避免与标准库 ``platform`` 冲突，把真正的 Python 包放在
-   ``platform/backend/src/pyta_platform_backend``。
-
-在这种过渡阶段，测试如果不先把路径准备好，就很容易出现：
-“代码已经写了，但 pytest 找不到包”的假失败。
+后端 Python 包位于 platform/backend/src，以避免与标准库 platform 冲突。
+测试不依赖已经退役的根目录脚本框架。
 """
 
 import sys

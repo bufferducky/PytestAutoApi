@@ -2,7 +2,7 @@
 # 对新手来说，可以把它理解成：
 # 1. 告诉 Python 这个项目如何打包/安装
 # 2. 告诉开发工具（如 ruff、pytest）应该按什么规则工作
-# 3. 让新旧架构可以在同一个仓库里逐步共存，而不是继续只靠 requirements.txt
+# 3. 统一管理后端与引擎依赖；旧脚本框架已退役
 
 [build-system]
 requires = ["hatchling>=1.27.0"]

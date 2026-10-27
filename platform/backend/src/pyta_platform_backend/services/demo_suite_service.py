@@ -6,9 +6,6 @@ from pyta_platform_backend.schemas.demo_suite import ListDemoSuitesResponse
 
 
 class DemoSuiteService:
-    def __init__(self, run_service, management_repository=None):
-        self._run_service = run_service
-
     def list_suites(self):
         return ListDemoSuitesResponse(items=[])
 

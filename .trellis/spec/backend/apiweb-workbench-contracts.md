@@ -24,7 +24,7 @@
 - 同账号 PC token 会互踢；API 与 Web 回读的登录/查询终端头必须一致，并使用可共存的明确终端策略。浏览器登录仍为真实 PC 行为，不伪造 UI 会话。
 - Web 支持精确 placeholder 作为既有页面无 label/testid 的补充，拒绝 CSS/XPath/坐标。秘密值只在内存解析，带 value_ref 的旅程失败不直接采图，原生含凭证 trace 继续拒绝。
 - business_scope 单独区分 yanji_query/yanji_web/unclassified/historical_demo；validation_scope=live 只说明真实传输。eligible_for_release 是旧字段的执行证据投影，业务发布仍看固定构建的 strict 报告。
-- 脱敏研究元数据和 S01—S16 来源指纹随 Python 包交付；不复制原始前端包/客户响应/密码。默认 pytest 只跑 tests/，业务 test_case/ 显式执行。
+- 脱敏研究元数据和 S01—S16 来源指纹随 Python 包交付；不复制原始前端包/客户响应/密码。默认 pytest 跑 tests/；旧脚本框架与业务 test_case/ 已退役，合成兼容输入存 tests/fixtures。
 - 镜像 INSTALL_WEB_RUNNER=1 安装 Chromium，PLAYWRIGHT_BROWSERS_PATH=/opt/pyta-browsers 供非 root worker 使用；API-only 缺能力明确显示。版本以实际安装/运行基线为准。
 
 ## 4. Validation & Error Matrix

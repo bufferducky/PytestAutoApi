@@ -109,7 +109,7 @@ def test_create_app_registers_routes_and_health_endpoint(monkeypatch):
 
     assert app.title == "Platform Backend Test"
     assert app.state.settings.app_env == "test"
-    assert app.state.scheduler.poll_interval_seconds == settings.scheduler_poll_interval_seconds
+    assert app.state.schedule_host.interval == settings.scheduler_poll_interval_seconds
     assert app.state.dashboard_service is not None
     assert app.state.management_service is not None
 
@@ -298,7 +298,7 @@ def test_memory_worker_runner_marks_run_error_when_handler_raises(monkeypatch):
     """worker 执行异常时应把 run 回写为 error，而不是静默吞掉。"""
 
     app_module, config_module, run_schema_module = _reload_backend_modules(monkeypatch)
-    runner_module = importlib.import_module("pyta_platform_backend.workers.runner")
+    runner_module = importlib.import_module("pyta_platform_backend.workers.run_worker")
     settings = config_module.BackendSettings(app_env="test")
     app = _create_test_app(app_module, settings)
 
@@ -310,7 +310,7 @@ def test_memory_worker_runner_marks_run_error_when_handler_raises(monkeypatch):
             payload=_valid_payload(),
         )
     )
-    broken_runner = runner_module.MemoryWorkerRunner(
+    broken_runner = runner_module.RunWorker(
         dispatcher=app.state.run_service.dispatcher,
         run_service=app.state.run_service,
         handler=lambda task: (_ for _ in ()).throw(RuntimeError("boom")),
@@ -333,7 +333,7 @@ def test_legacy_execution_rejects_simulated_responses(monkeypatch):
                 payload={
                     "execution_mode": "legacy_yaml",
                     "transport_mode": "mock",
-                    "legacy_yaml_path": "data/Login/login.yaml",
+                    "legacy_yaml_path": "data/imported.yaml",
                     "mock_case_responses": {},
                 },
             )
@@ -582,11 +582,11 @@ def test_worker_merges_environment_snapshot_into_execution_variables(monkeypatch
     """worker 应把 environment 快照转成执行变量。"""
 
     _reload_backend_modules(monkeypatch)
-    runner_module = importlib.import_module("pyta_platform_backend.workers.runner")
+    runner_module = importlib.import_module("pyta_platform_backend.workers.run_worker")
     dispatcher_module = importlib.import_module("pyta_platform_backend.workers.dispatcher")
     datetime_module = importlib.import_module("datetime")
 
-    merged = runner_module.MemoryWorkerRunner._merge_environment_variables(
+    merged = runner_module.RunWorker._merge_environment_variables(
         dispatcher_module.DispatchTask(
             run_id="run-env-001",
             suite_id="suite-env",

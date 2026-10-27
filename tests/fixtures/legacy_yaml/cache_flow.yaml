@@ -1,0 +1,115 @@
+# 合成缓存流程；禁用步骤用于验证跳过语义。
+case_common:
+  allureEpic: 兼容测试
+  allureFeature: 缓存依赖
+  allureStory: 合成流程
+flow_01_resources:
+  host: ${{host()}}
+  url: /resources
+  method: GET
+  detail: flow_01_resources
+  requestType: None
+  is_run: null
+  data: null
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+  current_request_set_cache:
+  - type: response
+    jsonpath: $.data.records[0].id
+    name: resource_id
+flow_02_options:
+  host: ${{host()}}
+  url: /options
+  method: POST
+  detail: flow_02_options
+  requestType: json
+  is_run: null
+  data:
+    id: ''
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+  current_request_set_cache:
+  - type: response
+    jsonpath: $.data[0].id
+    name: option_id
+flow_03_details:
+  host: ${{host()}}
+  url: /details?id=$cache{option_id}
+  method: GET
+  detail: flow_03_details
+  requestType: None
+  is_run: null
+  data: null
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+flow_04_select_default:
+  host: ${{host()}}
+  url: /defaults
+  method: POST
+  detail: flow_04_select_default
+  requestType: json
+  is_run: false
+  data:
+    optionId: $cache{option_id}
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+flow_05_bind:
+  host: ${{host()}}
+  url: /bindings
+  method: POST
+  detail: flow_05_bind
+  requestType: json
+  is_run: null
+  data:
+    optionId: $cache{option_id}
+    id: $cache{resource_id}
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+flow_06_verify:
+  host: ${{host()}}
+  url: /resources
+  method: GET
+  detail: flow_06_verify
+  requestType: None
+  is_run: null
+  data: null
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+flow_07_filter:
+  host: ${{host()}}
+  url: /resources?enabled=true
+  method: GET
+  detail: flow_07_filter
+  requestType: None
+  is_run: null
+  data: null
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200

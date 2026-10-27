@@ -4,7 +4,7 @@ from threading import RLock
 
 from pyta_platform_backend.db.store import Store
 from pyta_platform_backend.repositories.run_repository import RunConflict
-from pyta_platform_backend.repositories.sqlite_support import dump_json, load_json
+from pyta_platform_backend.repositories.serialization import dump_json, load_json
 
 
 class ContextRepository:

@@ -11,7 +11,7 @@ from typing import Optional
 from uuid import uuid4
 
 from pyta_platform_backend.db.store import Store
-from pyta_platform_backend.repositories.sqlite_support import (
+from pyta_platform_backend.repositories.serialization import (
     dump_datetime,
     dump_json,
     load_datetime,

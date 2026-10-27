@@ -11,24 +11,24 @@
     <p v-if="error" role="alert" class="state-banner state-banner--error">{{ error }} 已加载内容继续保留。</p>
     <div v-if="overview.metrics.length" class="metrics-grid"><MetricCard v-for="metric in overview.metrics" :key="metric.key" :metric="metric" /></div>
     <div class="workbench-grid">
-      <PlaceholderPanel :title="recentAssets.length ? '最近资产' : '资产目录'" :description="recentAssets.length ? '本机最近打开或保存的场景与套件。' : '尚无本机访问记录，按名称展示已保存资产。'">
+      <ContentPanel :title="recentAssets.length ? '最近资产' : '资产目录'" :description="recentAssets.length ? '本机最近打开或保存的场景与套件。' : '尚无本机访问记录，按名称展示已保存资产。'">
         <div v-if="visibleAssets.length" class="work-list">
           <RouterLink v-for="asset in visibleAssets" :key="asset.id" class="work-row" :to="{ path: asset.kind === 'scenarios' ? '/cases' : '/suites', query: { assetId: asset.id } }">
             <span class="work-row__body"><strong>{{ asset.draft.name }}</strong><small>{{ asset.kind === 'scenarios' ? '场景' : '套件' }} · 草稿 r{{ asset.revision }}</small></span><span aria-hidden="true">→</span>
           </RouterLink>
         </div>
         <p v-else class="empty-copy">{{ loading ? '正在加载资产…' : '还没有资产。创建场景，保存后即可继续编辑。' }}</p>
-      </PlaceholderPanel>
-      <PlaceholderPanel title="失败待处理" description="最近失败与异常，独立于最近运行列表查询。点击查看诊断。">
+      </ContentPanel>
+      <ContentPanel title="失败待处理" description="最近失败与异常，独立于最近运行列表查询。点击查看诊断。">
         <div v-if="failedRuns.length" class="work-list">
           <RouterLink v-for="run in failedRuns" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
             <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.errorSummary || run.note || run.startedAt }}</small></span><StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
           </RouterLink>
         </div>
         <p v-else class="empty-copy">{{ loading ? '正在检查运行…' : '暂无失败与异常记录。' }}</p>
-      </PlaceholderPanel>
+      </ContentPanel>
     </div>
-    <PlaceholderPanel title="最近运行" description="保留历史结果标识，点击进入执行详情。">
+    <ContentPanel title="最近运行" description="保留历史结果标识，点击进入执行详情。">
       <div v-if="overview.recentRuns.length" class="work-list">
         <RouterLink v-for="run in overview.recentRuns.slice(0, 6)" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
           <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.startedAt }} · {{ run.duration }}</small></span>
@@ -36,7 +36,7 @@
         </RouterLink>
       </div>
       <p v-else class="empty-copy">{{ loading ? '正在加载运行…' : '暂无运行记录。可先调试草稿，或发布固定版本后正式执行。' }}</p>
-    </PlaceholderPanel>
+    </ContentPanel>
   </section>
 </template>
 <script setup lang="ts">
@@ -45,7 +45,7 @@ import { dashboardApi } from '@/api/modules/dashboard';
 import { apiClient } from '@/api/client';
 import { normalizeRunSummary } from '@/api/adapters/runs';
 import MetricCard from '@/components/common/MetricCard.vue';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import { useAppStore } from '@/stores/app';
 import type { DashboardOverview, RunSummary } from '@/types/platform';

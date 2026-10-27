@@ -5,6 +5,7 @@ import json
 import sys
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from threading import Thread
 
 import pytest
@@ -321,13 +322,16 @@ def test_live_coverage_stales(platform):
     assert service.coverage_summary()["items"][0]["coverage_status"] == "stale"
 
 
-def test_legacy_demo_import_is_draft_only_and_reports_unmapped_capability(platform, tmp_path):
+def test_legacy_content_import_is_draft_only_and_demo_is_retired(platform):
     app, _ = platform
     service = app.state.asset_service
     with pytest.raises(Exception) as exc:
         service.import_demo("demo-persona-library", "asset-test")
     assert exc.value.status_code == 410
-    legacy = service.import_legacy("data/Login/login.yaml", "asset-test")
+    yaml_text = (
+        Path(__file__).resolve().parents[1] / "fixtures" / "legacy_yaml" / "login.yaml"
+    ).read_text(encoding="utf-8")
+    legacy = service.import_legacy("uploaded-login.yaml", "asset-test", yaml_text=yaml_text)
     assert legacy["report"]["mapping"]["assert"] == "steps.assertions"
     assert legacy["asset"]["draft"]["source"]["sha256"]
     assert not app.state.run_service.dispatcher.dispatched_tasks

@@ -2,7 +2,7 @@
   <section class="page-grid">
     <ScenarioAssetsPanel kind="suites" @saved="onSaved" @selected="appStore.rememberAsset" />
     <details><summary>套件目录概览</summary><div>
-      <PlaceholderPanel
+      <ContentPanel
         title="套件目录"
         description="查看已保存套件的场景数量与最近运行。"
       >
@@ -29,7 +29,7 @@
             </tbody>
           </table>
         </div>
-      </PlaceholderPanel>
+      </ContentPanel>
 
     </div></details>
   </section>
@@ -42,7 +42,7 @@ import ScenarioAssetsPanel from '@/components/ScenarioAssetsPanel.vue';
 import { onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import type { SuiteSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';
 

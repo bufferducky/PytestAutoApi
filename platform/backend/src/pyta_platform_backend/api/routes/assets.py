@@ -88,7 +88,7 @@ def create_assets_router(service, prefix):
 
     @router.post("/imports/yanji-query", status_code=201)
     def import_yanji_query(payload: dict):
-        from pyta_platform_backend.services.yanji_regression import import_query_pack
+        from pyta_platform_backend.integrations.yanji.query_pack import import_query_pack
 
         return import_query_pack(service, payload)
 
@@ -99,7 +99,7 @@ def create_assets_router(service, prefix):
 
         try:
             return json.loads(
-                files("testflow_engine.business_data")
+                files("pyta_platform_backend.integrations.yanji.data")
                 .joinpath("yanji-contracts.json")
                 .read_text(encoding="utf-8")
             )

@@ -2,7 +2,7 @@
   <section class="page-grid">
     <details><summary aria-label="目标系统、身份与项目绑定">目标系统、身份与项目绑定<HelpHint topic="profileKind" /></summary><ContextProfilesPanel /></details>
     <div class="content-grid">
-      <PlaceholderPanel
+      <ContentPanel
         title="环境目录"
         description="配置基础地址与环境变量，供场景和套件运行使用。"
       >
@@ -84,9 +84,9 @@
             </tbody>
           </table>
         </div>
-      </PlaceholderPanel>
+      </ContentPanel>
 
-      <PlaceholderPanel
+      <ContentPanel
         :title="formPanelTitle"
         :description="formPanelDescription"
       >
@@ -181,7 +181,7 @@
         </form>
 
 
-      </PlaceholderPanel>
+      </ContentPanel>
     </div>
   </section>
 </template>
@@ -195,7 +195,7 @@ import EnvironmentVariablesEditor from '@/components/EnvironmentVariablesEditor.
 import { apiClient } from '@/api/client';
 
 import { managementApi } from '@/api';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import type {
   CreateEnvironmentPayload,

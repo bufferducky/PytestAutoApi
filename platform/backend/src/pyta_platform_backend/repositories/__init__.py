@@ -6,12 +6,14 @@ from pyta_platform_backend.repositories.management_repository import (
     InMemoryManagementRepository,
     ScheduleRecord,
     SqliteManagementRepository,
+    SqlManagementRepository,
     SuiteRecord,
 )
 from pyta_platform_backend.repositories.run_repository import (
     InMemoryRunRepository,
     RunRecord,
     SqliteRunRepository,
+    SqlRunRepository,
 )
 
 __all__ = [
@@ -23,5 +25,7 @@ __all__ = [
     "ScheduleRecord",
     "SqliteManagementRepository",
     "SqliteRunRepository",
+    "SqlManagementRepository",
+    "SqlRunRepository",
     "SuiteRecord",
 ]

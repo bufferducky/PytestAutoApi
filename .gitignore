@@ -66,3 +66,8 @@ Thumbs.db
 /.mvn/
 /mvnw.cmd
 /mvnw
+
+# 本地验证输出与旧报告不作为产品源码提交。
+/report/
+/logs/
+/output/

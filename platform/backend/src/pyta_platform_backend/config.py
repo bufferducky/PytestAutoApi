@@ -117,7 +117,7 @@ class BackendSettings(BaseModel):
         return self.state_db_path
 
     def resolve_state_db_path(self) -> str:
-        """旧装配调用名暂留；返回的是连接设置，不再默认为本地 SQLite。"""
+        """旧调用名的兼容入口；应用内部使用 resolve_database_url。"""
         return self.resolve_database_url()
 
     def resolve_artifact_root(self) -> Path:

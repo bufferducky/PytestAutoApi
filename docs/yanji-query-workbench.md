@@ -27,11 +27,11 @@ Web 登录字段仅有 placeholder 时支持精确 placeholder 定位；仍拒�
 
 ## 交付与测试入口
 
-- 默认 `.venv/bin/python -m pytest` 运行 `tests/` 离线检查；旧 `test_case/` 不默认执行。
+- 默认 `.venv/bin/python -m pytest` 运行 `tests/` 离线检查；旧 `test_case/` 脚本框架已退役。
 - MySQL 专项需要 `PYTA_TEST_MYSQL_URL` 且数据库名称以 `pyta_validation` 开头。
 - 真实浏览器专项需要 `PYTA_RUN_BROWSER_TESTS=1` 和安装的 Chromium。驱动、浏览器、精确版本不就绪时明确阻塞。
 - `INSTALL_WEB_RUNNER=1` 构建可选 Chromium 镜像，Compose 默认启用；API-only 镜像可设置为 0。浏览器位于非 root worker 可读的 `/opt/pyta-browsers`，API 会报告实际版本。
-- 研究导入从包内 `testflow_engine/business_data/yanji-research.json` 读取脱敏路径/字段清单，不再依赖源码树的 docs 目录。完整原始脚本与客户响应没有打入镜像。
+- 研究导入从包内 `pyta_platform_backend/integrations/yanji/data/yanji-research.json` 读取脱敏路径/字段清单，不再依赖源码树的 docs 目录。完整原始脚本与客户响应没有打入镜像。
 - 旧 YAML 可直接粘贴上传，限制 1 MiB；导入保留迁移缺口并移除旧秘密。媒体仍按受控媒体资源契约使用明确挂载或上传来源，不把未提供媒体伪装成可运行。
 - `/api/v1/regression-packs/yanji` 提供 S01—S16 来源文件指纹、资源要求及验收映射；source_observed 不是 live_verified。
 

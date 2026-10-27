@@ -15,7 +15,7 @@
 ## 公共样式的归属
 
 - `styles/variables.css` 定义浅色工作台的颜色、字体、圆角和阴影；`base.css` 定义按钮、字段、fieldset、table、details、状态提示与可见焦点。
-- 页面使用 `PlaceholderPanel`、`MetricCard`、`StatusTag` 与 `action-button` 变体。普通操作使用有边框按钮；保存/提交使用主按钮；归档/删除使用危险变体。
+- 页面使用 `ContentPanel`、`MetricCard`、`StatusTag` 与 `action-button` 变体。普通操作使用有边框按钮；保存/提交使用主按钮；归档/删除使用危险变体。
 - `SideNav` 保留六个主导航与 `aria-current`；桌面侧栏占视口高度，品牌和菜单按内容分配，footer 靠下。1080px 以下使用顶部导航，540px 以下为三列两行。
 - 两列表单的 label 使用 `align-content:start`，避免同一行 textarea 把相邻 input 拉高。checkbox/radio 保持独立尺寸。
 

@@ -8,5 +8,5 @@ from pyta_platform_backend.workers.dispatcher import DispatchTask, MemoryRunDisp
 #
 # 结论：
 # - 常用且底层的 dispatcher 可以在这里直接导出
-# - 更上层的 runner 让调用方按需从 `workers.runner` 显式导入
+# - 更上层的 runner 让调用方按需从 `workers.run_worker` 显式导入
 __all__ = ["DispatchTask", "MemoryRunDispatcher"]

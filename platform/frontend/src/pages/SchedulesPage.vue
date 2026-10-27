@@ -2,7 +2,7 @@
   <section class="page-grid">
     <SchedulePlansPanel @saved="loadSchedules" />
     <details><summary>调度任务概览</summary><div>
-      <PlaceholderPanel
+      <ContentPanel
         title="调度任务"
         description="查看计划目标、运行环境与最近触发结果。"
       >
@@ -38,7 +38,7 @@
             </tbody>
           </table>
         </div>
-      </PlaceholderPanel>
+      </ContentPanel>
 
     </div></details>
   </section>
@@ -49,7 +49,7 @@ import SchedulePlansPanel from '@/components/SchedulePlansPanel.vue';
 import { onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import type { ScheduleSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';

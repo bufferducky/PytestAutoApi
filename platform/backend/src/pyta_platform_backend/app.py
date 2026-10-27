@@ -25,7 +25,6 @@ from pyta_platform_backend.repositories.run_repository import (
     SqlRunRepository,
 )
 from pyta_platform_backend.repositories.schedule_repository import ScheduleRepository
-from pyta_platform_backend.scheduler.lightweight_scheduler import LightweightScheduler
 from pyta_platform_backend.services.asset_service import AssetService
 from pyta_platform_backend.services.context_service import ContextService
 from pyta_platform_backend.services.dashboard_service import DashboardService
@@ -42,7 +41,7 @@ from pyta_platform_backend.services.schedule_service import ScheduleHost, Schedu
 from pyta_platform_backend.services.worker_control_service import WorkerControlService
 from pyta_platform_backend.workers.dispatcher import PersistentRunDispatcher
 from pyta_platform_backend.workers.host import WorkerHost
-from pyta_platform_backend.workers.runner import MemoryWorkerRunner
+from pyta_platform_backend.workers.run_worker import RunWorker
 
 
 def build_default_run_service(
@@ -68,52 +67,46 @@ def build_default_run_service(
 def create_app(
     settings: BackendSettings = None,
     run_service: RunService = None,
-    scheduler: LightweightScheduler = None,
 ) -> FastAPI:
     """创建 FastAPI 应用实例。
 
-    通过显式注入 ``settings`` / ``run_service`` / ``scheduler``，
+    通过显式注入 ``settings`` / ``run_service``，
     可以让测试、未来的依赖替换和真实部署装配都保持清晰。
     """
 
     resolved_settings = settings or BackendSettings.from_env()
     shared_management_repository = SqlManagementRepository(
-        database_path=resolved_settings.resolve_state_db_path()
+        database_path=resolved_settings.resolve_database_url()
     )
     resolved_run_service = run_service or build_default_run_service(
         resolved_settings,
         management_repository=shared_management_repository,
     )
     context_service = ContextService(
-        ContextRepository(resolved_settings.resolve_state_db_path()),
+        ContextRepository(resolved_settings.resolve_database_url()),
         shared_management_repository,
         resolved_run_service.repository,
     )
     resolved_run_service.context_service = context_service
-    resolved_scheduler = scheduler or LightweightScheduler(
-        poll_interval_seconds=resolved_settings.scheduler_poll_interval_seconds
-    )
     resolved_dashboard_service = DashboardService(repository=resolved_run_service.repository)
-    resolved_demo_suite_service = DemoSuiteService(
-        run_service=resolved_run_service,
-        management_repository=shared_management_repository,
-    )
+    # 退役接口只保留空列表与 410 响应，不再持有执行或仓储依赖。
+    resolved_demo_suite_service = DemoSuiteService()
     resolved_management_service = ManagementService(
         repository=shared_management_repository,
         run_repository=resolved_run_service.repository,
     )
     resolved_management_service.context_service = context_service
-    resolved_worker_runner = MemoryWorkerRunner(
+    resolved_worker_runner = RunWorker(
         dispatcher=resolved_run_service.dispatcher,
         run_service=resolved_run_service,
     )
     worker_host = WorkerHost(
         resolved_worker_runner,
         resolved_run_service.repository,
-        resolved_settings.resolve_state_db_path(),
+        resolved_settings.resolve_database_url(),
     )
     resource_service = ResourceService(
-        ResourceRepository(resolved_settings.resolve_state_db_path()), resolved_run_service
+        ResourceRepository(resolved_settings.resolve_database_url()), resolved_run_service
     )
     resolved_worker_runner.resource_repository = resource_service.repository
 
@@ -150,21 +143,20 @@ def create_app(
 
     # 把核心对象挂到 app.state，方便后续在启动事件、管理接口或测试里复用。
     asset_service = AssetService(
-        AssetRepository(resolved_settings.resolve_state_db_path()),
+        AssetRepository(resolved_settings.resolve_database_url()),
         resolved_run_service,
         context_service,
-        resolved_demo_suite_service,
     )
     asset_service.resources = resource_service
     app.state.resource_service = resource_service
-    db_path = resolved_settings.resolve_state_db_path()
+    database_url = resolved_settings.resolve_database_url()
     artifact_root = resolved_settings.resolve_artifact_root()
     diagnostic_service = DiagnosticService(
-        resolved_run_service, resource_service, ArtifactRepository(db_path, artifact_root)
+        resolved_run_service, resource_service, ArtifactRepository(database_url, artifact_root)
     )
     resolved_run_service.diagnostic_service = diagnostic_service
     app.state.diagnostic_service = diagnostic_service
-    schedule_repository = ScheduleRepository(db_path)
+    schedule_repository = ScheduleRepository(database_url)
     schedule_service = ScheduleService(
         schedule_repository,
         asset_service,
@@ -199,7 +191,6 @@ def create_app(
     app.state.worker_host = worker_host
     app.state.settings = resolved_settings
     app.state.run_service = resolved_run_service
-    app.state.scheduler = resolved_scheduler
     app.state.dashboard_service = resolved_dashboard_service
     app.state.demo_suite_service = resolved_demo_suite_service
     app.state.management_service = resolved_management_service

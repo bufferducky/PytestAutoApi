@@ -28,9 +28,9 @@ from testflow_engine.assertions.business import CUSTOM_RULES
 
 
 class AssetService:
-    def __init__(self, repository, run_service, context_service, demo_service):
+    def __init__(self, repository, run_service, context_service):
         self.repository, self.runs = repository, run_service
-        self.context, self.demo = context_service, demo_service
+        self.context = context_service
         self.resources = None
 
     def list(self, kind, offset=0, limit=100):
@@ -500,7 +500,7 @@ class AssetService:
         # 仅交付审查后的路径/字段元数据，不依赖源码树或复制原始脚本/响应。
         try:
             bundle = json.loads(
-                files("testflow_engine.business_data")
+                files("pyta_platform_backend.integrations.yanji.data")
                 .joinpath("yanji-research.json")
                 .read_text(encoding="utf-8")
             )

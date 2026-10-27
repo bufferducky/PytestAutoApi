@@ -3,7 +3,7 @@
     <ScenarioAssetsPanel kind="scenarios" @saved="onSaved" @selected="appStore.rememberAsset" />
     <details><summary>用例目录概览</summary>
     <div>
-      <PlaceholderPanel
+      <ContentPanel
         title="用例目录"
         description="查看已保存场景的模块、请求方法与状态。"
       >
@@ -37,7 +37,7 @@
             </tbody>
           </table>
         </div>
-      </PlaceholderPanel>
+      </ContentPanel>
 
 
     </div></details>
@@ -52,7 +52,7 @@ import ScenarioAssetsPanel from '@/components/ScenarioAssetsPanel.vue';
 import { onMounted, ref } from 'vue';
 
 import { managementApi } from '@/api';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import type { CaseSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';

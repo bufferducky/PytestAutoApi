@@ -2,7 +2,7 @@
   <section class="page-grid runs-page">
     <div class="run-pagination"><span>{{ sourceLabel }} · {{ lastLoadedAt || '等待更新' }}</span><span v-if="loading">正在更新…</span></div>
     <div class="content-grid">
-      <PlaceholderPanel
+      <ContentPanel
         title="最近运行列表"
         description="筛选运行记录，选择一条查看详情与失败诊断。"
       >
@@ -96,9 +96,9 @@
             </tbody>
           </table>
         </div>
-      </PlaceholderPanel>
+      </ContentPanel>
 
-      <PlaceholderPanel
+      <ContentPanel
         title="运行详情"
         description="查看执行上下文、步骤结果与诊断证据。"
       >
@@ -147,7 +147,7 @@
         </div>
 
         <div v-else class="empty-copy">请选择一条运行记录后查看详情。</div>
-      </PlaceholderPanel>
+      </ContentPanel>
     </div>
     <details><summary aria-label="证据保留与回收（高级）">证据保留与回收（高级）<HelpHint topic="retention" /></summary><EvidenceRetentionPanel /></details>
   </section>
@@ -163,7 +163,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { executionApi, managementApi } from '@/api';
 import MetricCard from '@/components/common/MetricCard.vue';
-import PlaceholderPanel from '@/components/common/PlaceholderPanel.vue';
+import ContentPanel from '@/components/common/ContentPanel.vue';
 import StatusTag from '@/components/common/StatusTag.vue';
 import type { ApiDataSource, DashboardMetric, RunDetail, RunSummary } from '@/types/platform';
 import { resolveApiErrorMessage } from '@/utils/apiErrors';

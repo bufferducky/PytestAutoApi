@@ -1,0 +1,62 @@
+# 合成回归输入，不含真实环境或业务账号。
+case_common:
+  allureEpic: 兼容测试
+  allureFeature: 登录
+  allureStory: 合成输入
+login_01:
+  host: ${{host()}}
+  url: /api/login
+  method: POST
+  detail: 正常登录
+  headers:
+    Content-Type: application/json
+  requestType: json
+  is_run: null
+  data:
+    username: synthetic-user
+    password: synthetic-secret
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 200
+      AssertType: null
+login_02:
+  host: ${{host()}}
+  url: /api/login
+  method: POST
+  detail: 密码错误
+  headers:
+    Content-Type: application/json
+  requestType: json
+  is_run: null
+  data:
+    username: synthetic-user
+    password: invalid
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 500
+      AssertType: null
+login_03:
+  host: ${{host()}}
+  url: /api/login
+  method: POST
+  detail: 密码为空
+  headers:
+    Content-Type: application/json
+  requestType: json
+  is_run: null
+  data:
+    username: synthetic-user
+    password: null
+  dependence_case: false
+  assert:
+    code:
+      jsonpath: $.code
+      type: ==
+      value: 500
+      AssertType: null

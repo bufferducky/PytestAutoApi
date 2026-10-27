@@ -45,7 +45,7 @@ def create_journeys_router(service, prefix):
 
     @router.post("/journeys/import-yanji-query", status_code=201)
     def import_yanji_query(payload: dict):
-        from pyta_platform_backend.services.yanji_regression import import_web_query
+        from pyta_platform_backend.integrations.yanji.query_pack import import_web_query
 
         return import_web_query(service, payload)
 

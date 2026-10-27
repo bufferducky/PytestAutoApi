@@ -187,7 +187,7 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   assert.equal(assets.steps.value[0].step_id, copiedId);
   assets.steps.value.splice(1, 1); assets.addStep();
   assert.equal(new Set(assets.steps.value.map(step => step.step_id)).size, 2);
-  const debugValidation = api.load('@/composables/scenarioDebug');
+  const debugValidation = api.load('@/utils/debugInputs');
   const dependent = { step_id: 'next', depends_on: ['create'], request: { url: '{{outputs.create.id}}' }, extractors: [{ target: 'outputs.next.id' }] };
   assert.throws(() => debugValidation.debugInputs(dependent, '{}'), /缺少前置输入/);
   assert.throws(() => debugValidation.debugInputs(dependent, '{"create":{}}'), /create.id/);

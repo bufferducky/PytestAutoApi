@@ -150,7 +150,7 @@ def test_only_one_sqlite_connection_can_claim_and_late_writes_conflict(backend):
     app, schema, settings = backend
     run = create(app, schema, payload())
     repo_module = importlib.import_module("pyta_platform_backend.repositories.run_repository")
-    repos = [repo_module.SqliteRunRepository(settings.state_db_path) for _ in range(2)]
+    repos = [repo_module.SqlRunRepository(settings.state_db_path) for _ in range(2)]
 
     def claim(repo):
         try:
