@@ -1,0 +1,11 @@
+{
+  "uid": 10001,
+  "bundles": {
+    "yanji-contracts.json": "3be5fa0b00bb86d0f39297fcd903d2f80b00818a597449e56d17d66ed5ee13a1",
+    "yanji-research.json": "e83a111fc7029661000c5ff618373a1f5c13ebeb323ad4b87869a59d6cafcb20"
+  },
+  "contracts": 16,
+  "research_observations": 650,
+  "chromium_version": "156.0.8078.4",
+  "business_requests_executed": false
+}

@@ -1,0 +1,32 @@
+{
+  "verified_at": "2026-10-27T13:37:48.553044+08:00",
+  "server": "154.40.58.145",
+  "url": "https://test.ysspace2099.com",
+  "code_commit": "bf544e65e83ffef1edbfa3737be236b0e0b4595f",
+  "branch": "master",
+  "release": "/home/ubuntu/pytestautoapi/releases/20261027-cleanup-bf544e6",
+  "previous_release": "/home/ubuntu/pytestautoapi/releases/20261027-workbench-010909",
+  "backup": "/home/ubuntu/pytestautoapi/backups/20261027-cleanup-bf544e6",
+  "backup_method": "web/backend/MySQL停写停库后冷卷归档；两个归档SHA-256及tar目录读取核验通过",
+  "backup_protection": "directory 700; archives 600; deploy/.env 600",
+  "image": "pytestautoapi-backend:20261027-cleanup-bf544e6",
+  "image_id": "sha256:e4637b3e2d4abc612794df316cbe4444c46dc9588abbf76ac41622c65045974f",
+  "archives": {
+    "source.tar.gz": "11390843ac6fe7cd855d01e47c31e93486dafe19e6aca5c1951492ef30db32eb",
+    "frontend.tar.gz": "7c2e8ee8c692c3819ce436b349c42aaf5fed96bceaadd27bdf2b3b0c42405024"
+  },
+  "schema_revision": "0001_mysql",
+  "services_healthy": true,
+  "all_original_ids_and_content_fingerprints_preserved": true,
+  "config_preserved_except_release_tag": true,
+  "basic_auth_preserved": true,
+  "business_requests_executed": false,
+  "verification": [
+    "image-verification.json",
+    "worker-smoke.json",
+    "public-verification.json",
+    "data-preservation.json"
+  ],
+  "rollback": "上一发布目录执行 docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --no-build --wait mysql backend web，核验后恢复current链接；复用现有MySQL/附件卷，不覆盖数据库、不执行down -v。",
+  "known_issue": "扩展页320—1080px部分宽度下品牌区高度126—141px，超过100px检查阈值；无横向溢出，布局源文件本轮未修改；六个核心页面全部布局阈值通过。"
+}

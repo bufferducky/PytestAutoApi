@@ -128,7 +128,7 @@ ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 
 完整四组业务写入/恢复、隔离及W01—W04仍未全部验收，本次部署不改变这些范围事实。
 
-## 2026-10-27 个人接口工作台（当前发布）
+## 2026-10-27 个人接口工作台（历史发布）
 
 - 代码提交：`b694ce5`，已推送 `master`。
 - 当前目录：`/home/ubuntu/pytestautoapi/releases/20261027-workbench-010909`；后端镜像同名tag。
@@ -138,3 +138,15 @@ ln -sfn releases/20261025-1700 /home/ubuntu/pytestautoapi/current
 - 公网原认证保持，七页面及手机/桌面布局正常，资源SHA-256与本地构建一致，worker健康、Chromium156.0.8078.4可用。
 - 旧发布目录和镜像保留。应用回滚复用当前MySQL/附件卷，不执行down -v、不覆盖数据库备份。
 - 详细发布与验收回执：`docs/reviews/2026-10-27-workbench/`。
+
+## 2026-10-27 清理与模块命名整理（当前发布）
+
+- 代码提交：`bf544e6`，已推送 master。
+- 当前目录：`/home/ubuntu/pytestautoapi/releases/20261027-cleanup-bf544e6`；同名后端镜像tag。
+- 原目录：`/home/ubuntu/pytestautoapi/releases/20261027-workbench-010909`，目录和镜像继续保留。
+- 冷备份：`/home/ubuntu/pytestautoapi/backups/20261027-cleanup-bf544e6`，停写停库后归档MySQL与附件卷，SHA和目录可读核验通过。
+- 原环境4、场景9、套件2、调度3、运行8以及目标、身份、绑定、旅程与发布版本ID/内容指纹一致；没有重放旧任务。
+- 非root新镜像模块、16项言迹契约、650条研究观察、Chromium启动和隔离HTTP worker冒烟通过；MySQL/backend健康，schema仍为0001_mysql。
+- 公网原认证、API、静态资源hash和7页面/9宽度检查完成，0脚本错误。扩展页部分窄屏品牌区偏高作为既有遗留单独记录；无横向溢出。
+- 未执行公司业务请求或新增生产验证运行。回滚复用现有MySQL/附件卷，禁止down -v或覆盖现库。
+- 详细验收：[清理发布回执](../docs/reviews/2026-10-27-cleanup-deployment/README.md)。

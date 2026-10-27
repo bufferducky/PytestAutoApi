@@ -1,0 +1,408 @@
+{
+  "url": "https://test.ysspace2099.com",
+  "commit": "bf544e65e83ffef1edbfa3737be236b0e0b4595f",
+  "business_requests_executed": false,
+  "unauthenticated_status": 401,
+  "api": {
+    "/api/v1/health/live": {
+      "status": "ok",
+      "service": "PytestAutoApi Platform Backend",
+      "environment": "production"
+    },
+    "/api/v1/worker/status": {
+      "available": true,
+      "last_error": null,
+      "queued": 0
+    },
+    "/api/v1/runner-capabilities": {
+      "web": {
+        "playwright_installed": true,
+        "available": true,
+        "chromium_version": "156.0.8078.4"
+      },
+      "android": {
+        "appium_installed": false,
+        "adb_available": false
+      }
+    },
+    "/api/v1/regression-packs/yanji": {
+      "contracts": 16,
+      "schema_version": 1
+    }
+  },
+  "assets": [
+    {
+      "path": "/assets/index-dOF3oA1u.js",
+      "sha256": "dc0eeeeea74923aec086c0d39b2f2c02285cf5d1edaf501daee6d85784abb4ca",
+      "matches_build": true
+    },
+    {
+      "path": "/assets/index-DYG_vi4d.css",
+      "sha256": "606d6445b4aa2421f8dc075bc1fd190df243d844fa5ce1271337c0670869f752",
+      "matches_build": true
+    }
+  ],
+  "invalid_debug_status": 422,
+  "browser": {
+    "routes": 7,
+    "widths": 9,
+    "layout_checks": 63,
+    "page_errors": [],
+    "failed_api": [],
+    "checks": [
+      {
+        "width": 320,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 320,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 390,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 768,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 960,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 980,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 1080,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 1081,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 1280,
+        "route": "/extensions",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/dashboard",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/cases",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/suites",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/environments",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/runs",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/schedules",
+        "no_overflow": true
+      },
+      {
+        "width": 1440,
+        "route": "/extensions",
+        "no_overflow": true
+      }
+    ],
+    "existing_layout_warnings": [
+      {
+        "width": 320,
+        "route": "/extensions",
+        "brand_height": 126.234375,
+        "scope": "existing_non_core_page_layout"
+      },
+      {
+        "width": 390,
+        "route": "/extensions",
+        "brand_height": 126.234375,
+        "scope": "existing_non_core_page_layout"
+      },
+      {
+        "width": 768,
+        "route": "/extensions",
+        "brand_height": 141.203125,
+        "scope": "existing_non_core_page_layout"
+      },
+      {
+        "width": 960,
+        "route": "/extensions",
+        "brand_height": 141.203125,
+        "scope": "existing_non_core_page_layout"
+      },
+      {
+        "width": 980,
+        "route": "/extensions",
+        "brand_height": 141.203125,
+        "scope": "existing_non_core_page_layout"
+      },
+      {
+        "width": 1080,
+        "route": "/extensions",
+        "brand_height": 141.203125,
+        "scope": "existing_non_core_page_layout"
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "status": "succeeded",
+  "requests": 1,
+  "assertions": 1,
+  "results_survive_app_recreation": true,
+  "storage": "isolated_container_sqlite",
+  "production_database_touched": false,
+  "company_business_requests_executed": false
+}
