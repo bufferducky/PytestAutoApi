@@ -15,3 +15,6 @@
 
 ## 完成记录
 实现与本地 MySQL 0002 升级完成，三条历史补号及名称/编号搜索实点通过；全量 310 passed/11 skipped，最终受影响专项 59 passed，前端构建/可靠性/环境保护检查/Ruff 通过。三档桌面与证据展开检查见 docs/reviews/2026-10-28-run-readability。保留既有工作区改动，未提交、未发布服务器。
+
+## 154发布完成
+应用提交8e11bf8已推送，发布20261028-run-readability-8e11bf8已accept。0002冷备恢复演练/正式迁移和原内容指纹保全通过，11条历史补号；公网31项检查通过、0 warnings。详情见docs/reviews/2026-10-28-run-readability-deployment。

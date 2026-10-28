@@ -2,7 +2,7 @@
 
 日常发布到154服务器，按 [标准发布SOP](SOP.md) 执行。配套工具在 [scripts/](scripts/)，默认计划模式；本文下方保留部署背景和历史回执。
 
-2026-10-27当前版本：`20261027-frontend-ux-1a3e797`，代码提交 `1a3e797`，已提交推送并部署 Element Plus 全量工作台与使用手册。八类页面 × 1280/1440/1920px 公网验收通过，原认证、数据与接诊回归能力保留。详情见 [本次发布回执](../docs/reviews/2026-10-27-frontend-ux-deployment/README.md)。
+2026-10-28当前版本：`20261028-run-readability-8e11bf8`，应用提交 `8e11bf8`，已推送并部署运行业务名称、自增编号、名称搜索与阅读优化。数据库已按专项流程升级至 `0002_run_numbers`；冷备份恢复演练及原数据保全通过，11条历史记录补号。公网31项检查（含八类页面 × 三档桌面宽度）通过，0 warnings。详情见 [本次发布回执](../docs/reviews/2026-10-28-run-readability-deployment/README.md)。
 
 先在 `platform/frontend/` 执行 `npm ci`，再执行
 `VITE_API_BASE_URL=/api/v1 npm run build -- --mode production`。

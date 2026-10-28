@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "total_runs": 11,
+  "number_fields_are_strings": true,
+  "numbers_unique": true,
+  "snapshot_business_names_present": true
+}

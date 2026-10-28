@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "tag": "20261028-run-readability-8e11bf8",
+  "commit": "8e11bf8cec7d9333fa911cf5c9993f19b6525275",
+  "manifest_sha256": "49fc42214baea31af027ba2e590ba81b8f57f507ad2f11960c8e2713c9c00eb2",
+  "url": "https://test.ysspace2099.com",
+  "passed": true,
+  "browser_passed": true,
+  "checked_at": "2026-10-28T00:50:59.038188+00:00",
+  "checks": [
+    {
+      "name": "bundle",
+      "passed": true
+    },
+    {
+      "name": "unauthenticated_401",
+      "passed": true
+    },
+    {
+      "name": "authenticated_health",
+      "passed": true
+    },
+    {
+      "name": "worker_ready",
+      "passed": true
+    },
+    {
+      "name": "contracts_16",
+      "passed": true
+    },
+    {
+      "name": "web_runner_available",
+      "passed": true
+    },
+    {
+      "name": "static_assets",
+      "passed": true,
+      "count": 17
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/dashboard",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/cases",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/suites",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/environments",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/runs",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/schedules",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/extensions",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/manual",
+      "width": 1280
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/dashboard",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/cases",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/suites",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/environments",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/runs",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/schedules",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/extensions",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/manual",
+      "width": 1440
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/dashboard",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/cases",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/suites",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/environments",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/runs",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/schedules",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/extensions",
+      "width": 1920
+    },
+    {
+      "name": "browser_layout",
+      "passed": true,
+      "route": "/manual",
+      "width": 1920
+    }
+  ],
+  "warnings": []
+}

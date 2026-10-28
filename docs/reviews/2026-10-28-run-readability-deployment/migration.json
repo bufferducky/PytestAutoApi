@@ -1,0 +1,89 @@
+{
+  "tag": "20261028-run-readability-8e11bf8",
+  "commit": "8e11bf8cec7d9333fa911cf5c9993f19b6525275",
+  "previous": "/home/ubuntu/pytestautoapi/releases/20261027-frontend-ux-1a3e797",
+  "current": "/home/ubuntu/pytestautoapi/releases/20261028-run-readability-8e11bf8",
+  "phase": "accepted",
+  "image_id": "sha256:20415122916e79cee3a1ece6500e2bc4767460495d859a1480e0eb80d9238dd8",
+  "schema": "0002_run_numbers (head)",
+  "schema_review": {
+    "passed": true,
+    "from": "0001_mysql",
+    "to": "0002_run_numbers",
+    "existing_tables_unchanged": true,
+    "new_table": "run_numbers",
+    "migration_sha256": "bcb0ca4d6b4ee24af96dc306640760cebcaeed737acef43bf9946b8ca58aa170"
+  },
+  "backup": "/home/ubuntu/pytestautoapi/backups/20261028-run-readability-8e11bf8",
+  "backup_sha256": {
+    "mysql-data.tar.gz": "c7460931b573a23e0f6b4c7fcc8828dd5f636201030664a99ed65386de89c2bf",
+    "platform-data.tar.gz": "3f8f3cc0c236321ffcdc873477718bb0d58547e5a527acc7acdb68323e31b938"
+  },
+  "restore_original_content_equal": true,
+  "restore_migrated_content_equal": true,
+  "production_original_content_equal": true,
+  "numbering_matches_drill": true,
+  "run_numbers": {
+    "passed": true,
+    "total": 11,
+    "unique_numbers": 11,
+    "min": 1,
+    "max": 11,
+    "mapping_sha256": "5eea5b82c0623b10cd6d1b54d66494542aca111d72bdacbdde57564161d34595"
+  },
+  "counts": {
+    "bindings": 3,
+    "devices": 0,
+    "environment_details": 4,
+    "environments": 4,
+    "evaluation_datasets": 0,
+    "fixtures": 0,
+    "identities": 3,
+    "journeys": 1,
+    "media": 0,
+    "rubrics": 0,
+    "run_details": 11,
+    "runs": 11,
+    "scenarios": 20,
+    "scenarios_versions": 20,
+    "schedules": 3,
+    "suites": 3,
+    "suites_versions": 3,
+    "targets": 8
+  },
+  "worker": {
+    "available": true,
+    "last_error": null,
+    "queued": 0
+  },
+  "image_checks": {
+    "uid": 10001,
+    "bundles": {
+      "yanji-contracts.json": "3be5fa0b00bb86d0f39297fcd903d2f80b00818a597449e56d17d66ed5ee13a1",
+      "yanji-research.json": "e83a111fc7029661000c5ff618373a1f5c13ebeb323ad4b87869a59d6cafcb20"
+    },
+    "contracts": 16,
+    "research_observations": 650,
+    "chromium_version": "156.0.8078.4",
+    "business_requests_executed": false
+  },
+  "worker_smoke": {
+    "status": "succeeded",
+    "requests": 1,
+    "assertions": 1,
+    "results_survive_app_recreation": true,
+    "storage": "isolated_container_sqlite",
+    "production_database_touched": false,
+    "company_business_requests_executed": false
+  },
+  "migration_tools_sha256": {
+    "common.sh": "9ac66b37b4b14ce2fed1fd112516381a907c179964a883465eb8f20b0ea3d8bb",
+    "migration_inventory.py": "889e612174f92c9cc366ae14082759b62c8e8e4a693663b098c4cced306f0b2d",
+    "migrate.sh": "f83b80c87d46bc53d4d755247b6151eb99c58e565eb445d86bc40af1f2d662b4",
+    "build.sh": "4c84d5c549919b7c6d149263ec26a6e876d1a14bf2a24a4c0c389153f44746d2",
+    "review_schema.py": "49be10daa5172acf3c0ea05a5d7437ff3158083080e094bfb63710ee382fcb73",
+    "prepare_drill.py": "264bfd6fbc54e56281710210232f93d6218b7b99ca00cc0343ce019a2045baec",
+    "resume_after_backup.sh": "9e13ad2f1c01ec8f30418fed9c95396dc204beeef098468cfcc6ad5f8aebef8a",
+    "collect_evidence.py": "8b860e8a812fe703f6cc14d33f6c06130f480f7f5932caf34c8f2401c60144c0"
+  }
+}
