@@ -54,6 +54,7 @@ export type RunExecutionMode = 'mock' | 'live';
 
 export interface RunSummary {
   id: string;
+  runNumber?: string;
   name: string;
   target: string;
   suiteId?: string;

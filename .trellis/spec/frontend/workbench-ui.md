@@ -85,3 +85,12 @@ step.get_by_role("combobox", name="请求体类型", exact=True)
 - 运行列表 API 不支持关键词参数，当前关键词查找只过滤本页。时间筛选仍转换成带时区 ISO；不改变后端契约。
 
 真实浏览器额外回归在 `tests/backend/frontend_ux_browser_support.py`：三资产各三步、隐藏错误定位、编辑/复制/排序/删除、类型与 metadata 往返、身份多选、配置分类取消及扩展工具。可靠性脚本另验证异步确认快照和取消不发送请求。
+
+
+## 运行阅读与搜索（2026-10-28）
+- 名称使用后端冻结快照返回的 name；不把资产 ID 当标题。列表与详情最多两行，title 保留完整文字；状态列独立固定宽度。
+- `run_number` 以字符串适配为 runNumber，显示 #编号；本页查找覆盖名称、编号（含 # 前缀）、原 ID 与环境。不得转换为 Number 或用分页行号代替编号。
+- 长错误/断言通过 EvidenceValue 折叠完整内容，数据库集合差异优先显示缺失/多出/重复数量。展开区域保留全部原始脱敏证据并局部滚动。
+- 环境 auth_mode 的 value 与 label 分离，password/none 使用中文标签；历史中文或未知描述保留原值，不在展示层改变鉴权语义。
+
+编号存储、历史补号及 API 契约见 [运行展示契约](../backend/run-display-contracts.md)。

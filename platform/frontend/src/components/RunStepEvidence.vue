@@ -3,14 +3,15 @@
     <div v-if="section === 'assertions' && assertions.length" class="table-shell"><table><thead><tr><th>断言 / 规则</th><th>预期</th><th>实际</th><th>结果</th></tr></thead><tbody>
       <tr v-for="(assertion,index) in assertions" :key="index" :class="{'assertion-failed': !['passed','succeeded','success'].includes(String(assertion.status))}">
         <td>{{ assertion.name }}<small>{{ assertion.source_ref }} {{ assertion.rule_version }}</small></td>
-        <td><pre>{{ format(assertion.expected) }}</pre></td><td><pre>{{ assertion.actual_missing ? '字段缺失' : format(assertion.actual) }}</pre></td>
-        <td>{{ statusLabel(String(assertion.status)) }}<small>{{ assertion.message }}</small></td>
+        <td><EvidenceValue :value="assertion.expected" /></td><td><EvidenceValue :value="assertion.actual_missing ? '字段缺失' : assertion.actual" /></td>
+        <td>{{ statusLabel(String(assertion.status)) }}<EvidenceValue :value="assertion.message" /></td>
       </tr>
     </tbody></table></div>
 <pre v-if="section==='request' || section==='response'">{{ format(step[section]) }}</pre><pre v-if="section==='extractors'">{{ format(step.extractors || step.outputs) }}</pre><pre v-if="section==='raw'">{{ format(step) }}</pre><el-empty v-if="section==='assertions' && !assertions.length" description="未记录断言" :image-size="40" />
   </article>
 </template>
 <script setup lang="ts">
+import EvidenceValue from '@/components/common/EvidenceValue.vue';
 import { computed, ref } from 'vue';
 import { getRunStatusMeta, normalizeRunStatus } from '@/utils/runStatus';
 const props = defineProps<{step: Record<string,unknown>; failed?: boolean}>();

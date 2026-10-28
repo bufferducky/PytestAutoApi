@@ -69,6 +69,16 @@ function runtime(respond = () => { throw new TypeError('offline'); }, confirm = 
   const historical = adapters.normalizeRunSummary({ run_id: 'old', status: 'succeeded' }, 0);
   assert.equal(historical.transportMode, 'historical_unknown');
   assert.equal(historical.eligibleForRelease, false);
+  const namedRun = adapters.normalizeRunSummary({
+    run_id: 'opaque-run-id', run_number: '9007199254740993',
+    suite_id: 'opaque-asset-id', name: '言迹接诊筛选 · 只读验收',
+    status: 'succeeded', transport_mode: 'live',
+  }, 0);
+  assert.equal(namedRun.name, '言迹接诊筛选 · 只读验收');
+  assert.equal(namedRun.runNumber, '9007199254740993', 'BIGINT display numbers must not lose precision');
+  assert.equal(namedRun.id, 'opaque-run-id', 'navigation still uses the original association ID');
+  assert.equal(adapters.normalizeRunSummary({run_id:'old', suite_id:'opaque-asset-id'}, 0).name,
+    '未命名运行', 'missing historical names must not turn opaque asset IDs into titles');
 
   const api = runtime(call => {
     if (call.path === '/api/v1/dashboard/overview') return { metrics: [], focus_items: [], recent_runs: [] };

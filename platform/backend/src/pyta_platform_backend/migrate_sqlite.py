@@ -166,7 +166,7 @@ def migrate(source, artifact_root, engine, *, apply=False):
     with engine.begin() as conn:
         if not inspect(conn).has_table("alembic_version") or conn.execute(
             text("SELECT version_num FROM alembic_version")
-        ).scalars().all() != ["0001_mysql"]:
+        ).scalars().all() != ["0002_run_numbers"]:
             report["errors"].append({"issue": "target_requires_alembic_upgrade"})
             raise MigrationError(report)
         if engine.dialect.name == "mysql":
@@ -230,6 +230,20 @@ def migrate(source, artifact_root, engine, *, apply=False):
                 conn.execute(
                     ledger.insert().values(id=ledger_id, source_hash=ledger_id, data_json=report)
                 )
+            # 历史导入不改变旧 run_id，同时为新增历史记录分配稳定展示编号。
+            numbers = metadata.tables["run_numbers"]
+            runs = metadata.tables["runs"]
+            missing = (
+                conn.execute(
+                    select(runs.c.run_id)
+                    .where(~runs.c.run_id.in_(select(numbers.c.run_id)))
+                    .order_by(runs.c.created_at, runs.c.run_id)
+                )
+                .scalars()
+                .all()
+            )
+            for run_id in missing:
+                conn.execute(numbers.insert().values(run_id=run_id))
     report["applied"] = apply
     return report
 

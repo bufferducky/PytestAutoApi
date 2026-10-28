@@ -48,6 +48,7 @@ class RunRecord:
     finished_at: Optional[datetime] = None
     status_message: Optional[str] = None
     execution: dict = field(default_factory=dict)
+    run_number: Optional[int] = None
 
 
 def utcnow():
@@ -58,6 +59,7 @@ class InMemoryRunRepository:
     def __init__(self):
         self._records = {}
         self._lock = RLock()
+        self._next_run_number = 1
 
     @contextmanager
     def _transaction(self):
@@ -65,6 +67,9 @@ class InMemoryRunRepository:
             yield
 
     def _save(self, record):
+        if record.run_number is None:
+            record.run_number = self._next_run_number
+            self._next_run_number += 1
         self._records[record.run_id] = deepcopy(record)
 
     def get_by_id(self, run_id):
@@ -329,6 +334,8 @@ class InMemoryRunRepository:
         )
         return RunSummaryResponse(
             run_id=record.run_id,
+            run_number=str(record.run_number) if record.run_number is not None else None,
+            name=p.get("run_definition", {}).get("name") or None,
             suite_id=record.suite_id,
             environment_id=record.environment_id,
             environment_name=record.environment_name,
@@ -403,6 +410,12 @@ class SqlRunRepository(InMemoryRunRepository):
             yield
 
     def _save(self, r):
+        # 调用方已取得统一写事务；编号与 run/outbox 一起提交，幂等重试不重新编号。
+        if r.run_number is None:
+            self._connection.upsert("run_numbers", {"run_id": r.run_id}, ignore=True)
+            r.run_number = self._connection.execute(
+                "SELECT number FROM run_numbers WHERE run_id=?", (r.run_id,)
+            ).fetchone()[0]
         values = {
             "run_id": r.run_id,
             "suite_id": r.suite_id,
@@ -510,7 +523,9 @@ class SqlRunRepository(InMemoryRunRepository):
     def get_by_id(self, run_id):
         with self._lock:
             row = self._connection.execute(
-                "SELECT * FROM runs WHERE run_id=?", (run_id,)
+                "SELECT runs.*, run_numbers.number AS run_number FROM runs "
+                "LEFT JOIN run_numbers ON runs.run_id=run_numbers.run_id WHERE runs.run_id=?",
+                (run_id,),
             ).fetchone()
             return self._row_to_record(row) if row else None
 
@@ -519,7 +534,10 @@ class SqlRunRepository(InMemoryRunRepository):
         # 此入口本来就读取全部记录，按与内存仓储相同的时间键在应用侧排序。
         records = [
             self._row_to_record(row)
-            for row in self._connection.execute("SELECT * FROM runs").fetchall()
+            for row in self._connection.execute(
+                "SELECT runs.*, run_numbers.number AS run_number FROM runs "
+                "LEFT JOIN run_numbers ON runs.run_id=run_numbers.run_id"
+            ).fetchall()
         ]
         return sorted(records, key=lambda record: record.created_at, reverse=True)
 
@@ -527,6 +545,7 @@ class SqlRunRepository(InMemoryRunRepository):
     def _row_to_record(row):
         return RunRecord(
             run_id=row["run_id"],
+            run_number=row.get("run_number"),
             suite_id=row["suite_id"],
             environment_id=row["environment_id"],
             environment_name=row["environment_name"],

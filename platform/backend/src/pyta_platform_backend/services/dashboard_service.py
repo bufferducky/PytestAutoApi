@@ -67,7 +67,8 @@ class DashboardService:
         recent_runs = [
             DashboardRecentRunResponse(
                 id=item.run_id,
-                name=f"运行 {item.run_id[:8]}",
+                name=item.name or "未命名运行",
+                run_number=item.run_number,
                 target=item.suite_id,
                 status=self._map_run_status(item.status),
                 started_at=self._format_time(item.started_at or item.created_at),

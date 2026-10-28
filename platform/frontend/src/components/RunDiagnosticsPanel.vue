@@ -6,19 +6,19 @@
     <el-button native-type="button" v-if="diagnostic" @click="copySummary">复制脱敏问题摘要</el-button>
     <p v-if="notice" class="state-banner state-banner--info">{{ notice }}</p>
     <template v-if="diagnostic">
-      <p>状态 {{ statusLabel(diagnostic.status) }} · {{ diagnostic.transport_mode }} / {{ diagnostic.validation_scope }} · 清理 {{ diagnostic.cleanup_status }}</p>
-      <p>运行 {{ diagnostic.run_id }} / attempt {{ diagnostic.attempt_id || '历史未记录' }}；证据 {{ diagnostic.evidence_completeness }}</p>
-      <p>环境 {{ diagnostic.environment_name || diagnostic.environment_id || '未绑定' }}；触发 {{ diagnostic.trigger_source }}</p>
-      <p>版本 {{ JSON.stringify(diagnostic.asset_ref || diagnostic.scenario_refs) }}</p>
-      <div class="counts"><span v-for="(value,key) in diagnostic.counts" :key="key">{{ key }}：{{ value }}</span></div>
+      <p>状态 {{ statusLabel(diagnostic.status) }} · {{ evidenceLabel(diagnostic.transport_mode) }}<template v-if="diagnostic.validation_scope !== diagnostic.transport_mode"> / {{ evidenceLabel(diagnostic.validation_scope) }}</template> · 清理 {{ evidenceLabel(diagnostic.cleanup_status) }}</p>
+      <p>证据 {{ evidenceLabel(diagnostic.evidence_completeness) }}</p><details><summary>运行与执行标识</summary><p>运行 ID：{{ diagnostic.run_id }}</p><p>执行 ID：{{ diagnostic.attempt_id || '历史未记录' }}</p></details>
+      <p>环境 {{ diagnostic.environment_name || diagnostic.environment_id || '未绑定' }}；触发 {{ evidenceLabel(diagnostic.trigger_source) }}</p>
+      <details><summary>资产版本与指纹</summary><pre>{{ JSON.stringify(diagnostic.asset_ref || diagnostic.scenario_refs, null, 2) }}</pre></details>
+      <div class="counts"><span v-for="(value,key) in diagnostic.counts" :key="key">{{ evidenceLabel(String(key)) }}：{{ value }}</span></div>
       <aside v-if="diagnostic.first_failure" class="state-banner state-banner--error">
-        <strong>首次失败：{{ diagnostic.first_failure.category }} / {{ diagnostic.first_failure.case_id || '运行级' }}</strong>
-        <p>{{ diagnostic.first_failure.message }}</p><p>下一步：{{ diagnostic.first_failure.next_action }}</p>
+        <strong>首次失败：{{ evidenceLabel(diagnostic.first_failure.category) }} / {{ diagnostic.first_failure.case_id || '运行级' }}</strong>
+        <EvidenceValue :value="diagnostic.first_failure.message" :summary="failureSummary(diagnostic.first_failure)" /><p>下一步：{{ diagnostic.first_failure.next_action }}</p>
       </aside>
       <h4>步骤证据 · 失败优先</h4><ol>
         <li v-for="item in orderedTimeline" :key="item.case_id"><details :open="isFailure(item.status)"><summary>{{ item.title }} · {{ statusLabel(item.status) }}</summary>
-          <h4>{{ item.phase }} · {{ item.title }} · {{ statusLabel(item.status) }}</h4>
-          <p>{{ item.category }}：{{ item.message }}；{{ item.next_action }}</p>
+          <h4>{{ evidenceLabel(item.phase) }} · {{ item.title }} · {{ statusLabel(item.status) }}</h4>
+          <p>{{ evidenceLabel(item.category) }} · {{ item.next_action }}</p><EvidenceValue :value="item.message" :summary="failureSummary(item)" />
           <p v-if="item.depends_on.length">依赖：{{ item.depends_on.join(', ') }}</p>
           <RunStepEvidence v-for="(step,index) in item.steps" :key="index" :step="step" :failed="isFailure(item.status)" />
           </details>
@@ -46,6 +46,8 @@
   </section>
 </template>
 <script setup lang="ts">
+import EvidenceValue from '@/components/common/EvidenceValue.vue';
+import { evidenceLabel } from '@/utils/evidenceLabels';
 import HelpHint from '@/components/common/HelpHint.vue';
 import RunStepEvidence from '@/components/RunStepEvidence.vue';
 import { getRunStatusMeta, normalizeRunStatus } from '@/utils/runStatus';
@@ -67,6 +69,16 @@ const props=defineProps<{runId:string}>();
 const diagnostic=ref<Diagnostic | null>(null), error=ref(''), notice=ref(''), otherRunId=ref(''), comparison=ref('');
 const loading=ref(false);
 const orderedTimeline=computed(()=>[...(diagnostic.value?.timeline || [])].sort((a,b)=>Number(isFailure(b.status))-Number(isFailure(a.status))));
+function failureSummary(failure: Failure): string | undefined {
+  const item = diagnostic.value?.timeline.find(item => item.case_id === failure.case_id);
+  const assertion = item?.steps.flatMap(step => step.assertions || []).find(assertion => isFailure(assertion.status));
+  const actual = assertion?.actual;
+  if (!actual || typeof actual !== 'object' || Array.isArray(actual)) return undefined;
+  const labels: Record<string, string> = { missing_ids: '缺失', extra_ids: '多出', duplicate_ids: '重复', problems: '异常' };
+  const counts = Object.entries(actual).filter(([key, value]) => key in labels && Array.isArray(value));
+  if (!counts.length) return undefined;
+  return `${assertion?.name}：` + counts.map(([key, value]) => `${labels[key]} ${Array.isArray(value) ? value.length : 0} 项`).join('；');
+}
 const attachment=ref('{}'),stepId=ref('');let openedAt=new Date().toISOString(),generation=0;
 async function load() { const mine=++generation; error.value=''; loading.value=true;
   try { const result=await apiClient.get<Diagnostic>(`/runs/${props.runId}/diagnostics`); if(mine===generation) diagnostic.value=result; }

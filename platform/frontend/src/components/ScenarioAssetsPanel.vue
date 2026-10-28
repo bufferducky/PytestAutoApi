@@ -323,7 +323,7 @@ const filteredAssets = computed(() => {
   return assets.value.filter(item => [item.draft.name, item.id, ...(item.draft.tags || [])].join(' ').toLocaleLowerCase().includes(query));
 });
 // 切换资产和新建都可能丢失编辑中的草稿，统一在入口确认。
-async function canLeaveDraft() { return !dirty.value || await confirmAction('有未保存的修改，确认放弃并切换草稿？'); }
+async function canLeaveDraft() { return !dirty.value || await confirmAction('有未保存的修改，确认放弃并继续操作？'); }
 async function createDraft() { if (!busy.value && await canLeaveDraft()) newDraft(); }
 async function chooseAsset(asset: Asset) { if (asset.id === selected.value?.id || !(await canLeaveDraft())) return; await action(() => select(asset)); }
 

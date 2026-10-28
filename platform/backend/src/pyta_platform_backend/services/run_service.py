@@ -113,6 +113,7 @@ class RunService:
         )
         return CreateRunResponse(
             run_id=record.run_id,
+            run_number=str(record.run_number) if record.run_number is not None else None,
             status=record.status,
             dispatch_channel=self._dispatcher.channel_name,
             environment_id=record.environment_id,

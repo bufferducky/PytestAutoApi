@@ -1,6 +1,6 @@
 """平台 schema 的唯一声明；生产升级通过 Alembic，而不是仓储启动建表。"""
 
-from sqlalchemy import JSON, Column, Index, Integer, MetaData, String, Table, Text
+from sqlalchemy import JSON, BigInteger, Column, Index, Integer, MetaData, String, Table, Text
 
 metadata = MetaData()
 # ID 使用二进制排序，避免 MySQL 默认不区分大小写导致历史 ID 合并。
@@ -40,6 +40,15 @@ runs = table(
 )
 Index("idx_runs_created_at", runs.c.created_at)
 Index("idx_runs_status", runs.c.status, runs.c.created_at)
+# 展示编号独立于关联 ID；删除运行也不回收编号，避免旧链接/证据引用迁移。
+run_numbers = table(
+    "run_numbers",
+    Column(
+        "number", BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    ),
+    ident("run_id", nullable=False, unique=True),
+    sqlite_autoincrement=True,
+)
 environments = table(
     "environments",
     ident(primary_key=True),

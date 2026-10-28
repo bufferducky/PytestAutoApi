@@ -72,7 +72,7 @@ class Store:
                 if not inspect(conn).has_table("alembic_version"):
                     raise RuntimeError("MySQL schema 未升级，请先执行 Alembic upgrade head")
                 revision = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-                if revision != "0001_mysql":
+                if revision != "0002_run_numbers":
                     raise RuntimeError("MySQL schema 版本不兼容，请先执行 Alembic upgrade head")
 
     @property

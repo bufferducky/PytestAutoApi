@@ -1,0 +1,98 @@
+[
+  {
+    "clientWidth": 1265,
+    "documentWidth": 1265,
+    "scrollY": 0,
+    "titles": [
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊 · 页面默认录音筛选"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 25.5,
+        "lineHeight": "25.5px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      }
+    ],
+    "width": 1280
+  },
+  {
+    "clientWidth": 1425,
+    "documentWidth": 1425,
+    "scrollY": 0,
+    "titles": [
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊 · 页面默认录音筛选"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 25.5,
+        "lineHeight": "25.5px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      }
+    ],
+    "width": 1440
+  },
+  {
+    "clientWidth": 1905,
+    "documentWidth": 1905,
+    "scrollY": 0,
+    "titles": [
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊 · 页面默认录音筛选"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 21,
+        "lineHeight": "21px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      },
+      {
+        "clamp": "2",
+        "height": 25.5,
+        "lineHeight": "25.5px",
+        "text": "言迹接诊筛选 · 真实只读验收"
+      }
+    ],
+    "width": 1920
+  }
+]

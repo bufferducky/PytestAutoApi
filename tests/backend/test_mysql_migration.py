@@ -72,7 +72,7 @@ def setup(tmp_path):
     metadata.create_all(engine)
     with engine.begin() as conn:
         conn.execute(text("CREATE TABLE alembic_version(version_num TEXT PRIMARY KEY)"))
-        conn.execute(text("INSERT INTO alembic_version VALUES ('0001_mysql')"))
+        conn.execute(text("INSERT INTO alembic_version VALUES ('0002_run_numbers')"))
     return source, root, engine
 
 

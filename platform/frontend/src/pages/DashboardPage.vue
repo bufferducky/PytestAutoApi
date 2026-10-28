@@ -22,7 +22,7 @@
       <ContentPanel title="失败待处理" description="最近失败与异常，独立于最近运行列表查询。点击查看诊断。">
         <div v-if="failedRuns.length" class="work-list">
           <RouterLink v-for="run in failedRuns" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
-            <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.errorSummary || run.note || run.startedAt }}</small></span><StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
+            <span class="work-row__body"><strong :title="run.name">{{ run.name }}</strong><small>{{ run.runNumber ? `#${run.runNumber} · ` : '' }}{{ run.errorSummary || run.note || run.startedAt }}</small></span><StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
           </RouterLink>
         </div>
         <p v-else class="empty-copy">{{ loading ? '正在检查运行…' : '暂无失败与异常记录。' }}</p>
@@ -31,7 +31,7 @@
     <ContentPanel title="最近运行" description="保留历史结果标识，点击进入执行详情。">
       <div v-if="overview.recentRuns.length" class="work-list">
         <RouterLink v-for="run in overview.recentRuns.slice(0, 6)" :key="run.id" class="work-row" :to="{ path: '/runs', query: { runId: run.id } }">
-          <span class="work-row__body"><strong>{{ run.name }}</strong><small>{{ run.startedAt }} · {{ run.duration }}</small></span>
+          <span class="work-row__body"><strong :title="run.name">{{ run.name }}</strong><small>{{ run.runNumber ? `#${run.runNumber} · ` : '' }}{{ run.startedAt }} · {{ run.duration }}</small></span>
           <StatusTag :label="runLabel(run)" :tone="getRunStatusMeta(run.status).tone" />
         </RouterLink>
       </div>
@@ -107,4 +107,8 @@ small { color: var(--color-ink-subtle); font-size: 11px; }
 .work-row small { display: block; margin-top: 3px; }
 @media (max-width: 760px) { .workbench-grid { grid-template-columns: minmax(0, 1fr); } .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 360px) { .metrics-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<style scoped>
+.work-row__body strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; }
 </style>

@@ -12,7 +12,7 @@
           </el-button>
         </template>
 
-<form class="run-filters common-run-filters" @submit.prevent="applyFilters">          <label><span class="field-caption"><span>环境</span><HelpHint topic="filterEnvironment" /></span><UiSelect v-model="serverFilters.environment_id" aria-label="环境"><option value="">全部环境</option><option v-for="item in environments" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>终态</span><HelpHint topic="runStatus" /></span><UiSelect v-model="serverFilters.status" aria-label="终态"><option value="">全部</option><option v-for="state in ['queued','running','succeeded','failed','error','blocked','skipped','cancelled','timed_out','interrupted']" :key="state" :value="state">{{ getRunStatusMeta(normalizeRunStatus(state)).label }}</option></UiSelect></label><el-button native-type="submit" type="primary" :disabled="loading">筛选</el-button></form><label>当前页查找<UiInput v-model="runSearch" aria-label="当前页查找" placeholder="名称、环境或运行 ID（仅当前页）" /></label><details class="run-filter-panel"><summary>更多筛选与趋势条件</summary><form class="run-filters" @submit.prevent="applyFilters">          <label><span class="field-caption"><span>目标</span><HelpHint topic="filterTarget" /></span><UiSelect v-model="serverFilters.target_id" aria-label="目标"><option value="">全部目标</option><option v-for="item in targets" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>被测构建</span><HelpHint topic="filterBuild" /></span><UiInput v-model="serverFilters.build" aria-label="被测构建"  /></label>          <label><span class="field-caption"><span>历史模式筛选</span><HelpHint topic="transport" /></span><UiSelect v-model="serverFilters.transport_mode" aria-label="历史模式筛选"><option value="">全部（统计分开）</option><option value="live">真实</option><option value="mock">模拟</option></UiSelect></label>          <label><span class="field-caption"><span>场景</span><HelpHint topic="filterScenario" /></span><UiSelect v-model="serverFilters.scenario_id" aria-label="场景"><option value="">全部场景</option><option v-for="item in scenarios" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>发布版本</span><HelpHint topic="filterVersion" /></span><UiSelect v-model="serverFilters.scenario_version" :disabled="!serverFilters.scenario_id || versionsLoading" aria-label="发布版本"><option value="">{{ versionsLoading ? '正在加载版本…' : serverFilters.scenario_id ? '全部发布版本' : '请先选择场景' }}</option><option v-for="item in scenarioVersions" :key="item.version" :value="String(item.version)">v{{ item.version }}{{ item.change_note ? ' · ' + item.change_note : '' }}</option></UiSelect></label>          <label><span class="field-caption"><span>错误类型</span><HelpHint topic="errorCategory" /></span><UiSelect v-model="serverFilters.category" aria-label="错误类型"><option value="">全部</option><option v-for="(label,kind) in errorCategoryLabels" :key="kind" :value="kind">{{ label }}</option></UiSelect></label>          <label><span class="field-caption"><span>开始时间（本地时区）</span><HelpHint topic="isoTime" /></span><UiInput v-model="serverFilters.since" type="datetime-local" aria-label="开始时间（本地时区）"  /></label>          <label><span class="field-caption"><span>结束时间（本地时区）</span><HelpHint topic="isoTime" /></span><UiInput v-model="serverFilters.until" type="datetime-local" aria-label="结束时间（本地时区）"  /></label><el-button native-type="submit" :disabled="loading">按真实条件筛选</el-button></form></details>        <div class="run-pagination"><p>共 {{ totalRuns }} 条；当前第 {{ Math.floor(pageOffset / 20) + 1 }} 页</p>
+<form class="run-filters common-run-filters" @submit.prevent="applyFilters">          <label><span class="field-caption"><span>环境</span><HelpHint topic="filterEnvironment" /></span><UiSelect v-model="serverFilters.environment_id" aria-label="环境"><option value="">全部环境</option><option v-for="item in environments" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>终态</span><HelpHint topic="runStatus" /></span><UiSelect v-model="serverFilters.status" aria-label="终态"><option value="">全部</option><option v-for="state in ['queued','running','succeeded','failed','error','blocked','skipped','cancelled','timed_out','interrupted']" :key="state" :value="state">{{ getRunStatusMeta(normalizeRunStatus(state)).label }}</option></UiSelect></label><el-button native-type="submit" type="primary" :disabled="loading">筛选</el-button></form><label>当前页查找<UiInput v-model="runSearch" aria-label="当前页查找" placeholder="名称、编号、环境或运行 ID（仅当前页）" /></label><details class="run-filter-panel"><summary>更多筛选与趋势条件</summary><form class="run-filters" @submit.prevent="applyFilters">          <label><span class="field-caption"><span>目标</span><HelpHint topic="filterTarget" /></span><UiSelect v-model="serverFilters.target_id" aria-label="目标"><option value="">全部目标</option><option v-for="item in targets" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>被测构建</span><HelpHint topic="filterBuild" /></span><UiInput v-model="serverFilters.build" aria-label="被测构建"  /></label>          <label><span class="field-caption"><span>历史模式筛选</span><HelpHint topic="transport" /></span><UiSelect v-model="serverFilters.transport_mode" aria-label="历史模式筛选"><option value="">全部（统计分开）</option><option value="live">真实</option><option value="mock">模拟</option></UiSelect></label>          <label><span class="field-caption"><span>场景</span><HelpHint topic="filterScenario" /></span><UiSelect v-model="serverFilters.scenario_id" aria-label="场景"><option value="">全部场景</option><option v-for="item in scenarios" :key="item.id" :value="item.id">{{ item.name }}</option></UiSelect></label>          <label><span class="field-caption"><span>发布版本</span><HelpHint topic="filterVersion" /></span><UiSelect v-model="serverFilters.scenario_version" :disabled="!serverFilters.scenario_id || versionsLoading" aria-label="发布版本"><option value="">{{ versionsLoading ? '正在加载版本…' : serverFilters.scenario_id ? '全部发布版本' : '请先选择场景' }}</option><option v-for="item in scenarioVersions" :key="item.version" :value="String(item.version)">v{{ item.version }}{{ item.change_note ? ' · ' + item.change_note : '' }}</option></UiSelect></label>          <label><span class="field-caption"><span>错误类型</span><HelpHint topic="errorCategory" /></span><UiSelect v-model="serverFilters.category" aria-label="错误类型"><option value="">全部</option><option v-for="(label,kind) in errorCategoryLabels" :key="kind" :value="kind">{{ label }}</option></UiSelect></label>          <label><span class="field-caption"><span>开始时间（本地时区）</span><HelpHint topic="isoTime" /></span><UiInput v-model="serverFilters.since" type="datetime-local" aria-label="开始时间（本地时区）"  /></label>          <label><span class="field-caption"><span>结束时间（本地时区）</span><HelpHint topic="isoTime" /></span><UiInput v-model="serverFilters.until" type="datetime-local" aria-label="结束时间（本地时区）"  /></label><el-button native-type="submit" :disabled="loading">按真实条件筛选</el-button></form></details>        <div class="run-pagination"><p>共 {{ totalRuns }} 条；当前第 {{ Math.floor(pageOffset / 20) + 1 }} 页</p>
 <el-pagination size="small" layout="prev, pager, next" :total="totalRuns" :page-size="20" :current-page="Math.floor(pageOffset/20)+1" :disabled="loading" @current-change="(page: number)=>{pageOffset=(page-1)*20;reloadRuns()}" />
         <span class="action-help"><el-button native-type="button" @click="loadTrends" :disabled="!serverFilters.environment_id || !serverFilters.transport_mode || !serverFilters.scenario_id || !serverFilters.scenario_version">查看固定维度趋势</el-button><HelpHint topic="trend" /></span></div>
         <JsonResult v-if="trendResult" :value="trendResult" title="固定维度趋势" />
@@ -28,8 +28,8 @@
         </div>
 
 <el-table :data="visibleRuns" row-key="id" highlight-current-row :current-row-key="selectedRunId" :row-class-name="({row}: {row: RunSummary}) => row.id === selectedRunId ? 'run-row run-row--selected' : 'run-row'" @row-click="(row: RunSummary) => selectRun(row.id)" empty-text="当前页没有匹配记录" max-height="620">
-          <el-table-column label="运行" min-width="180"><template #default="{row}"><el-button class="run-select" native-type="button" text @click.stop="selectRun(row.id)">{{ row.name }}</el-button><small class="run-list-meta">{{ row.environmentLabel || '未绑定环境' }} · {{ row.startedAt }}</small><small class="run-list-meta">{{ isDebugRun(row) ? '草稿调试' : row.transportMode === 'live' ? '真实测试' : '历史记录' }}</small></template></el-table-column>
-          <el-table-column label="状态" width="130"><template #default="{row}"><StatusTag :label="runStatusLabel(row)" :tone="getRunStatusMeta(row.status).tone" /></template></el-table-column>
+          <el-table-column label="运行" min-width="180"><template #default="{row}"><el-button class="run-select" native-type="button" text @click.stop="selectRun(row.id)"><span class="run-title" :title="row.name">{{ row.name }}</span></el-button><small class="run-list-meta">{{ row.runNumber ? `运行 #${row.runNumber}` : `运行 ${row.id.slice(0, 8)}` }}</small><small class="run-list-meta">{{ row.environmentLabel || '未绑定环境' }} · {{ row.startedAt }}</small><small class="run-list-meta">{{ isDebugRun(row) ? '草稿调试' : row.transportMode === 'live' ? '真实测试' : '历史记录' }}</small></template></el-table-column>
+          <el-table-column label="状态" width="100"><template #default="{row}"><StatusTag :label="runStatusLabel(row)" :tone="getRunStatusMeta(row.status).tone" /></template></el-table-column>
         </el-table>
       </ContentPanel>
 
@@ -60,12 +60,13 @@
 
         <p v-if="detailErrorMessage" role="alert" class="state-banner state-banner--error">{{ detailErrorMessage }}（已有结果保留，可能不是最新）</p>
         <div v-if="selectedRun" class="detail-stack">
-          <header class="detail-hero__header"><h3>{{ selectedRun.name }}</h3><StatusTag :label="runStatusLabel(selectedRun)" :tone="getRunStatusMeta(selectedRun.status).tone" /></header>
+          <header class="detail-hero__header"><h3 class="run-detail-title" :title="selectedRun.name">{{ selectedRun.name }}</h3><StatusTag :label="runStatusLabel(selectedRun)" :tone="getRunStatusMeta(selectedRun.status).tone" /></header>
+          <div class="run-identity"><span>{{ selectedRun.runNumber ? `运行 #${selectedRun.runNumber}` : '历史运行' }}</span><el-button native-type="button" text @click="copyRunId">复制完整运行 ID</el-button><span v-if="copiedRunId === selectedRun.id" role="status">已复制</span></div>
           <p v-if="isDebugRun(selectedRun)" class="state-banner state-banner--info">草稿调试 · 独立快照，不作为正式回归或发布证据。</p>
 <el-tabs v-model="resultTab" aria-label="结果分组"><el-tab-pane v-for="tab in resultTabs" :key="tab.key" :name="tab.key" :label="tab.label" /></el-tabs><el-button v-if="['queued','running'].includes(selectedRun.status)" native-type="button" @click="cancelSelected">请求取消</el-button>          <section v-show="resultTab === 'overview'" class="detail-section">
             <p>目标 {{ selectedRun.target }} · 触发人 {{ selectedRun.starter }}</p><p>{{ selectedRun.environmentLabel || '未绑定环境' }} · {{ selectedRun.startedAt }} · {{ selectedRun.duration }}</p>
             <p>{{ selectedRunDetail?.statusMessage || selectedRun.errorSummary || selectedRunInsight?.summary }}</p>
-            <p>验证范围：{{ selectedRunDetail?.validationScope || '历史未记录' }} · 清理：{{ selectedRunDetail?.cleanupStatus || '未记录' }}</p>
+            <p>验证范围：{{ evidenceLabel(selectedRunDetail?.validationScope || 'historical_unknown') }} · 清理：{{ evidenceLabel(selectedRunDetail?.cleanupStatus || 'not_recorded') }}</p>
             <p>{{ isDebugRun(selectedRun) ? '调试证据不计正式回归' : selectedRunDetail?.eligibleForRelease ? '当前断言/清理完整，发布仍以固定构建报告为准' : '证据不完整或尚未验证' }}</p>
             <details><summary>运行快照与原始结果</summary><pre>{{ selectedPayloadJson }}</pre><pre>{{ JSON.stringify(selectedRunDetail?.results || [], null, 2) }}</pre></details>
           </section>
@@ -86,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import { evidenceLabel } from '@/utils/evidenceLabels';
 import HelpHint from '@/components/common/HelpHint.vue';
 import JsonResult from '@/components/common/JsonResult.vue';
 import RunDiagnosticsPanel from '@/components/RunDiagnosticsPanel.vue';
@@ -125,7 +127,17 @@ const router = useRouter();
 
 const runs = ref<RunSummary[]>([]);
 const runSearch=ref('');
-const visibleRuns=computed(()=>runs.value.filter(run=>[run.name,run.id,run.environmentLabel].join(' ').toLowerCase().includes(runSearch.value.toLowerCase())));
+const copiedRunId = ref('');
+async function copyRunId() {
+  const id = selectedRunId.value;
+  try {
+    await navigator.clipboard.writeText(id);
+    copiedRunId.value = id;
+  } catch (error) {
+    detailErrorMessage.value = resolveApiErrorMessage(error, '复制运行 ID 失败');
+  }
+}
+const visibleRuns=computed(()=>runs.value.filter(run=>[run.name,run.runNumber,run.runNumber ? `#${run.runNumber}` : undefined,run.id,run.environmentLabel].join(' ').toLowerCase().includes(runSearch.value.toLowerCase())));
 const resultTab = ref('steps');
 const resultTabs = [{key:'overview',label:'概览'},{key:'steps',label:'步骤证据'},{key:'resources',label:'资源'}];
 const isDebugRun = (run: RunSummary) => run.validationScope === 'debug' || run.businessScope === 'draft_debug' || ('payload' in run && isRecord(run.payload) && run.payload.run_purpose === 'debug');
@@ -1034,4 +1046,13 @@ pre { max-width:100%; max-height:28rem; overflow:auto; white-space:pre-wrap; ove
 
 <style scoped>
 .content-grid{grid-template-columns:minmax(300px,.85fr) minmax(0,1.5fr);gap:16px;align-items:start}.content-grid :deep(.panel){padding:16px}.content-grid>:first-child{position:sticky;top:12px}.common-run-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:0}.run-select{height:auto;text-align:left;justify-content:flex-start;max-width:100%;padding:4px 0}.run-select :deep(>span){white-space:normal;overflow-wrap:anywhere}.run-list-meta{display:block;font-size:11px;line-height:1.8;color:var(--color-ink-subtle);word-break:normal;overflow-wrap:anywhere}.run-pagination{gap:6px}.run-pagination p{margin:0}.detail-hero__header h3{font-size:17px;word-break:normal}.detail-stack{gap:14px}.content-grid :deep(.el-table .cell){word-break:normal;padding:8px}.content-grid :deep(.el-tag){max-width:100%;height:auto;white-space:normal;line-height:1.5;padding:4px 6px}
+</style>
+<style scoped>
+.run-select { width:100%; min-width:0; }
+.run-select :deep(>span) { display:block; min-width:0; width:100%; }
+.run-title, .run-detail-title { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; line-height:1.5; text-align:left; }
+.detail-hero__header { flex-wrap:nowrap; }
+.run-detail-title { flex:1; min-width:0; margin:0; }
+.detail-hero__header > :last-child { flex-shrink:0; }
+.run-identity { display:flex; flex-wrap:wrap; align-items:center; gap:8px; color:var(--color-ink-subtle); font-size:12px; }
 </style>

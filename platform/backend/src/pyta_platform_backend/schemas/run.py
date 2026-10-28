@@ -43,6 +43,7 @@ class CreateRunResponse(BaseModel):
     """创建 run 后返回给调用方的确认信息。"""
 
     run_id: str
+    run_number: Optional[str] = None
     status: RunStatus
     dispatch_channel: str
     environment_id: Optional[str] = None
@@ -56,6 +57,8 @@ class RunSummaryResponse(BaseModel):
     """
 
     run_id: str
+    run_number: Optional[str] = None
+    name: Optional[str] = None
     suite_id: str
     environment_id: Optional[str] = None
     environment_name: Optional[str] = None

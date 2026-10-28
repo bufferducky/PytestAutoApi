@@ -5,6 +5,8 @@
 2. 让前端首页能尽快摆脱纯 mock，接上真实后端数据。
 """
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -36,6 +38,7 @@ class DashboardRecentRunResponse(BaseModel):
 
     id: str
     name: str
+    run_number: Optional[str] = None
     target: str
     status: str
     started_at: str

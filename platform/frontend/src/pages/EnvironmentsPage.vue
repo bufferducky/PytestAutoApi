@@ -90,8 +90,9 @@
             </label>
 
             <label class="field-stack"><span class="field-caption"><span>鉴权方式</span><HelpHint topic="authMode" /></span><UiSelect v-model="formState.authMode" aria-label="鉴权方式">
-                <option v-for="item in authModeOptions" :key="item" :value="item">
-                  {{ item }}
+                <option v-if="!authModeOptions.some(item => item.value === formState.authMode)" :value="formState.authMode">{{ formState.authMode }}（历史配置）</option>
+                <option v-for="item in authModeOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
                 </option>
               </UiSelect>
             </label>
@@ -179,15 +180,18 @@ const environmentStatusLabelMap = {
 } as const;
 
 const authModeOptions = [
-  '账号密码登录 + Token 注入',
-  'Cookie + 单点登录',
-  '自定义签名插件',
-] as const;
+  { value: 'password', label: '账号密码登录 + Token 注入' },
+  { value: 'none', label: '无认证' },
+  // 旧目录以中文描述持久化，保留原值；不在展示层更改其认证语义。
+  { value: '账号密码登录 + Token 注入', label: '账号密码登录 + Token 注入（历史配置）' },
+  { value: 'Cookie + 单点登录', label: 'Cookie + 单点登录' },
+  { value: '自定义签名插件', label: '自定义签名插件' },
+];
 
 const formState = ref<CreateEnvironmentPayload>({
   name: '',
   baseUrl: '',
-  authMode: authModeOptions[0],
+  authMode: 'password',
   status: 'draft',
 });
 
@@ -210,7 +214,7 @@ const resetFormState = () => {
   formState.value = {
     name: '',
     baseUrl: '',
-    authMode: authModeOptions[0],
+    authMode: 'password',
     status: 'draft',
   };
 };
@@ -219,7 +223,7 @@ const applyFormState = (payload: UpdateEnvironmentPayload) => {
   formState.value = {
     name: payload.name ?? '',
     baseUrl: payload.baseUrl ?? '',
-    authMode: payload.authMode ?? authModeOptions[0],
+    authMode: payload.authMode ?? 'password',
     status: payload.status ?? 'draft',
   };
 };

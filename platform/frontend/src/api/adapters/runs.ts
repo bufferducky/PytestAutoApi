@@ -104,7 +104,8 @@ export const normalizeRunSummary = (payload: unknown, index: number): RunSummary
 
   return {
     id: readFirstString(payload.id, payload.run_id) || `run-${index}`,
-    name: readFirstString(payload.name, payload.title) || target || `运行 ${index + 1}`,
+    runNumber: readString(payload.run_number) || undefined,
+    name: readFirstString(payload.name, payload.title) || '未命名运行',
     target: target || '未标记目标',
     suiteId: readFirstString(payload.suite_id, payload.suiteId) || undefined,
     environmentId:
